@@ -34,35 +34,21 @@ namespace Rock.Jobs
     /// <seealso cref="Quartz.IJob" />
     [DisallowConcurrentExecution]
     [DisplayName( "Rock Update Helper" )]
-    [Description( "This job will run data migrations that need to ru." )]
+    [Description( "This job will run any post data migrations that haven't completed yet" )]
 
     [IntegerField(
         "Command Timeout",
         AttributeKey.CommandTimeout,
-        Description = "Maximum amount of time (in seconds) to wait for each SQL command to complete. On a large database, some updates could take several minutes or more.",
+        Description = "Maximum amount of time (in seconds) to wait for each SQL command to complete.",
         IsRequired = false,
         DefaultIntegerValue = 60 * 60 )]
 
-    [BooleanField(
-        "Post_V10_0_SundayDate_Migration",
-        Key = AttributeKey.Post_V10_0_SundayDate_Migration_HasCompleted,
-
-        DefaultBooleanValue = false )]
-
-    [BooleanField(
-        "Post_V12_4_InteractionIndexes_Migration_HasCompleted",
-        Key = AttributeKey.Post_V12_4_InteractionIndexes_Migration_HasCompleted,
-        DefaultBooleanValue = false )]
     public class PostUpdateDataMigrations : IJob
     {
         private static class AttributeKey
         {
             public const string CommandTimeout = "CommandTimeout";
-            public const string Post_V10_0_SundayDate_Migration_HasCompleted = "Post_V10_SundayDate_Migration_HasCompleted";
-            public const string Post_V12_4_InteractionIndexes_Migration_HasCompleted = "Post_V12_4_InteractionIndexes_Migration_HasCompleted";
         }
-
-        private int databaseCommandTimeout;
 
         /// <summary>
         /// Executes the specified context.
@@ -77,47 +63,39 @@ namespace Rock.Jobs
             var postUpdateDataMigrationsJob = new ServiceJobService( rockContext ).Get( jobId );
 
             // get the configured timeout, or default to 60 minutes if it is blank
-            databaseCommandTimeout = dataMap.GetString( AttributeKey.CommandTimeout ).AsIntegerOrNull() ?? 3600;
+            var commandTimeoutSeconds = dataMap.GetString( AttributeKey.CommandTimeout ).AsIntegerOrNull() ?? 3600;
 
-            if ( postUpdateDataMigrationsJob.GetAttributeValue( AttributeKey.Post_V10_0_SundayDate_Migration_HasCompleted ).AsBoolean() == false )
+            List<string> updatesRemaining = new List<string>();
+
+            var postUpdateTypes = Reflection.FindTypes( typeof( RockUpdate.PostUpdateMigration ) ).Values.OrderBy( a => a.Name ).ToList();
+            foreach ( var postUpdateType in postUpdateTypes )
             {
-                if ( Post_V10_0_SundayDate_Migration() )
+                var postUpdate = Activator.CreateInstance( postUpdateType ) as RockUpdate.PostUpdateMigration;
+                if ( !postUpdate.IsComplete() )
                 {
-                    postUpdateDataMigrationsJob.SetAttributeValue( AttributeKey.Post_V10_0_SundayDate_Migration_HasCompleted, true.ToTrueFalse() );
+                    var postUpdateName = Reflection.GetDescription( postUpdateType ) ?? postUpdateType.Name.SplitCase();
+                    context.UpdateLastStatusMessage( $"Running { postUpdateName }" );
+                    postUpdate.Update( commandTimeoutSeconds );
+                    if ( postUpdate.IsComplete() )
+                    {
+                        context.UpdateLastStatusMessage( $"Completed { postUpdateName }" );
+                    }
+                    else
+                    {
+                        updatesRemaining.Add( postUpdateName );
+                    }
                 }
             }
 
-            if ( postUpdateDataMigrationsJob.GetAttributeValue( AttributeKey.Post_V12_4_InteractionIndexes_Migration_HasCompleted ).AsBoolean() == false )
+            if ( !updatesRemaining.Any() )
             {
-                if ( Post_V12_4_InteractionIndexes_Migration() )
-                {
-                    postUpdateDataMigrationsJob.SetAttributeValue( AttributeKey.Post_V12_4_InteractionIndexes_Migration_HasCompleted, true.ToTrueFalse() );
-                }
+                context.UpdateLastStatusMessage( "All Updates completed" );
             }
-
-            postUpdateDataMigrationsJob.SaveAttributeValues();
+            else
+            {
+                context.UpdateLastStatusMessage( $"{updatesRemaining.Count()} Updates remaining" );
+            }
         }
 
-
-        private bool Post_V12_4_InteractionIndexes_Migration()
-        {
-            var rockContext = new RockContext();
-            rockContext.Database.CommandTimeout = databaseCommandTimeout;
-
-            // some run-twice-safe data migration ...
-
-            return true;
-        }
-
-
-        private bool Post_V10_0_SundayDate_Migration()
-        {
-            var rockContext = new RockContext();
-            rockContext.Database.CommandTimeout = databaseCommandTimeout;
-
-            // some run-twice-safe data migration ...
-
-            return true;
-        }
     }
 }

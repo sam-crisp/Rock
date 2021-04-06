@@ -642,6 +642,10 @@
     <Compile Include="Lava\RockLiquid\Shortcodes\ScheduledContent.cs" />
     <Compile Include="Lava\RockLiquid\Shortcodes\Scripturize.cs" />
     <Compile Include="Lava\WebsiteLavaShortcodeProvider.cs" />
+    <Compile Include="RockUpdate\PostUpdateMigration.cs" />
+    <Compile Include="RockUpdate\PostUpdateMigrationKey.cs" />
+    <Compile Include="RockUpdate\PostUpdate_v10_4_SundayDate.cs" />
+    <Compile Include="SystemKey\RockPostUpdateMigration.cs" />
     <Compile Include="Tasks\AddCommunicationRecipients.cs" />
     <Compile Include="Tasks\AddNewMetaphones.cs" />
     <Compile Include="Tasks\AddPageRenameInteraction.cs" />
