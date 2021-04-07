@@ -6,7 +6,8 @@
         <asp:Panel ID="pnlView" runat="server" CssClass="panel panel-block">
 
             <div class="panel-heading ">
-                <h1 class="panel-title"><i class="fas fa-play-circle"></i> <asp:Literal ID="lActionTitle" runat="server" /></h1>
+                <h1 class="panel-title"><i class="fas fa-play-circle"></i>
+                    <asp:Literal ID="lActionTitle" runat="server" /></h1>
 
                 <div class="panel-labels">
                     <Rock:HighlightLabel ID="hlInactive" runat="server" LabelType="Danger" Text="Inactive" />
@@ -23,11 +24,6 @@
                     <div class="row margin-b-lg">
                         <div class="col-md-12">
                             <asp:Literal ID="lDescription" runat="server" />
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-12">
-                            <asp:Literal ID="lblMainDetails" runat="server" />
                         </div>
                     </div>
                     <div class="actions">
