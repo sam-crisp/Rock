@@ -35,16 +35,16 @@ namespace RockWeb.Blocks.Cms
     /// <summary>
     /// 
     /// </summary>
-    [DisplayName( "Media Folder List" )]
+    [DisplayName( "Media Element List" )]
     [Category( "CMS" )]
-    [Description( "List Media Folders" )]
+    [Description( "List Media Elements" )]
 
     [LinkedPage(
         "Detail Page",
         Key = AttributeKey.DetailPage,
         Order = 0 )]
 
-    public partial class MediaFolderList : RockBlock, ICustomGridColumns
+    public partial class MediaElementList : RockBlock, ICustomGridColumns
     {
         #region Attribute Keys
 
@@ -67,6 +67,7 @@ namespace RockWeb.Blocks.Cms
         {
             public const string MediaAccountId = "MediaAccountId";
             public const string MediaFolderId = "MediaFolderId";
+            public const string MediaElementId = "MediaElementId";
         }
 
         #endregion Page Parameter Keys
@@ -88,7 +89,7 @@ namespace RockWeb.Blocks.Cms
 
         #region Private Variables
 
-        private MediaAccount _mediaAccount = null;
+        private MediaFolder _mediaFolder = null;
 
         #endregion
 
@@ -102,45 +103,31 @@ namespace RockWeb.Blocks.Cms
         {
             base.OnInit( e );
 
-            _mediaAccount = GetMediaAccount();
-            if ( _mediaAccount != null )
+            _mediaFolder = GetMediaFolder();
+            if ( _mediaFolder != null )
             {
                 var mediaAccountComponent = GetMediaAccountComponent();
                 // Block Security and special attributes (RockPage takes care of View)
                 bool canAddEditDelete = IsUserAuthorized( Authorization.EDIT );
 
-                gFolderList.DataKeyNames = new string[] { "Id" };
-                gFolderList.Actions.ShowAdd = canAddEditDelete && mediaAccountComponent != null && mediaAccountComponent.AllowsManualEntry;
-                gFolderList.IsDeleteEnabled = canAddEditDelete;
-                gFolderList.Actions.AddClick += gFolderList_AddClick;
-                gFolderList.GridRebind += gFolderList_GridRebind;
-                gFolderList.EntityTypeId = EntityTypeCache.Get<MediaFolder>().Id;
-                gFolderList.ShowConfirmDeleteDialog = false;
+                gElementList.DataKeyNames = new string[] { "Id" };
+                gElementList.Actions.ShowAdd = canAddEditDelete && mediaAccountComponent != null && mediaAccountComponent.AllowsManualEntry;
+                gElementList.IsDeleteEnabled = canAddEditDelete;
+                gElementList.Actions.AddClick += gElementList_AddClick;
+                gElementList.GridRebind += gElementList_GridRebind;
+                gElementList.EntityTypeId = EntityTypeCache.Get<MediaElement>().Id;
 
                 gfFilter.ApplyFilterClick += gfFilter_ApplyFilterClick;
                 gfFilter.DisplayFilterValue += gfFilter_DisplayFilterValue;
                 gfFilter.ClearFilterClick += gfFilter_ClearFilterClick;
 
-                lTitle.Text = ( _mediaAccount.Name + " Folders" ).FormatAsHtmlTitle();
+                lTitle.Text = ( _mediaFolder.Name + " Elements" ).FormatAsHtmlTitle();
             }
 
             // this event gets fired after block settings are updated. it's nice to repaint the screen if these settings would alter it
             this.BlockUpdated += Block_BlockUpdated;
             this.AddConfigurationUpdateTrigger( upnlContent );
 
-            string deleteScript = @"
-    $('table.js-grid-folders a.grid-delete-button').on('click', function( e ){
-        var $btn = $(this);
-        var folderName = $btn.closest('tr').find('.js-name-folder').text();
-        e.preventDefault();
-        Rock.dialogs.confirm('Are you sure you wish to delete the '+ folderName +' folder. This will delete all related media files from Rock.', function (result) {
-            if (result) {
-                window.location = e.target.href ? e.target.href : e.target.parentElement.href;
-            }
-        });
-    });
-";
-            ScriptManager.RegisterStartupScript( gFolderList, gFolderList.GetType(), "deleteRequestScript", deleteScript, true );
         }
 
         /// <summary>
@@ -153,7 +140,7 @@ namespace RockWeb.Blocks.Cms
 
             if ( !Page.IsPostBack )
             {
-                if ( _mediaAccount != null )
+                if ( _mediaFolder != null )
                 {
                     BindGrid();
                 }
@@ -176,7 +163,7 @@ namespace RockWeb.Blocks.Cms
         /// <param name="e">The <see cref="EventArgs" /> instance containing the event data.</param>
         protected void gfFilter_ApplyFilterClick( object sender, EventArgs e )
         {
-            gfFilter.SaveUserPreference( UserPreferenceKey.Name, txtFolderName.Text );
+            gfFilter.SaveUserPreference( UserPreferenceKey.Name, txtElementName.Text );
 
             BindGrid();
         }
@@ -218,62 +205,62 @@ namespace RockWeb.Blocks.Cms
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void Block_BlockUpdated( object sender, EventArgs e )
         {
-            if ( _mediaAccount != null )
+            if ( _mediaFolder != null )
             {
                 BindGrid();
             }
         }
 
         /// <summary>
-        /// Handles the GridRebind event of the gFolderList control.
+        /// Handles the GridRebind event of the gElementList control.
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="Rock.Web.UI.Controls.GridRebindEventArgs"/> instance containing the event data.</param>
-        private void gFolderList_GridRebind( object sender, Rock.Web.UI.Controls.GridRebindEventArgs e )
+        private void gElementList_GridRebind( object sender, Rock.Web.UI.Controls.GridRebindEventArgs e )
         {
             BindGrid();
         }
 
         /// <summary>
-        /// Handles the AddClick event of the gFolderList control.
+        /// Handles the AddClick event of the gElementList control.
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-        private void gFolderList_AddClick( object sender, EventArgs e )
+        private void gElementList_AddClick( object sender, EventArgs e )
         {
-            NavigateToLinkedPage( AttributeKey.DetailPage, PageParameterKey.MediaFolderId, 0, PageParameterKey.MediaAccountId, _mediaAccount.Id );
+            NavigateToLinkedPage( AttributeKey.DetailPage, PageParameterKey.MediaElementId, 0, PageParameterKey.MediaFolderId, _mediaFolder.Id );
         }
 
         /// <summary>
-        /// Handles the RowSelected event of the gFolderList control.
+        /// Handles the RowSelected event of the gElementList control.
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="Rock.Web.UI.Controls.RowEventArgs"/> instance containing the event data.</param>
-        protected void gFolderList_RowSelected( object sender, Rock.Web.UI.Controls.RowEventArgs e )
+        protected void gElementList_RowSelected( object sender, Rock.Web.UI.Controls.RowEventArgs e )
         {
-            NavigateToLinkedPage( AttributeKey.DetailPage, PageParameterKey.MediaFolderId, e.RowKeyId );
+            NavigateToLinkedPage( AttributeKey.DetailPage, PageParameterKey.MediaElementId, e.RowKeyId );
         }
 
         /// <summary>
-        /// Handles the DeleteClick event of the gFolderList control.
+        /// Handles the DeleteClick event of the gElementList control.
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="Rock.Web.UI.Controls.RowEventArgs"/> instance containing the event data.</param>
-        protected void gFolderList_DeleteClick( object sender, Rock.Web.UI.Controls.RowEventArgs e )
+        protected void gElementList_DeleteClick( object sender, Rock.Web.UI.Controls.RowEventArgs e )
         {
             var rockContext = new RockContext();
-            var mediaFolderService = new MediaFolderService( rockContext );
-            var mediaFolder = mediaFolderService.Get( e.RowKeyId );
-            if ( mediaFolder != null )
+            var mediaElementService = new MediaElementService( rockContext );
+            var mediaElement = mediaElementService.Get( e.RowKeyId );
+            if ( mediaElement != null )
             {
                 string errorMessage;
-                if ( !mediaFolderService.CanDelete( mediaFolder, out errorMessage ) )
+                if ( !mediaElementService.CanDelete( mediaElement, out errorMessage ) )
                 {
                     mdGridWarning.Show( errorMessage, ModalAlertType.Information );
                     return;
                 }
 
-                mediaFolderService.Delete( mediaFolder );
+                mediaElementService.Delete( mediaElement );
                 rockContext.SaveChanges();
             }
 
@@ -289,7 +276,7 @@ namespace RockWeb.Blocks.Cms
         /// </summary>
         private void BindFilter()
         {
-            txtFolderName.Text = gfFilter.GetUserPreference( UserPreferenceKey.Name );
+            txtElementName.Text = gfFilter.GetUserPreference( UserPreferenceKey.Name );
         }
 
         /// <summary>
@@ -298,10 +285,10 @@ namespace RockWeb.Blocks.Cms
         private void BindGrid()
         {
             var rockContext = new RockContext();
-            var mediaFolderService = new MediaFolderService( rockContext );
+            var mediaElementService = new MediaElementService( rockContext );
 
             // Use AsNoTracking() since these records won't be modified, and therefore don't need to be tracked by the EF change tracker
-            var qry = mediaFolderService.Queryable().AsNoTracking().Where( a => a.MediaAccountId == _mediaAccount.Id );
+            var qry = mediaElementService.Queryable().AsNoTracking().Where( a => a.MediaFolderId == _mediaFolder.Id );
 
             // name filter
             string nameFilter = gfFilter.GetUserPreference( UserPreferenceKey.Name );
@@ -310,19 +297,8 @@ namespace RockWeb.Blocks.Cms
                 qry = qry.Where( a => a.Name.Contains( nameFilter ) );
             }
 
-            var selectQry = qry
-                .Select( a => new
-                {
-                    a.Id,
-                    a.Name,
-                    ContentChannel = a.ContentChannel,
-                    Videos = a.MediaElements.Count
-                } );
-
-
-
-            var sortProperty = gFolderList.SortProperty;
-            if ( gFolderList.AllowSorting && sortProperty != null )
+            var sortProperty = gElementList.SortProperty;
+            if ( gElementList.AllowSorting && sortProperty != null )
             {
                 qry = qry.Sort( sortProperty );
             }
@@ -331,9 +307,9 @@ namespace RockWeb.Blocks.Cms
                 qry = qry.OrderBy( a => a.Name );
             }
 
-            gFolderList.EntityTypeId = EntityTypeCache.GetId<MediaFolder>();
-            gFolderList.DataSource = selectQry.ToList();
-            gFolderList.DataBind();
+            gElementList.EntityTypeId = EntityTypeCache.GetId<MediaElement>();
+            gElementList.DataSource = qry.ToList();
+            gElementList.DataBind();
         }
 
         /// <summary>
@@ -342,7 +318,7 @@ namespace RockWeb.Blocks.Cms
         /// <returns></returns>
         private MediaAccountComponent GetMediaAccountComponent()
         {
-            var componentEntityTypeId = _mediaAccount != null ? _mediaAccount.ComponentEntityTypeId : ( int? ) null;
+            var componentEntityTypeId = _mediaFolder != null && _mediaFolder.MediaAccount != null ? _mediaFolder.MediaAccount.ComponentEntityTypeId : ( int? ) null;
 
             if ( componentEntityTypeId.HasValue )
             {
@@ -354,24 +330,24 @@ namespace RockWeb.Blocks.Cms
         }
 
         /// <summary>
-        /// Get the actual media account model for deleting or editing
+        /// Get the actual media folder model for deleting or editing
         /// </summary>
         /// <returns></returns>
-        private MediaAccount GetMediaAccount( RockContext rockContext = null )
+        private MediaFolder GetMediaFolder( RockContext rockContext = null )
         {
             rockContext = rockContext ?? new RockContext();
-            var mediaAccountService = new MediaAccountService( rockContext );
+            var mediaFolderService = new MediaFolderService( rockContext );
 
-            var mediaAccountId = PageParameter( PageParameterKey.MediaAccountId ).AsIntegerOrNull();
+            var mediaFolderId = PageParameter( PageParameterKey.MediaFolderId ).AsIntegerOrNull();
 
-            MediaAccount mediaAccount = null;
-            if ( mediaAccountId.HasValue )
+            MediaFolder mediaFolder = null;
+            if ( mediaFolderId.HasValue )
             {
-                mediaAccount = mediaAccountService.Queryable()
-                    .FirstOrDefault( a => a.Id == mediaAccountId.Value );
+                mediaFolder = mediaFolderService.Queryable( "MediaAccount" )
+                    .FirstOrDefault( a => a.Id == mediaFolderId.Value );
             }
 
-            return mediaAccount;
+            return mediaFolder;
         }
 
         #endregion
