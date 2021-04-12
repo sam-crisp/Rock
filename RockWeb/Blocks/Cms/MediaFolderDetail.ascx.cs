@@ -339,7 +339,7 @@ namespace RockWeb.Blocks.Cms
         /// <summary>
         /// Shows the readonly details.
         /// </summary>
-        /// <param name="mediaAccount">The media account.</param>
+        /// <param name="mediaAccount">The media folder.</param>
         private void ShowReadonlyDetails( MediaFolder mediaFolder )
         {
             SetEditMode( false );

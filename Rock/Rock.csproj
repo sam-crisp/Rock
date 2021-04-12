@@ -661,6 +661,8 @@
     <Compile Include="Media\IMediaAccountComponent.cs" />
     <Compile Include="Media\MediaAccountComponent.cs" />
     <Compile Include="Media\LocalMediaAccount.cs" />
+    <Compile Include="Media\MediaElementData.cs" />
+    <Compile Include="Media\ThumbnailData.cs" />
     <Compile Include="Model\AchievementAttemptService.Partial.cs" />
     <Compile Include="Model\CodeGenerated\FinancialTransactionAlertService.cs" />
     <Compile Include="Model\CodeGenerated\FinancialTransactionAlertTypeService.cs" />
