@@ -128,7 +128,7 @@ namespace RockWeb.Blocks.Cms
         var $btn = $(this);
         var accountName = $btn.closest('tr').find('.js-name-account').text();
         e.preventDefault();
-        Rock.dialogs.confirm('Are you sure you wish to delete the '+ accountName +' account. This will delete all folder and media files from Rock.', function (result) {
+        Rock.dialogs.confirm('Are you sure you wish to delete the \''+ accountName +'\' account. This will delete all folder and media files from Rock.', function (result) {
             if (result) {
                 window.location = e.target.href ? e.target.href : e.target.parentElement.href;
             }

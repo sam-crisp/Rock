@@ -60,7 +60,7 @@ namespace Rock.Media
                 {
                     Type mediaAccountComponentType = mediaAccountComponent.Value.Value.GetType();
                     int mediaAccountComponentEntityTypeId = EntityTypeCache.Get( mediaAccountComponentType ).Id;
-                    Rock.Attribute.Helper.UpdateAttributes( mediaAccountComponentType, mediaAccountEntityTypeId, "EntityTypeId", mediaAccountComponentEntityTypeId.ToString(), rockContext );
+                    Rock.Attribute.Helper.UpdateAttributes( mediaAccountComponentType, mediaAccountEntityTypeId, "ComponentEntityTypeId", mediaAccountComponentEntityTypeId.ToString(), rockContext );
                 }
             }
         }

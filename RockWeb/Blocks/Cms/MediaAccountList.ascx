@@ -20,7 +20,7 @@
                      </Rock:GridFilter>
                     <Rock:Grid ID="gAccountList" runat="server" AllowSorting="true" OnRowSelected="gAccountList_RowSelected"  CssClass="js-grid-accounts">
                         <Columns>
-                            <Rock:RockBoundField DataField="Name" HeaderText="Name" SortExpression="Name" ItemStyle-CssClass="js-name-folder" />
+                            <Rock:RockBoundField DataField="Name" HeaderText="Name" SortExpression="Name" ItemStyle-CssClass="js-name-account" />
                             <Rock:RockBoundField DataField="Type.FriendlyName" HeaderText="Type" />
                             <Rock:DateTimeField DataField="LastRefreshDateTime" HeaderText="Last Refresh Date/Time" NullDisplayText="-" SortExpression="LastRefreshDateTime" />
                              <Rock:RockBoundField DataField="Folders" HeaderText="Folders" SortExpression="Folders" />

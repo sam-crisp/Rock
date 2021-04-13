@@ -20,8 +20,10 @@ using System.ComponentModel;
 using System.Data.Entity;
 using System.Linq;
 using System.Web.UI;
+using System.Web.UI.WebControls;
 using Humanizer;
 using Rock;
+using Rock.Attribute;
 using Rock.Constants;
 using Rock.Data;
 using Rock.Media;
@@ -132,7 +134,10 @@ namespace RockWeb.Blocks.Cms
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void cpMediaAccountComponent_SelectedIndexChanged( object sender, EventArgs e )
         {
-            RenderComponentAttributeControls();
+            var mediaAccount = GetMediaAccount() ?? new MediaAccount();
+            mediaAccount.ComponentEntityTypeId = cpMediaAccountComponent.SelectedEntityTypeId ?? 0;
+
+            RenderComponentAttributeControls( mediaAccount, true );
         }
 
         /// <summary>
@@ -159,18 +164,18 @@ namespace RockWeb.Blocks.Cms
 
             var rockContext = new RockContext();
             var mediaAccount = GetMediaAccount( rockContext );
-            var mediaAccountService = new MediaAccountService(rockContext);
+            var mediaAccountService = new MediaAccountService( rockContext );
             var isNew = mediaAccount == null;
 
             if ( isNew )
             {
                 mediaAccount = new MediaAccount();
                 mediaAccountService.Add( mediaAccount );
-                mediaAccount.ComponentEntityTypeId = cpMediaAccountComponent.SelectedEntityTypeId ?? 0;
             }
 
             mediaAccount.Name = tbName.Text;
             mediaAccount.IsActive = cbActive.Checked;
+            mediaAccount.ComponentEntityTypeId = cpMediaAccountComponent.SelectedEntityTypeId ?? 0;
             rockContext.SaveChanges();
 
             mediaAccount.LoadAttributes( rockContext );
@@ -276,7 +281,7 @@ namespace RockWeb.Blocks.Cms
                 cpMediaAccountComponent.SetValue( mediaAccount.ComponentEntityType != null ? mediaAccount.ComponentEntityType.Guid.ToString().ToUpper() : string.Empty );
             }
 
-            RenderComponentAttributeControls();
+            RenderComponentAttributeControls( mediaAccount, true );
         }
 
         /// <summary>
@@ -311,15 +316,8 @@ namespace RockWeb.Blocks.Cms
         /// <summary>
         /// Renders the component attribute controls.
         /// </summary>
-        private void RenderComponentAttributeControls()
+        private void RenderComponentAttributeControls(MediaAccount mediaAccount, bool setValues )
         {
-            var mediaAccount = GetMediaAccount() ?? new MediaAccount();
-
-            if ( mediaAccount.Id == default( int ) )
-            {
-                mediaAccount.ComponentEntityTypeId = cpMediaAccountComponent.SelectedEntityTypeId ?? 0;
-            }
-
             var componentEntityType = EntityTypeCache.Get( mediaAccount.ComponentEntityTypeId );
 
             if ( componentEntityType != null )
@@ -334,8 +332,8 @@ namespace RockWeb.Blocks.Cms
 
             mediaAccount.LoadAttributes();
             avcComponentAttributes.ExcludedAttributes = mediaAccount.Attributes.Values
-                .Where( a => a.Key == "Order" || a.Key == "Active" ).ToArray();
-            avcComponentAttributes.AddEditControls( mediaAccount, true );
+    .Where( a => a.Key == "Order" || a.Key == "Active" ).ToArray();
+            avcComponentAttributes.AddEditControls( mediaAccount, setValues );
         }
 
         /// <summary>

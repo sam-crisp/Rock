@@ -199,12 +199,6 @@ namespace RockWeb.Blocks.Cms
         /// <param name="e">The e.</param>
         protected void gfFilter_DisplayFilterValue( object sender, GridFilter.DisplayFilterValueArgs e )
         {
-            switch ( e.Key )
-            {
-                default:
-                    e.Value = null;
-                    break;
-            }
         }
 
         #endregion
