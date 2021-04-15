@@ -14,21 +14,17 @@
 // limitations under the License.
 // </copyright>
 //
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Linq;
-
-using Rock.Attribute;
 using Rock.Data;
-using Rock.Media;
 using Rock.Model;
 using Rock.Web;
-using Rock.Web.Cache;
 
 namespace Rock.Media
-{    /// <summary>
+{
+    /// <summary>
      /// 
      /// </summary>
      /// <seealso cref="Rock.Media.MediaAccountComponent" />
@@ -46,7 +42,7 @@ namespace Rock.Media
         /// <returns></returns>
         public override string GetAccountSummary( MediaAccount mediaAccount )
         {
-            return string.Format( "<p>{0}</p>", mediaAccount.Name );
+            return $"<p>{mediaAccount.Name}</p>";
         }
 
         /// <summary>
@@ -61,18 +57,20 @@ namespace Rock.Media
             var folderIdInt = folderId.AsIntegerOrNull();
             if ( mediaAccount != null && folderIdInt.HasValue )
             {
-                var rockContext = new RockContext();
-                var mediaFolder = new MediaFolderService( rockContext ).Get( folderIdInt.Value );
-                if ( mediaFolder != null )
+                using ( var rockContext = new RockContext() )
                 {
-                    var descriptionList = new DescriptionList();
-                    descriptionList.Add( "Name", mediaFolder.Name );
-                    if ( mediaFolder.Description.IsNotNullOrWhiteSpace() )
+                    var mediaFolder = new MediaFolderService( rockContext ).Get( folderIdInt.Value );
+                    if ( mediaFolder != null )
                     {
-                        descriptionList.Add( "Description", mediaFolder.Description );
-                    }
+                        var descriptionList = new DescriptionList();
+                        descriptionList.Add( "Name", mediaFolder.Name );
+                        if ( mediaFolder.Description.IsNotNullOrWhiteSpace() )
+                        {
+                            descriptionList.Add( "Description", mediaFolder.Description );
+                        }
 
-                    folderSummaryHtml = descriptionList.Html;
+                        folderSummaryHtml = descriptionList.Html;
+                    }
                 }
             }
     
@@ -92,18 +90,20 @@ namespace Rock.Media
             var elementIdInt = elementId.AsIntegerOrNull();
             if ( mediaAccount != null && elementIdInt.HasValue )
             {
-                var rockContext = new RockContext();
-                var mediaElement = new MediaElementService( rockContext ).Get( elementIdInt.Value );
-                if ( mediaElement != null )
+                using ( var rockContext = new RockContext() )
                 {
-                    var descriptionList = new DescriptionList();
-                    descriptionList.Add( "Name", mediaElement.Name );
-                    if ( mediaElement.Description.IsNotNullOrWhiteSpace() )
+                    var mediaElement = new MediaElementService( rockContext ).Get( elementIdInt.Value );
+                    if ( mediaElement != null )
                     {
-                        descriptionList.Add( "Description", mediaElement.Description );
-                    }
+                        var descriptionList = new DescriptionList();
+                        descriptionList.Add( "Name", mediaElement.Name );
+                        if ( mediaElement.Description.IsNotNullOrWhiteSpace() )
+                        {
+                            descriptionList.Add( "Description", mediaElement.Description );
+                        }
 
-                    elementSummaryHtml = descriptionList.Html;
+                        elementSummaryHtml = descriptionList.Html;
+                    }
                 }
             }
 
@@ -182,11 +182,6 @@ namespace Rock.Media
 
             return mediaFolders;
         }
-
-        #endregion
-
-        #region Private Methods
-
 
         #endregion
     }

@@ -31,8 +31,7 @@ namespace Rock.Media
         /// <summary>
         /// Singleton instance
         /// </summary>
-        private static readonly Lazy<MediaAccountContainer> instance =
-            new Lazy<MediaAccountContainer>( () => new MediaAccountContainer() );
+        private static readonly Lazy<MediaAccountContainer> instance = new Lazy<MediaAccountContainer>( () => new MediaAccountContainer() );
 
         /// <summary>
         /// Gets the instance.
@@ -93,6 +92,5 @@ namespace Rock.Media
         /// </value>
         [ImportMany( typeof( MediaAccountComponent ) )]
         protected override IEnumerable<Lazy<MediaAccountComponent, IComponentData>> MEFComponents { get; set; }
-
     }
 }

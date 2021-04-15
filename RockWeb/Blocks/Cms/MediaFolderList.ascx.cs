@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // </copyright>
-//
+
 using System;
 using System.ComponentModel;
 using System.Data.Entity;
@@ -106,6 +106,7 @@ namespace RockWeb.Blocks.Cms
             if ( _mediaAccount != null )
             {
                 var mediaAccountComponent = GetMediaAccountComponent();
+
                 // Block Security and special attributes (RockPage takes care of View)
                 bool canAddEditDelete = IsUserAuthorized( Authorization.EDIT );
 
@@ -161,7 +162,6 @@ namespace RockWeb.Blocks.Cms
                 {
                     pnlView.Visible = false;
                 }
-               
             }
         }
 
@@ -201,7 +201,7 @@ namespace RockWeb.Blocks.Cms
         {
         }
 
-        #endregion
+        #endregion Filter Events
 
         #region Events
 
@@ -274,7 +274,7 @@ namespace RockWeb.Blocks.Cms
             BindGrid();
         }
 
-        #endregion
+        #endregion Events
 
         #region Methods
 
@@ -312,8 +312,6 @@ namespace RockWeb.Blocks.Cms
                     ContentChannel = a.ContentChannel,
                     Videos = a.MediaElements.Count
                 } );
-
-
 
             var sortProperty = gFolderList.SortProperty;
             if ( gFolderList.AllowSorting && sortProperty != null )
@@ -358,16 +356,14 @@ namespace RockWeb.Blocks.Cms
 
             var mediaAccountId = PageParameter( PageParameterKey.MediaAccountId ).AsIntegerOrNull();
 
-            MediaAccount mediaAccount = null;
-            if ( mediaAccountId.HasValue )
+            if ( !mediaAccountId.HasValue )
             {
-                mediaAccount = mediaAccountService.Queryable()
-                    .FirstOrDefault( a => a.Id == mediaAccountId.Value );
+                return null;
             }
 
-            return mediaAccount;
+            return mediaAccountService.Queryable().FirstOrDefault( a => a.Id == mediaAccountId.Value );
         }
 
-        #endregion
+        #endregion Methods
     }
 }

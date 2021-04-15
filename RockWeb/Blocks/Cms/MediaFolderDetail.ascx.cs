@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // </copyright>
-//
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -166,7 +166,6 @@ namespace RockWeb.Blocks.Cms
             var qryParams = new Dictionary<string, string>();
             qryParams[PageParameterKey.MediaAccountId] = mediaFolder.MediaAccountId.ToStringSafe();
             NavigateToParentPage( qryParams );
-
         }
 
         /// <summary>
@@ -274,7 +273,7 @@ namespace RockWeb.Blocks.Cms
         /// </summary>
         /// <param name="mediaFolderId">The media folder identifier.</param>
         /// <param name="mediaAccountId">The media account identifier.</param>
-        public void ShowDetail( int mediaFolderId, int? mediaAccountId )
+        private void ShowDetail( int mediaFolderId, int? mediaAccountId )
         {
             var rockContext = new RockContext();
             var mediaFolderService = new MediaFolderService( rockContext );
@@ -360,7 +359,7 @@ namespace RockWeb.Blocks.Cms
         /// Shows the edit details.
         /// </summary>
         /// <param name="mediaFolder">The media folder.</param>
-        public void ShowEditDetails( MediaFolder mediaFolder )
+        private void ShowEditDetails( MediaFolder mediaFolder )
         {
             if ( mediaFolder.Id == 0 )
             {
@@ -407,6 +406,7 @@ namespace RockWeb.Blocks.Cms
             {
                 readOnly = !mediaAccountComponent.AllowsManualEntry;
             }
+
             tbName.ReadOnly = readOnly;
             tbDescription.ReadOnly = readOnly;
         }

@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // </copyright>
-//
+
 using System;
 using System.ComponentModel;
 using System.Data.Entity;
@@ -107,6 +107,7 @@ namespace RockWeb.Blocks.Cms
             if ( _mediaFolder != null )
             {
                 var mediaAccountComponent = GetMediaAccountComponent();
+
                 // Block Security and special attributes (RockPage takes care of View)
                 bool canAddEditDelete = IsUserAuthorized( Authorization.EDIT );
 
@@ -127,7 +128,6 @@ namespace RockWeb.Blocks.Cms
             // this event gets fired after block settings are updated. it's nice to repaint the screen if these settings would alter it
             this.BlockUpdated += Block_BlockUpdated;
             this.AddConfigurationUpdateTrigger( upnlContent );
-
         }
 
         /// <summary>
@@ -148,7 +148,6 @@ namespace RockWeb.Blocks.Cms
                 {
                     pnlView.Visible = false;
                 }
-               
             }
         }
 
@@ -186,15 +185,9 @@ namespace RockWeb.Blocks.Cms
         /// <param name="e">The e.</param>
         protected void gfFilter_DisplayFilterValue( object sender, GridFilter.DisplayFilterValueArgs e )
         {
-            switch ( e.Key )
-            {
-                default:
-                    e.Value = null;
-                    break;
-            }
         }
 
-        #endregion
+        #endregion Filter Events
 
         #region Events
 
@@ -267,7 +260,7 @@ namespace RockWeb.Blocks.Cms
             BindGrid();
         }
 
-        #endregion
+        #endregion Events
 
         #region Methods
 
@@ -340,16 +333,14 @@ namespace RockWeb.Blocks.Cms
 
             var mediaFolderId = PageParameter( PageParameterKey.MediaFolderId ).AsIntegerOrNull();
 
-            MediaFolder mediaFolder = null;
-            if ( mediaFolderId.HasValue )
+            if ( !mediaFolderId.HasValue )
             {
-                mediaFolder = mediaFolderService.Queryable( "MediaAccount" )
-                    .FirstOrDefault( a => a.Id == mediaFolderId.Value );
+                return null;
             }
 
-            return mediaFolder;
+            return mediaFolderService.Queryable( "MediaAccount" ).FirstOrDefault( a => a.Id == mediaFolderId.Value );
         }
 
-        #endregion
+        #endregion Methods
     }
 }

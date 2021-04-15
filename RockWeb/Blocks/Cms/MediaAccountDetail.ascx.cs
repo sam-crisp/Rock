@@ -13,17 +13,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // </copyright>
-//
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data.Entity;
 using System.Linq;
 using System.Web.UI;
-using System.Web.UI.WebControls;
 using Humanizer;
 using Rock;
-using Rock.Attribute;
 using Rock.Constants;
 using Rock.Data;
 using Rock.Media;
@@ -109,18 +106,14 @@ namespace RockWeb.Blocks.Cms
             var service = new MediaAccountService( rockContext );
             var mediaAccount = service.Get( int.Parse( hfMediaAccountId.Value ) );
 
-            if ( mediaAccount != null )
+            if ( mediaAccount == null )
             {
-                if ( !mediaAccount.IsAuthorized( Authorization.ADMINISTRATE, this.CurrentPerson ) )
-                {
-                    mdDeleteWarning.Show( "You are not authorized to delete this media account.", ModalAlertType.Information );
-                    return;
-                }
-
-                service.Delete( mediaAccount );
-
-                rockContext.SaveChanges();
+                return;
             }
+
+            service.Delete( mediaAccount );
+
+            rockContext.SaveChanges();
 
             // reload page
             var qryParams = new Dictionary<string, string>();
@@ -147,7 +140,7 @@ namespace RockWeb.Blocks.Cms
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void Block_BlockUpdated( object sender, EventArgs e )
         {
-
+            ShowDetail( hfMediaAccountId.Value.AsInteger() );
         }
 
         /// <summary>
@@ -331,8 +324,7 @@ namespace RockWeb.Blocks.Cms
             }
 
             mediaAccount.LoadAttributes();
-            avcComponentAttributes.ExcludedAttributes = mediaAccount.Attributes.Values
-    .Where( a => a.Key == "Order" || a.Key == "Active" ).ToArray();
+            avcComponentAttributes.ExcludedAttributes = mediaAccount.Attributes.Values.Where( a => a.Key == "Order" || a.Key == "Active" ).ToArray();
             avcComponentAttributes.AddEditControls( mediaAccount, setValues );
         }
 
@@ -345,20 +337,14 @@ namespace RockWeb.Blocks.Cms
             rockContext = rockContext ?? new RockContext();
             var mediaAccountService = new MediaAccountService( rockContext );
 
-            var mediaAccountId = hfMediaAccountId.Value.AsIntegerOrNull();
+            var mediaAccountId = hfMediaAccountId.Value.AsIntegerOrNull() ?? PageParameter( PageParameterKey.MediaAccountId ).AsIntegerOrNull();
+            MediaAccount mediaAccount = null;
             if ( !mediaAccountId.HasValue )
             {
-                mediaAccountId = PageParameter( PageParameterKey.MediaAccountId ).AsIntegerOrNull();
+                return null;
             }
 
-            MediaAccount mediaAccount = null;
-            if ( mediaAccountId.HasValue && mediaAccountId.Value > 0 )
-            {
-                mediaAccount = mediaAccountService.Queryable()
-                    .FirstOrDefault( a => a.Id == mediaAccountId.Value );
-            }
-
-            return mediaAccount;
+            return mediaAccountService.Queryable().FirstOrDefault( a => a.Id == mediaAccountId.Value );
         }
 
         #endregion Internal Methods

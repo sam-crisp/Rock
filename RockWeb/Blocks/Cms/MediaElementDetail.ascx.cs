@@ -13,16 +13,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // </copyright>
-//
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data.Entity;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using Humanizer;
-using Newtonsoft.Json;
 using Rock;
 using Rock.Constants;
 using Rock.Data;
@@ -63,7 +60,7 @@ namespace RockWeb.Blocks.Cms
 
         #endregion PageParameterKey
 
-        #region PageParameterKeys
+        #region ViewStateKeys
 
         private static class ViewStateKey
         {
@@ -71,7 +68,7 @@ namespace RockWeb.Blocks.Cms
             public const string ThumbnailDatas = "ThumbnailDatas";
         }
 
-        #endregion PageParameterKey
+        #endregion ViewStateKeys
 
         #region Base Control Methods
 
@@ -205,7 +202,6 @@ namespace RockWeb.Blocks.Cms
             var qryParams = new Dictionary<string, string>();
             qryParams[PageParameterKey.MediaFolderId] = mediaElement.MediaFolderId.ToStringSafe();
             NavigateToParentPage( qryParams );
-
         }
 
         /// <summary>
@@ -331,7 +327,6 @@ namespace RockWeb.Blocks.Cms
 
             HideDialog();
         }
-
 
         #endregion Events
 
@@ -529,7 +524,6 @@ namespace RockWeb.Blocks.Cms
 
             if ( mediaElementData != null )
             {
-
                 hfMediaElementData.Value = mediaElementData.Guid.ToString();
                 tbPublicName.Text = mediaElementData.PublicName;
                 urlLink.Text = mediaElementData.Link;
@@ -542,7 +536,6 @@ namespace RockWeb.Blocks.Cms
             }
             else
             {
-
                 hfMediaElementData.Value = Guid.Empty.ToString();
                 tbPublicName.Text = string.Empty;
                 urlLink.Text = string.Empty;
@@ -609,6 +602,7 @@ namespace RockWeb.Blocks.Cms
                         mdMediaFile.Show();
                         break;
                     }
+
                 case "THUMBNAILFILES":
                     {
                         mdThumbnailFile.Show();
@@ -629,6 +623,7 @@ namespace RockWeb.Blocks.Cms
                         mdMediaFile.Hide();
                         break;
                     }
+
                 case "THUMBNAILFILES":
                     {
                         mdThumbnailFile.Hide();
@@ -647,7 +642,6 @@ namespace RockWeb.Blocks.Cms
             gMediaFiles.DataSource = MediaElementDatasState
                 .ToList();
             gMediaFiles.DataBind();
-
         }
 
         /// <summary>

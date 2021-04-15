@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // </copyright>
-//
+
 using System;
 using System.ComponentModel;
 using System.Data.Entity;
@@ -109,7 +109,6 @@ namespace RockWeb.Blocks.Cms
 
             gAccountList.DataKeyNames = new string[] { "Id" };
             gAccountList.Actions.ShowAdd = canAddEditDelete;
-            gAccountList.IsDeleteEnabled = canAddEditDelete;
             gAccountList.Actions.AddClick += gAccountList_AddClick;
             gAccountList.GridRebind += gAccountList_GridRebind;
             gAccountList.EntityTypeId = EntityTypeCache.Get<MediaAccount>().Id;
@@ -191,15 +190,13 @@ namespace RockWeb.Blocks.Cms
             switch ( e.Key )
             {
                 case UserPreferenceKey.AccountType:
+                    var entityType = EntityTypeCache.Get( cpMediaAccountComponent.SelectedValue.AsGuid() );
+                    if ( entityType != null )
                     {
-                        var entityType = EntityTypeCache.Get( cpMediaAccountComponent.SelectedValue.AsGuid() );
-                        if ( entityType != null )
-                        {
-                            e.Value = entityType.FriendlyName;
-                        }
-
-                        break;
+                        e.Value = entityType.FriendlyName;
                     }
+
+                    break;
             }
         }
 
@@ -328,8 +325,6 @@ namespace RockWeb.Blocks.Cms
                     Folders = a.MediaFolders.Count,
                     Videos = a.MediaFolders.SelectMany( b => b.MediaElements ).Count()
                 } );
-
-
 
             var sortProperty = gAccountList.SortProperty;
             if ( gAccountList.AllowSorting && sortProperty != null )

@@ -14,10 +14,8 @@
 // limitations under the License.
 // </copyright>
 //
-using System;
 using System.Collections.Generic;
 using Rock.Model;
-using Rock.Web.Cache;
 
 namespace Rock.Media
 {
@@ -47,7 +45,7 @@ namespace Rock.Media
         /// <param name="mediaAccount">The media account.</param>
         /// <param name="folderId">The folder identifier.</param>
         /// <returns></returns>
-        string GetFolderSummary( MediaAccount mediaAccount,string folderId );
+        string GetFolderSummary( MediaAccount mediaAccount, string folderId );
 
         /// <summary>
         /// Gets the html to display on media element detail page.

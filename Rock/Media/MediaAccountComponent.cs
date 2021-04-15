@@ -16,10 +16,7 @@
 //
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using Rock.Data;
 using Rock.Model;
-using Rock.Web.Cache;
 
 namespace Rock.Media
 {
@@ -35,7 +32,7 @@ namespace Rock.Media
         /// </summary>
         public MediaAccountComponent() : base( false )
         {
-            // Override default constructor of Component that loads attributes (not needed for gateway components, needs to be done by each financial gateway)
+            // Override default constructor of Component that loads attributes
         }
 
         #endregion Constructors
