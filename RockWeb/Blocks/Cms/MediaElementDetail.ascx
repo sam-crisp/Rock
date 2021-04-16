@@ -12,7 +12,7 @@
         <asp:Panel ID="pnlView" runat="server" CssClass="panel panel-block">
 
             <div class="panel-heading ">
-                <h1 class="panel-title"><i class="fas fa-play-circle"></i>
+                <h1 class="panel-title"><i class="fa fa-play-circle"></i>
                     <asp:Literal ID="lActionTitle" runat="server" /></h1>
             </div>
 
@@ -24,10 +24,8 @@
                 <asp:ValidationSummary ID="ValidationSummary1" runat="server" HeaderText="Please correct the following:" CssClass="alert alert-validation" />
 
                 <div id="pnlViewDetails" runat="server">
-                    <div class="row margin-b-lg">
-                        <div class="col-md-12">
-                            <asp:Literal ID="lDescription" runat="server" />
-                        </div>
+                    <div class="margin-b-lg">
+                        <asp:Literal ID="lDescription" runat="server" />
                     </div>
                     <div class="actions">
                         <asp:LinkButton ID="btnEdit" runat="server" AccessKey="e" ToolTip="Alt+e" Text="Edit" CssClass="btn btn-primary" OnClick="btnEdit_Click" CausesValidation="false" />
@@ -92,36 +90,36 @@
                 <asp:ValidationSummary ID="ValidationSummaryMediaFile" runat="server" HeaderText="Please correct the following:" CssClass="alert alert-validation" ValidationGroup="MediaFile" />
                 <div class="row">
                     <div class="col-md-12">
-                        <Rock:RockTextBox ID="tbPublicName" runat="server" Label="Public Name" ValidationGroup="MediaFile" Required="true" />
+                        <Rock:RockTextBox ID="tbPublicName" runat="server" Label="Public Name" Help="Description of the media file to be used when allowing someone to select a format. (e.g. 1080p, 720p) " ValidationGroup="MediaFile" Required="true" />
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-md-12">
-                        <Rock:UrlLinkBox ID="urlLink" runat="server" Label="Link" ValidationGroup="MediaFile" CssClass="input-width-xxl"  />
+                        <Rock:UrlLinkBox ID="urlLink" runat="server" Label="Link" ValidationGroup="MediaFile" CssClass="input-width-xxl" Required="true"  />
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-md-6">
-                        <Rock:RockTextBox ID="tbQuality" runat="server" Label="Quality" ValidationGroup="MediaFile" CssClass="input-width-md" Required="true" />
+                        <Rock:RockTextBox ID="tbQuality" runat="server" Label="Quality" Help="A text description of the quality of the video. This is typically used to filter media files when several qualities exist. Examples: HD, SD, 4K." ValidationGroup="MediaFile" CssClass="input-width-md"/>
                     </div>
                     <div class="col-md-6">
-                        <Rock:RockTextBox ID="tbFormat" runat="server" Label="Format" ValidationGroup="MediaFile" CssClass="input-width-lg" Required="true" />
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <Rock:NumberBox ID="nbWidth" runat="server" Label="Width" NumberType="Integer" ValidationGroup="MediaFile" CssClass="input-width-md" Required="true"/>
-                    </div>
-                    <div class="col-md-6">
-                        <Rock:NumberBox ID="nbHeight" runat="server" Label="Height" NumberType="Integer" ValidationGroup="MediaFile" CssClass="input-width-md" Required="true"/>
+                        <Rock:RockTextBox ID="tbFormat" runat="server" Label="Format" Help="The MIME type of the media format." ValidationGroup="MediaFile" CssClass="input-width-lg" />
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-md-6">
-                        <Rock:NumberBox ID="nbFPS" runat="server" Label="FPS" NumberType="Integer" ValidationGroup="MediaFile" CssClass="input-width-md" Required="true" />
+                        <Rock:NumberBox ID="nbWidth" runat="server" Label="Width" Help="The width in pixels of the media element." NumberType="Integer" ValidationGroup="MediaFile" CssClass="input-width-md"/>
                     </div>
                     <div class="col-md-6">
-                        <Rock:NumberBox ID="nbSize" runat="server" Label="Size" NumberType="Integer" ValidationGroup="MediaFile" CssClass="input-width-lg" Required="true"/>
+                        <Rock:NumberBox ID="nbHeight" runat="server" Label="Height" Help="The height in pixels of the media element." NumberType="Integer" ValidationGroup="MediaFile" CssClass="input-width-md"/>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <Rock:NumberBox ID="nbFPS" runat="server" Label="FPS" Help="The Frames Per Second if the media file is a video." NumberType="Integer" ValidationGroup="MediaFile" CssClass="input-width-md" />
+                    </div>
+                    <div class="col-md-6">
+                        <Rock:NumberBox ID="nbSize" runat="server" Label="Filesize" Help="The size of the media file in bytes." NumberType="Integer" ValidationGroup="MediaFile" CssClass="input-width-lg"/>
                     </div>
                 </div>
             </Content>
@@ -137,15 +135,15 @@
                 </div>
                 <div class="row">
                     <div class="col-md-6">
-                        <Rock:NumberBox ID="nbThumbnailWidth" runat="server" Label="Width" NumberType="Integer" ValidationGroup="ThumbnailFile" CssClass="input-width-md" Required="true"/>
+                        <Rock:NumberBox ID="nbThumbnailWidth" runat="server" Label="Width" Help="The width in pixels of the thumbnail element." NumberType="Integer" ValidationGroup="ThumbnailFile" CssClass="input-width-md"/>
                     </div>
                     <div class="col-md-6">
-                        <Rock:NumberBox ID="nbThumbnailHeight" runat="server" Label="Height" NumberType="Integer" ValidationGroup="ThumbnailFile" CssClass="input-width-md" Required="true"/>
+                        <Rock:NumberBox ID="nbThumbnailHeight" runat="server" Label="Height" Help="The height in pixels of the thumbnail element." NumberType="Integer" ValidationGroup="ThumbnailFile" CssClass="input-width-md"/>
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-md-6">
-                        <Rock:NumberBox ID="nbThumbnailSize" runat="server" Label="Size" NumberType="Integer" ValidationGroup="ThumbnailFile" CssClass="input-width-lg" Required="true"/>
+                        <Rock:NumberBox ID="nbThumbnailSize" runat="server" Label="Filesize" NumberType="Integer" Help="The size of the thumbnail file in bytes." ValidationGroup="ThumbnailFile" CssClass="input-width-lg"/>
                     </div>
                 </div>
             </Content>

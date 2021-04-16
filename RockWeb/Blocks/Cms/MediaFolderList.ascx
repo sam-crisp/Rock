@@ -8,7 +8,7 @@
         <asp:Panel ID="pnlView" runat="server" CssClass="panel panel-block">
             <div class="panel-heading">
                 <h1 class="panel-title">
-                    <i class="fas fa-play-circle"></i> <asp:Literal ID="lTitle" runat="server" />
+                    <i class="fa fa-play-circle"></i> <asp:Literal ID="lTitle" runat="server" />
                 </h1>
             </div>
             <div class="panel-body">

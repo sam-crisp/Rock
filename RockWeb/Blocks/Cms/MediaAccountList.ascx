@@ -8,7 +8,7 @@
         <asp:Panel ID="pnlView" runat="server" CssClass="panel panel-block">
             <div class="panel-heading">
                 <h1 class="panel-title">
-                    <i class="fas fa-play-circle"></i> Media Accounts
+                    <i class="fa fa-play-circle"></i> Media Accounts
                 </h1>
             </div>
             <div class="panel-body">
@@ -22,7 +22,7 @@
                         <Columns>
                             <Rock:RockBoundField DataField="Name" HeaderText="Name" SortExpression="Name" ItemStyle-CssClass="js-name-account" />
                             <Rock:RockBoundField DataField="Type.FriendlyName" HeaderText="Type" />
-                            <Rock:DateTimeField DataField="LastRefreshDateTime" HeaderText="Last Refresh Date/Time" NullDisplayText="-" SortExpression="LastRefreshDateTime" />
+                            <Rock:DateTimeField DataField="LastRefreshDateTime" HeaderText="Last Refresh Date/Time" SortExpression="LastRefreshDateTime" />
                              <Rock:RockBoundField DataField="Folders" HeaderText="Folders" SortExpression="Folders" />
                             <Rock:RockBoundField DataField="Videos" HeaderText="Videos" SortExpression="Videos" />
                             <Rock:DeleteField OnClick="gAccountList_DeleteClick" />

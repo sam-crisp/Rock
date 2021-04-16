@@ -6,7 +6,7 @@
         <asp:Panel ID="pnlView" runat="server" CssClass="panel panel-block">
 
             <div class="panel-heading ">
-                <h1 class="panel-title"><i class="fas fa-play-circle"></i>
+                <h1 class="panel-title"><i class="fa fa-play-circle"></i>
                     <asp:Literal ID="lActionTitle" runat="server" /></h1>
 
                 <div class="panel-labels">

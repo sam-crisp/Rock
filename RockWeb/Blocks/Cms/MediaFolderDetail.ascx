@@ -6,7 +6,7 @@
         <asp:Panel ID="pnlView" runat="server" CssClass="panel panel-block">
 
             <div class="panel-heading ">
-                <h1 class="panel-title"><i class="fas fa-play-circle"></i>
+                <h1 class="panel-title"><i class="fa fa-play-circle"></i>
                     <asp:Literal ID="lActionTitle" runat="server" /></h1>
             </div>
 
@@ -32,16 +32,11 @@
                             <Rock:DataTextBox ID="tbName" runat="server" SourceTypeName="Rock.Model.MediaFolder, Rock" PropertyName="Name" />
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-md-12">
-                            <Rock:DataTextBox ID="tbDescription" runat="server" SourceTypeName="Rock.Model.MediaFolder, Rock" PropertyName="Description" TextMode="MultiLine" Rows="3" />
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-12">
-                            <Rock:Switch ID="swEnableContentChannelSync" runat="server" Text="Enable Content Channel Sync" OnCheckedChanged="swEnableContentChannelSync_CheckedChanged" AutoPostBack="true" />
-                        </div>
-                    </div>
+
+                    <Rock:DataTextBox ID="tbDescription" runat="server" SourceTypeName="Rock.Model.MediaFolder, Rock" PropertyName="Description" TextMode="MultiLine" Rows="3" />
+
+                    <Rock:Switch ID="swEnableContentChannelSync" runat="server" Text="Enable Content Channel Sync" OnCheckedChanged="swEnableContentChannelSync_CheckedChanged" AutoPostBack="true" />
+
                     <asp:Panel ID="pnlContentChannel" runat="server">
                         <div class="row">
                             <div class="col-md-6">
@@ -52,7 +47,7 @@
                             </div>
                         </div>
                         <div class="row">
-                            <div class="col-md-12">
+                            <div class="col-md-6">
                                 <Rock:RockDropDownList ID="ddlChannelAttribute" runat="server" Label="Media File Attribute" Required="true" Help="The attribute that the media will be assigned to. The attribute must be of type 'Media File'."/>
                             </div>
                         </div>
