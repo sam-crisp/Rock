@@ -26,6 +26,7 @@ using Rock.Data;
 using Rock.Media;
 using Rock.Model;
 using Rock.Security;
+using Rock.Web;
 using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
@@ -77,6 +78,28 @@ namespace RockWeb.Blocks.Cms
             {
                 ShowDetail( PageParameter( PageParameterKey.MediaAccountId ).AsInteger() );
             }
+        }
+
+        /// <summary>
+        /// Gets the bread crumbs.
+        /// </summary>
+        /// <param name="pageReference">The page reference.</param>
+        /// <returns></returns>
+        public override List<BreadCrumb> GetBreadCrumbs( PageReference pageReference )
+        {
+            var breadCrumbs = new List<BreadCrumb>();
+
+            var mediaAccount = GetMediaAccount();
+            if ( mediaAccount != null )
+            {
+                breadCrumbs.Add( new BreadCrumb( $"{mediaAccount.Name}'s Media", pageReference ) );
+            }
+            else
+            {
+                breadCrumbs.Add( new BreadCrumb( "New Media Account", pageReference ) );
+            }
+
+            return breadCrumbs;
         }
 
         #endregion
@@ -311,18 +334,6 @@ namespace RockWeb.Blocks.Cms
         /// </summary>
         private void RenderComponentAttributeControls(MediaAccount mediaAccount, bool setValues )
         {
-            var componentEntityType = EntityTypeCache.Get( mediaAccount.ComponentEntityTypeId );
-
-            if ( componentEntityType != null )
-            {
-                var component = MediaAccountContainer.GetComponent( componentEntityType.Name );
-
-                if ( component != null )
-                {
-                    lComponentDescription.Text = component.Description;
-                }
-            }
-
             mediaAccount.LoadAttributes();
             avcComponentAttributes.ExcludedAttributes = mediaAccount.Attributes.Values.Where( a => a.Key == "Order" || a.Key == "Active" ).ToArray();
             avcComponentAttributes.AddEditControls( mediaAccount, setValues );
@@ -338,7 +349,6 @@ namespace RockWeb.Blocks.Cms
             var mediaAccountService = new MediaAccountService( rockContext );
 
             var mediaAccountId = hfMediaAccountId.Value.AsIntegerOrNull() ?? PageParameter( PageParameterKey.MediaAccountId ).AsIntegerOrNull();
-            MediaAccount mediaAccount = null;
             if ( !mediaAccountId.HasValue )
             {
                 return null;

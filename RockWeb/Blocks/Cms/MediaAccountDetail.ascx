@@ -46,11 +46,6 @@
                             <div class="col-md-6">
                                 <Rock:ComponentPicker ID="cpMediaAccountComponent" runat="server" Label="Account Type" Required="true" ContainerType="Rock.Media.MediaAccountContainer" AutoPostBack="true" OnSelectedIndexChanged="cpMediaAccountComponent_SelectedIndexChanged" />
                             </div>
-                            <div class="col-md-6">
-                                <p class="panel-body">
-                                    <asp:Literal ID="lComponentDescription" runat="server" />
-                                </p>
-                            </div>
                         </div>
                         <Rock:AttributeValuesContainer ID="avcComponentAttributes" runat="server" NumberOfColumns="2" />
                     </div>

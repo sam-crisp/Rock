@@ -83,6 +83,39 @@ namespace RockWeb.Blocks.Cms
             }
         }
 
+        /// <summary>
+        /// Gets the bread crumbs.
+        /// </summary>
+        /// <param name="pageReference">The page reference.</param>
+        /// <returns></returns>
+        public override List<BreadCrumb> GetBreadCrumbs( PageReference pageReference )
+        {
+            var breadCrumbs = new List<BreadCrumb>();
+
+            int? mediaFolderId = PageParameter( pageReference, PageParameterKey.MediaFolderId ).AsIntegerOrNull();
+            if ( mediaFolderId != null )
+            {
+                var rockContext = new RockContext();
+
+                var mediaFolder = new MediaFolderService( rockContext ).Get( mediaFolderId.Value );
+
+                if ( mediaFolder != null )
+                {
+                    breadCrumbs.Add( new BreadCrumb( mediaFolder.Name, pageReference ) );
+                }
+                else
+                {
+                    breadCrumbs.Add( new BreadCrumb( "New Media Folder", pageReference ) );
+                }
+            }
+            else
+            {
+                // don't show a breadcrumb if we don't have a pageparam to work with
+            }
+
+            return breadCrumbs;
+        }
+
         #endregion
 
         #region Events

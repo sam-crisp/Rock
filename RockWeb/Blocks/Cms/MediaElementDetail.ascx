@@ -27,6 +27,33 @@
                     <div class="margin-b-lg">
                         <asp:Literal ID="lDescription" runat="server" />
                     </div>
+                      <div class="row margin-b-md">
+                        <div class="col-md-12">
+                            <label>Media Files</label>
+                            <Rock:Grid ID="gViewMediaFiles" runat="server" EmptyDataText="No Media Files" DisplayType="Light" ShowHeader="true" UseFullStylesForLightGrid="true" >
+                                <Columns>
+                                    <Rock:RockBoundField DataField="Quality" HeaderText="Quality" />
+                                    <Rock:RockBoundField DataField="Format" HeaderText="Format" />
+                                    <Rock:RockBoundField DataField="Dimension" HeaderText="Dimension" />
+                                    <Rock:RockBoundField DataField="FormattedFileSize" HeaderText="Size" />
+                                    <Rock:BoolField DataField="AllowDownload" HeaderText="Allow Download" SortExpression="AllowDownload" />
+                                    <Rock:RockBoundField DataField="Link" HeaderText="Link" />
+                                </Columns>
+                            </Rock:Grid>
+                        </div>
+                    </div>
+                    <div class="row margin-b-md">
+                        <div class="col-md-12">
+                            <label>Thumbnail Files</label>
+                            <Rock:Grid ID="gViewThumbnailFiles" runat="server" EmptyDataText="No Media Files" RowItemText="Thumbnail" DisplayType="Light" ShowHeader="true" UseFullStylesForLightGrid="true">
+                                <Columns>
+                                    <Rock:RockBoundField DataField="Dimension" HeaderText="Dimension" />
+                                    <Rock:RockBoundField DataField="FormattedFileSize" HeaderText="Size" />
+                                    <Rock:RockBoundField DataField="Link" HeaderText="Link" />
+                                </Columns>
+                            </Rock:Grid>
+                        </div>
+                    </div>
                     <div class="actions">
                         <asp:LinkButton ID="btnEdit" runat="server" AccessKey="e" ToolTip="Alt+e" Text="Edit" CssClass="btn btn-primary" OnClick="btnEdit_Click" CausesValidation="false" />
                     </div>
@@ -66,7 +93,7 @@
                     <div class="row">
                         <div class="col-md-12">
                             <label>Thumbnail Files</label>
-                            <Rock:Grid ID="gThumbnailFiles" runat="server" EmptyDataText="No Media Files" RowItemText="Thumbnail" DisplayType="Light" ShowHeader="true">
+                            <Rock:Grid ID="gThumbnailFiles" runat="server" EmptyDataText="No Thumbnail Files" RowItemText="Thumbnail" DisplayType="Light" ShowHeader="true">
                                 <Columns>
                                     <Rock:RockBoundField DataField="Dimension" HeaderText="Dimension" />
                                     <Rock:RockBoundField DataField="FormattedFileSize" HeaderText="Size" />
@@ -94,9 +121,12 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-md-12">
+                    <div class="col-md-6">
                         <Rock:UrlLinkBox ID="urlLink" runat="server" Label="Link" ValidationGroup="MediaFile" CssClass="input-width-xxl" Required="true"  />
                     </div>
+                     <div class="col-md-6">
+                         <Rock:RockCheckBox ID="cbAllowDownload" runat="server" Label="Allow Download" ValidationGroup="MediaFile" />
+                     </div>
                 </div>
                 <div class="row">
                     <div class="col-md-6">

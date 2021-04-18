@@ -135,6 +135,39 @@ namespace RockWeb.Blocks.Cms
             return base.SaveViewState();
         }
 
+        /// <summary>
+        /// Gets the bread crumbs.
+        /// </summary>
+        /// <param name="pageReference">The page reference.</param>
+        /// <returns></returns>
+        public override List<BreadCrumb> GetBreadCrumbs( PageReference pageReference )
+        {
+            var breadCrumbs = new List<BreadCrumb>();
+
+            int? mediaElementId = PageParameter( pageReference, PageParameterKey.MediaElementId ).AsIntegerOrNull();
+            if ( mediaElementId != null )
+            {
+                var rockContext = new RockContext();
+
+                var mediaElement = new MediaElementService( rockContext ).Get( mediaElementId.Value );
+
+                if ( mediaElement != null )
+                {
+                    breadCrumbs.Add( new BreadCrumb( mediaElement.Name, pageReference ) );
+                }
+                else
+                {
+                    breadCrumbs.Add( new BreadCrumb( "New Media Element", pageReference ) );
+                }
+            }
+            else
+            {
+                // don't show a breadcrumb if we don't have a pageparam to work with
+            }
+
+            return breadCrumbs;
+        }
+
         #endregion
 
         #region Events
@@ -286,6 +319,7 @@ namespace RockWeb.Blocks.Cms
                 }
 
                 mediaElementData.PublicName = tbPublicName.Text;
+                mediaElementData.AllowDownload = cbAllowDownload.Checked;
                 mediaElementData.Link = urlLink.Text;
                 mediaElementData.Quality = tbQuality.Text;
                 mediaElementData.Format = tbFormat.Text;
@@ -414,6 +448,9 @@ namespace RockWeb.Blocks.Cms
         /// <param name="mediaAccount">The media element.</param>
         private void ShowReadonlyDetails( MediaElement mediaElement )
         {
+            MediaElementDatasState = mediaElement.MediaElementDatas.ToList();
+            ThumbnailDatasState = mediaElement.ThumbnailDatas.ToList();
+
             SetEditMode( false );
 
             lActionTitle.Text = mediaElement.Name.FormatAsHtmlTitle();
@@ -425,7 +462,20 @@ namespace RockWeb.Blocks.Cms
                 descriptionList.Add( "Description", mediaElement.Description );
             }
 
+            if ( mediaElement.Duration.HasValue )
+            {
+                descriptionList.Add( "Duration", mediaElement.Duration );
+            }
+
             lDescription.Text = descriptionList.Html;
+
+            gViewMediaFiles.DataSource = MediaElementDatasState
+              .ToList();
+            gViewMediaFiles.DataBind();
+
+            gViewThumbnailFiles.DataSource = ThumbnailDatasState
+              .ToList();
+            gViewThumbnailFiles.DataBind();
         }
 
         /// <summary>
@@ -470,9 +520,6 @@ namespace RockWeb.Blocks.Cms
 
             hfDisallowManualEntry.Value = readOnly.ToString();
             IsAllowManualEntry( !readOnly );
-
-            MediaElementDatasState = mediaElement.MediaElementDatas.ToList();
-            ThumbnailDatasState = mediaElement.ThumbnailDatas.ToList();
 
             tbName.ReadOnly = readOnly;
             tbDescription.ReadOnly = readOnly;
@@ -526,6 +573,7 @@ namespace RockWeb.Blocks.Cms
             {
                 hfMediaElementData.Value = mediaElementData.Guid.ToString();
                 tbPublicName.Text = mediaElementData.PublicName;
+                cbAllowDownload.Checked = mediaElementData.AllowDownload;
                 urlLink.Text = mediaElementData.Link;
                 tbQuality.Text = mediaElementData.Quality;
                 tbFormat.Text = mediaElementData.Format;
@@ -545,6 +593,7 @@ namespace RockWeb.Blocks.Cms
                 nbHeight.IntegerValue = null;
                 nbFPS.IntegerValue = null;
                 nbSize.IntegerValue = null;
+                cbAllowDownload.Checked = true;
             }
 
             ShowDialog( "MEDIAFILES", true );
@@ -639,6 +688,7 @@ namespace RockWeb.Blocks.Cms
         /// </summary>
         private void BindMediaFileGrid()
         {
+            MediaElementDatasState = MediaElementDatasState ?? new List<MediaElementData>();
             gMediaFiles.DataSource = MediaElementDatasState
                 .ToList();
             gMediaFiles.DataBind();
@@ -649,6 +699,7 @@ namespace RockWeb.Blocks.Cms
         /// </summary>
         private void BindThumbnailDataGrid()
         {
+            ThumbnailDatasState = ThumbnailDatasState ?? new List<ThumbnailData>();
             gThumbnailFiles.DataSource = ThumbnailDatasState
                 .ToList();
             gThumbnailFiles.DataBind();
