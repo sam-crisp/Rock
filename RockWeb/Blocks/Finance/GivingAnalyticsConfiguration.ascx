@@ -19,10 +19,18 @@
                         <div class="col-md-12">
                             <Rock:RockCheckBox ID="cbEnableGivingAnalytics" runat="server" Label="Enable Giving Analytics" Checked="true" />
                         </div>
-                    </div>
-                    <div class="row">
                         <div class="col-md-12">
                             <Rock:DaysOfWeekPicker ID="dwpDaysToUpdateAnalytics" runat="server" Label="Days to Update Analytics" RepeatDirection="Horizontal" />
+                        </div>
+                        <div class="col-md-12">
+                            <Rock:RockCheckBoxList ID="cblTransactionTypes" runat="server" Label="TransactionTypes" RepeatDirection="Horizontal" />
+                        </div>
+                        <div class="col-md-6">
+                            <Rock:RockRadioButtonList ID="rblAccountTypes" runat="server" Label="Accounts" RepeatDirection="Horizontal" AutoPostBack="true" OnSelectedIndexChanged="rblAccountTypes_SelectedIndexChanged" />
+                        </div>
+                        <div id="divAccounts" runat="server" class="col-md-6">
+                            <Rock:AccountPicker ID="apAccounts" runat="server" Label="Selected Accounts" AllowMultiSelect="true" />
+                            <Rock:RockCheckBox ID="cbIncludeChildAccounts" runat="server" DisplayInline="true" Label="Include children of selected accounts" />
                         </div>
                     </div>
                 </div>
@@ -139,18 +147,17 @@
                             <Rock:CurrencyBox ID="cbMinimumGiftAmount" runat="server" Label="Minimum Gift Amount" ValidationGroup="vgAlertDetails" Help="The minimum amount the specific gift must be to be considered a match." />
                         </div>
                         <div class="col-md-6">
-                            <Rock:CurrencyBox ID="cbMaximumGiftAmount" runat="server" Label="Maxmimum Gift Amount" ValidationGroup="vgAlertDetails" Help="The maximum amount the specific gift must be to be considered a match." />
+                            <Rock:CurrencyBox ID="cbMaximumGiftAmount" runat="server" Label="Maximum Gift Amount" ValidationGroup="vgAlertDetails" Help="The maximum amount the specific gift must be to be considered a match." />
                         </div>
-                    </div>
-                    <div class="row">
                         <div class="col-md-6">
                             <Rock:CurrencyBox ID="cbMinimumMedianGiftAmount" runat="server" Label="Minimum Median Gift Amount" ValidationGroup="vgAlertDetails" Help="The minimum median gift amount for the giver to be considered a match." />
                         </div>
                         <div class="col-md-6">
                             <Rock:CurrencyBox ID="cbMaximumMedianGiftAmount" runat="server" Label="Maximum Median Gift Amount" ValidationGroup="vgAlertDetails" Help="The maximum median gift amount for the giver to be considered a match." />
                         </div>
-                    </div>
-                    <div class="row">
+                        <div class="col-md-6">
+                            <Rock:NumberBox ID="nbMaxDaysSinceLastGift" runat="server" AppendText="Days" Label="Maximum Days Since Last Gift" ValidationGroup="vgAlertDetails" Help="The maximum number of days since the last gift." />
+                        </div>
                         <div class="col-md-6">
                             <Rock:DataViewItemPicker ID="dvpPersonDataView" runat="server" Label="Person Data View" ValidationGroup="vgAlertDetails" Help="Data view to filter if any individual with the giving id of the gift is in the data is in." />
                         </div>
