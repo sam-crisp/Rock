@@ -740,7 +740,7 @@ Processed {context.TransactionsChecked} {"transaction".PluralizeIf( context.Tran
 
                 // This is the people that have given since the last run date or the configured old gift date point.
                 var minTransactionDate = LastRunDateTime ?? GetEarliestLastGiftDateTime( context );
-                var givingIds = GetBaseQueryAccordingToSettings( financialTransactionService )
+                var givingIds = financialTransactionService.GetGivingAnalyticsSourceTransactionQuery()
                     .Where( t => t.TransactionDateTime >= minTransactionDate )
                     .Select( t => t.AuthorizedPersonAlias.Person.GivingId )
                     .Distinct()
@@ -764,7 +764,7 @@ Processed {context.TransactionsChecked} {"transaction".PluralizeIf( context.Tran
                 var minDate = context.Now.AddMonths( -12 );
 
                 var financialTransactionService = new FinancialTransactionService( rockContext );
-                var givingGroups = GetBaseQueryAccordingToSettings( financialTransactionService )
+                var givingGroups = financialTransactionService.GetGivingAnalyticsSourceTransactionQuery()
                     .Where( t =>
                         t.TransactionDateTime.HasValue &&
                         t.TransactionDateTime > minDate &&
@@ -845,7 +845,7 @@ Processed {context.TransactionsChecked} {"transaction".PluralizeIf( context.Tran
                 // off of all giving in the last 12 months.In the case of a tie in values( e.g. 50% credit card, 50%
                 // cash ) use the most recent value as the tie breaker. This could be calculated with only one gift.
                 var oneYearAgo = context.Now.AddMonths( -12 );
-                var transactions = GetBaseQueryAccordingToSettings( financialTransactionService )
+                var transactions = financialTransactionService.GetGivingAnalyticsSourceTransactionQuery()
                     .Where( t =>
                         t.AuthorizedPersonAliasId.HasValue &&
                         personAliasIds.Contains( t.AuthorizedPersonAliasId.Value ) &&
@@ -885,7 +885,7 @@ Processed {context.TransactionsChecked} {"transaction".PluralizeIf( context.Tran
 
                 // We need to know if this giving group has other transactions. If they do then we do not need to
                 // extrapolate because we have the complete 12 month data picture.
-                var mostRecentOldTransactionDate = GetBaseQueryAccordingToSettings( financialTransactionService )
+                var mostRecentOldTransactionDate = financialTransactionService.GetGivingAnalyticsSourceTransactionQuery()
                     .OrderByDescending( t => t.TransactionDateTime )
                     .Where( t =>
                         t.AuthorizedPersonAliasId.HasValue &&
@@ -899,7 +899,7 @@ Processed {context.TransactionsChecked} {"transaction".PluralizeIf( context.Tran
 
                 if ( !firstGiftDate.HasValue )
                 {
-                    firstGiftDate = GetBaseQueryAccordingToSettings( financialTransactionService )
+                    firstGiftDate = financialTransactionService.GetGivingAnalyticsSourceTransactionQuery()
                         .Where( t =>
                             t.AuthorizedPersonAliasId.HasValue &&
                             personAliasIds.Contains( t.AuthorizedPersonAliasId.Value ) &&
@@ -1697,7 +1697,7 @@ Processed {context.TransactionsChecked} {"transaction".PluralizeIf( context.Tran
                     var aliasIds = people.SelectMany( p => p.Aliases.Select( a => a.Id ) ).ToList();
 
                     // Get the last giver, who the alert will be tied to
-                    var lastTransactionAliasId = GetBaseQueryAccordingToSettings( financialTransactionService )
+                    var lastTransactionAliasId = financialTransactionService.GetGivingAnalyticsSourceTransactionQuery()
                         .Where( ft =>
                             ft.AuthorizedPersonAliasId.HasValue &&
                             aliasIds.Contains( ft.AuthorizedPersonAliasId.Value ) )
@@ -1980,50 +1980,6 @@ Processed {context.TransactionsChecked} {"transaction".PluralizeIf( context.Tran
                     FinancialTransactionAlertId = alert.Id
                 }.Send();
             }
-        }
-
-        /// <summary>
-        /// Filters the transactions according to settings.
-        /// </summary>
-        /// <param name="service">The service.</param>
-        /// <returns></returns>
-        private static IQueryable<FinancialTransaction> GetBaseQueryAccordingToSettings( FinancialTransactionService service )
-        {
-            var query = service.Queryable().AsNoTracking();
-            var settings = GetGivingAnalyticsSettings();
-
-            // Filter by transaction type (defaults to contributions only)
-            var transactionTypeGuids =
-                settings.TransactionTypeGuids ??
-                new List<Guid> { Rock.SystemGuid.DefinedValue.TRANSACTION_TYPE_CONTRIBUTION.AsGuid() };
-            var transactionTypeIds = transactionTypeGuids.Select( DefinedValueCache.Get ).Select( dv => dv.Id ).ToList();
-            query = query.Where( t => transactionTypeIds.Contains( t.TransactionTypeValueId ) );
-
-            // Filter accounts, defaults to tax deductable only
-            var accountGuids = settings.FinancialAccountGuids ?? new List<Guid>();
-
-            if ( !accountGuids.Any() )
-            {
-                query = query.Where( t => t.TransactionDetails.Any( td => td.Account.IsTaxDeductible ) );
-            }
-            else if ( settings.AreChildAccountsIncluded == true )
-            {
-                query = query.Where( t => t.TransactionDetails.Any( td =>
-                    accountGuids.Contains( td.Account.Guid ) ||
-                    accountGuids.Contains( td.Account.ParentAccount.Guid ) ) );
-            }
-            else
-            {
-                query = query.Where( t => t.TransactionDetails.Any( td => accountGuids.Contains( td.Account.Guid ) ) );
-            }
-
-            // Remove transactions that have refunds
-            query = query.Where( t => !t.Refunds.Any() );
-
-            // Remove transactions with $0 or negative amounts
-            query = query.Where( t => t.TransactionDetails.Sum( d => d.Amount ) > 0 );
-
-            return query;
         }
 
         #endregion Execute Logic

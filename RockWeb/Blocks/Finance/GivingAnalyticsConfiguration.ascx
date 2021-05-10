@@ -119,6 +119,9 @@
                                     <li>3 - Normal - This would alert when a gift was within 3 times the interquartile range (IQR) from their median gift amount. For a bi-weekly giver with a median gift of $400 and an IQR of $65, this alert would be generated if a gift of $595 was recieved.</li>
                                 </ul>
                             </p>
+                            <p>
+                                In the event that there is a very consistent giver—every gift is the exact same amount—we use a fallback value.  The fallback amount sensitivity is calculated as 15% of the median gift amount.
+                            </p>
                         </div>
                     </div>
                     <hr class="margin-t-sm">
@@ -138,6 +141,9 @@
                                     <li>2 - Aggressive - This would alert when a gift was within 2 standard deviations from their mean. For a bi-weekly giver with a mean of 14 days and a standard deviation of 3.8, this alert would be generated if no gift was recieved within 22 days since their last gift.</li>
                                     <li>3 - Normal - This would alert when a gift was within 3 standard deviations from their mean. For a bi-weekly giver with a mean of 14 days and a standard deviations of 3.8, this alert would be generated if no gift was recieved within 26 days since their last gift.</li>
                                 </ul>
+                            </p>
+                            <p>
+                                In the event that there is a very consistent giver—every gift is the same number of days apart—we use a fallback value.  The fallback frequency sensitivity is calculated as 15% of the average days between gifts.   If that value is less than a day, then we again fallback to 3 days.
                             </p>
                         </div>
                     </div>

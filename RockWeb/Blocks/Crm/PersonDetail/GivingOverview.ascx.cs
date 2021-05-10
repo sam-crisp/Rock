@@ -200,7 +200,7 @@ namespace RockWeb.Blocks.Crm.PersonDetail
             var transactionService = new FinancialTransactionService( rockContext );
             var minMonthlyDate = RockDateTime.Now.StartOfMonth().AddMonths( -35 );
 
-            var allGiftsQuery = transactionService.Queryable()
+            var allGiftsQuery = transactionService.GetGivingAnalyticsSourceTransactionQuery()
                 .AsNoTracking()
                 .Where( t =>
                     t.TransactionTypeValueId == contributionType.Id &&
