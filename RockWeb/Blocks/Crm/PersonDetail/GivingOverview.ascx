@@ -55,7 +55,7 @@
                         <asp:Literal ID="lGivingAnalytics" runat="server" />
                         </div>
                         <hr class="m-0">
-                        <h5>Yearly Summary</h5>
+                        <h5 class="mt-4">Yearly Summary</h5>
                         <div class="row d-flex flex-wrap">
                             <asp:Repeater ID="rptYearSummary" runat="server" OnItemDataBound="rptYearSummary_ItemDataBound">
                                 <ItemTemplate>
