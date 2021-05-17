@@ -295,6 +295,12 @@ namespace RockWeb.Blocks.Crm.PersonDetail
             {
                 var givingBin = Person.GetAttributeValue( givingBinAttribute.Key ).AsInteger();
                 lGivingBin.Text = givingBin.ToString();
+
+                var lBin = pnlGiving.FindControl( "lBin" + givingBin ) as HtmlGenericControl;
+                if ( lBin != null )
+                {
+                    lBin.AddCssClass( "bg-primary" );
+                }
             }
 
             if ( givingBinAttribute != null && givingPercentileAttribute != null )

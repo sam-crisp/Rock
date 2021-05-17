@@ -51,10 +51,10 @@
                                         </ul>
 
                                         <ul class="trend-bar list-unstyled">
-                                            <li style="width: 5%"><span></span></li>
-                                            <li style="width: 15%"><span></span></li>
-                                            <li style="width: 20%"><span></span></li>
-                                            <li style="width: 60%"><span></span></li>
+                                            <li style="width: 5%"><span id="lBin1" runat="server"></span></li>
+                                            <li style="width: 15%"><span id="lBin2" runat="server"></span></li>
+                                            <li style="width: 20%"><span id="lBin3" runat="server"></span></li>
+                                            <li style="width: 60%"><span id="lBin4" runat="server"></span></li>
                                         </ul>
                                     </div>
                                 </div>
