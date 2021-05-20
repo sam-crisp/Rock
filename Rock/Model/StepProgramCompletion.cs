@@ -28,8 +28,22 @@ using Rock.Data;
 
 namespace Rock.Model
 {
+    /*
+       5/20/2021 SK, NA, JE 
+      
+       We originally planned to try to track Step Program "Engagement" but this became dificult to accurately
+       determine which steps should be considered part of an active, on-going program.  That is because a 
+       person could have multiple attempts at one step over several years and they really shouldn't necessarily
+       be considered part of the current "engagement".  Therefore, we changed this to track 'completed' 
+       engagements using a simple rule described below.
+     */
+
     /// <summary>
-    /// Represents a step program completion in Rock.
+    /// This represents a the completion of a Step Program for a particular person. Since any particular Step Program
+    /// could have a variety of Steps with various settings, this entity represents the simple attempt to record when
+    /// someone has completed each step in the program.  It does this with a simple rule: As soon as there is a
+    /// full set of "completed" steps (for each step type of a program), it uses the latest/newest completed step
+    /// for each type and assigns it to a new Step Program Completion record.
     /// </summary>
     [RockDomain( "Engagement" )]
     [Table( "StepProgramCompletion" )]
@@ -53,7 +67,8 @@ namespace Rock.Model
         public int PersonAliasId { get; set; }
 
         /// <summary>
-        /// Gets or sets the <see cref="Rock.Model.Campus"/> identifier.
+        /// Gets or sets the <see cref="Rock.Model.Campus"/> identifier. This will be the campus
+        /// from whichever step was completed last (most recently).
         /// </summary>
         /// <value>
         /// The campus identifier.
@@ -123,7 +138,8 @@ namespace Rock.Model
         public virtual PersonAlias PersonAlias { get; set; }
 
         /// <summary>
-        /// Gets or sets the <see cref="Rock.Model.Campus"/>.
+        /// Gets or sets the <see cref="Rock.Model.Campus"/>. This will be the campus
+        /// from whichever step was completed last (most recently).
         /// </summary>
         /// <value>
         /// The campus.

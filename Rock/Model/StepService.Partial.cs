@@ -185,7 +185,6 @@ namespace Rock.Model
             stepProgramCompletionService.Add( stepProgramCompletion );
             rockContext.SaveChanges();
 
-
             var stepIds = stepSet.Select( b => b.Id );
             var stepQry = stepService.Queryable().Where( a => stepIds.Contains( a.Id ) );
             rockContext.BulkUpdate( stepQry, a => new Step { StepProgramCompletionId = stepProgramCompletion.Id } );
