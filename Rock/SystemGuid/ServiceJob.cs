@@ -181,5 +181,10 @@ namespace Rock.SystemGuid
         /// The <see cref="Rock.Jobs.SyncMedia">media synchronize</see> job.
         /// </summary>
         public const string SYNC_MEDIA = "FB27C6DF-F8DB-41F8-83AF-BBE09E77A0A9";
+
+        /// <summary>
+        /// The job updates the existing step to map with step program completion if valid
+        /// </summary>
+        public const string UPDATE_STEP_PROGRAM_COMPLETION = "E7C54AAB-451E-4E89-8083-CF398D37416E";
     }
 }
