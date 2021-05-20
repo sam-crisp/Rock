@@ -81,6 +81,10 @@
     <Compile Include="Migrations\202105131600176_MoveCheckinSubtitlesToLavaHeader.Designer.cs">
       <DependentUpon>202105131600176_MoveCheckinSubtitlesToLavaHeader.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202105161501487_AddStepProgramCompletion.cs" />
+    <Compile Include="Migrations\202105161501487_AddStepProgramCompletion.Designer.cs">
+      <DependentUpon>202105161501487_AddStepProgramCompletion.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Version 12.0\Version 1.12.4\202105112043293_Rollup_0511.cs" />
     <Compile Include="Migrations\Version 12.0\Version 1.12.4\202105112043293_Rollup_0511.Designer.cs">
       <DependentUpon>202105112043293_Rollup_0511.cs</DependentUpon>
@@ -1725,6 +1729,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202105131600176_MoveCheckinSubtitlesToLavaHeader.resx">
       <DependentUpon>202105131600176_MoveCheckinSubtitlesToLavaHeader.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202105161501487_AddStepProgramCompletion.resx">
+      <DependentUpon>202105161501487_AddStepProgramCompletion.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\Version 12.0\Version 1.12.4\202105112043293_Rollup_0511.resx">
       <DependentUpon>202105112043293_Rollup_0511.cs</DependentUpon>
