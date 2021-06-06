@@ -67,36 +67,44 @@ namespace Rock.Migrations
             CreateIndex("dbo.Step", "StepProgramCompletionId");
             AddForeignKey("dbo.Step", "StepProgramCompletionId", "dbo.StepProgramCompletion", "Id", cascadeDelete: true);
 
-            Sql( $@"
-            IF NOT EXISTS (
-                SELECT 1
-                FROM [ServiceJob]
-                WHERE [Class] = 'Rock.Jobs.UpdateStepProgramCompletion'
-                                AND [Guid] = '{SystemGuid.ServiceJob.UPDATE_STEP_PROGRAM_COMPLETION}'
-            )
-            BEGIN
-                INSERT INTO [ServiceJob] (
-                    [IsSystem]
-                    ,[IsActive]
-                    ,[Name]
-                    ,[Description]
-                    ,[Class]
-                    ,[CronExpression]
-                    ,[NotificationStatus]
-                    ,[Guid]
-                ) VALUES (
-                    1
-                    ,1
-                    ,'Update Step Program Completion'
-                    ,'This job updates the existing step to map with step program completion if valid.'
-                    ,'Rock.Jobs.UpdateStepProgramCompletion'
-                    ,'0 0 21 1/1 * ? *'
-                    ,1
-                    ,'{SystemGuid.ServiceJob.UPDATE_STEP_PROGRAM_COMPLETION}'
-                );
-            END" );
+            AddUpdatePostV13UpdateJob();
         }
-        
+
+        /// <summary>
+        /// SK: "Rock Update Helper v13.0
+        /// </summary>
+        private void AddUpdatePostV13UpdateJob()
+        {
+            Sql( $@"IF NOT EXISTS (
+  SELECT[Id]
+  FROM[ServiceJob]
+  WHERE[Class] = 'Rock.Jobs.PostV13Update'
+   AND[Guid] = '{SystemGuid.ServiceJob.POST_V13_UPDATE}'
+  )
+BEGIN
+ INSERT INTO[ServiceJob](
+  [IsSystem]
+  ,[IsActive]
+  ,[Name]
+  ,[Description]
+  ,[Class]
+  ,[CronExpression]
+  ,[NotificationStatus]
+  ,[Guid]
+  )
+ VALUES(
+  0
+  ,1
+  ,'Post v13 Update'
+  ,'Rock Update Helper v13.0.'
+  ,'Rock.Jobs.PostV13Update'
+  ,'0 0 21 1/1 * ? *'
+  ,1
+  ,'{SystemGuid.ServiceJob.POST_V13_UPDATE}'
+  );
+        END" );
+        }
+
         /// <summary>
         /// Operations to be performed during the downgrade process.
         /// </summary>

@@ -183,8 +183,8 @@ namespace Rock.SystemGuid
         public const string SYNC_MEDIA = "FB27C6DF-F8DB-41F8-83AF-BBE09E77A0A9";
 
         /// <summary>
-        /// The job updates the existing step to map with step program completion if valid
+        /// The Job to run Post v13 Update
         /// </summary>
-        public const string UPDATE_STEP_PROGRAM_COMPLETION = "E7C54AAB-451E-4E89-8083-CF398D37416E";
+        public const string POST_V13_UPDATE = "E7C54AAB-451E-4E89-8083-CF398D37416E";
     }
 }
