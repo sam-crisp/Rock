@@ -30,11 +30,11 @@ using Rock.Web.Cache;
 namespace Rock.Jobs
 {
     /// <summary>
-    /// Rock Update Helper v13.0
+    /// Populates Step Program Completion records using existing Step data
     /// </summary>
     /// <seealso cref="Quartz.IJob" />
-    [DisplayName( "Post v13 Update" )]
-    [Description( "Rock Update Helper v13.0." )]
+    [DisplayName( "Rock Update Helper v12.5 - Update Step Program Completion" )]
+    [Description( "Populates Step Program Completion records using existing Step data" )]
 
     [DisallowConcurrentExecution]
     [IntegerField(
@@ -45,7 +45,7 @@ namespace Rock.Jobs
         Category = "General",
         Order = 1,
         Key = AttributeKey.CommandTimeout )]
-    public class PostV13Update : IJob
+    public class PostV125UpdateStepProgramCompletion : IJob
     {
         #region Keys
 
