@@ -930,6 +930,12 @@ Processed {context.TransactionsChecked} {"transaction".PluralizeIf( context.Tran
                     return;
                 }
 
+                // Update the giving history attribute. This is done outside of the UpdateGivingUnitClassifications method because it
+                // requires a unique query
+                var givingHistoryObjects = financialTransactionService.GetGivingAnalyticsMonthlyAccountGivingHistory( givingId );
+                var givingHistoryJson = givingHistoryObjects.ToJson();
+                SetGivingUnitAttributeValue( context, people, SystemGuid.Attribute.PERSON_GIVING_HISTORY_JSON, givingHistoryJson );
+
                 // Save all the attribute value changes
                 people.ForEach( p => p.SaveAttributeValues( rockContext ) );
                 rockContext.SaveChanges();
@@ -1359,14 +1365,36 @@ Processed {context.TransactionsChecked} {"transaction".PluralizeIf( context.Tran
                 return false;
             }
 
+            // Update the group's gift count attributes
+            var transactionTwelveMonthCount = transactions.Count;
+            SetGivingUnitAttributeValue( context, people, SystemGuid.Attribute.PERSON_GIVING_12_MONTHS_COUNT, transactionTwelveMonthCount );
+
+            var ninetyDaysAgo = context.Now.AddDays( -90 );
+            var transactionNinetyDayCount = transactions.Count( t => t.TransactionDateTime >= ninetyDaysAgo );
+            SetGivingUnitAttributeValue( context, people, SystemGuid.Attribute.PERSON_GIVING_90_DAYS_COUNT, transactionNinetyDayCount );
+
+            // Update the group's gift total attributes
+            var transactionTwelveMonthTotal = transactions.Sum( t => t.TotalAmount );
+            SetGivingUnitAttributeValue( context, people, SystemGuid.Attribute.PERSON_GIVING_12_MONTHS, transactionTwelveMonthTotal );
+
+            var transactionNinetyDayTotal = transactions.Where( t => t.TransactionDateTime >= ninetyDaysAgo ).Sum( t => t.TotalAmount );
+            SetGivingUnitAttributeValue( context, people, SystemGuid.Attribute.PERSON_GIVING_90_DAYS, transactionNinetyDayTotal );
+
+            var oneEightyDaysAgo = context.Now.AddDays( -180 );
+            var transactionPriorNinetyDayTotal = transactions
+                .Where( t =>
+                    t.TransactionDateTime >= oneEightyDaysAgo &&
+                    t.TransactionDateTime < ninetyDaysAgo )
+                .Sum( t => t.TotalAmount );
+            SetGivingUnitAttributeValue( context, people, SystemGuid.Attribute.PERSON_GIVING_PRIOR_90_DAYS, transactionPriorNinetyDayTotal );
+
             // Update the groups lastgiftdate attribute
             var lastGiftDate = transactions.LastOrDefault().TransactionDateTime;
             SetGivingUnitAttributeValue( context, people, SystemGuid.Attribute.PERSON_ERA_LAST_GAVE, lastGiftDate );
 
             // Store percent scheduled
-            var transactionCount = transactions.Count;
             var scheduledTransactionsCount = transactions.Count( t => t.IsScheduled );
-            var percentScheduled = GetPercentInt( scheduledTransactionsCount, transactionCount );
+            var percentScheduled = GetPercentInt( scheduledTransactionsCount, transactionTwelveMonthCount );
             SetGivingUnitAttributeValue( context, people, SystemGuid.Attribute.PERSON_GIVING_PERCENT_SCHEDULED, percentScheduled );
 
             // Store preferred source

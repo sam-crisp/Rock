@@ -126,6 +126,7 @@ namespace RockWeb.Blocks.Crm.PersonDetail
             pnlContent.Visible = isVisible;
             if ( isVisible )
             {
+                SyncLastUpdatedLabel();
                 ShowDetail();
             }
         }
@@ -190,6 +191,23 @@ namespace RockWeb.Blocks.Crm.PersonDetail
         #region Internal Methods
 
         /// <summary>
+        /// Synchronizes the last updated label.
+        /// </summary>
+        private void SyncLastUpdatedLabel()
+        {
+            var lastUpdated = Person.GetAttributeValue( Rock.SystemGuid.Attribute.PERSON_GIVING_LAST_CLASSIFICATION_DATE.AsGuid() ).AsDateTime();
+
+            if ( lastUpdated.HasValue )
+            {
+                hlLastUpdated.Text = string.Format( "Last Update: {0}", lastUpdated.ToElapsedString() );
+            }
+            else
+            {
+                hlLastUpdated.Text = "Last Update: Unknown";
+            }
+        }
+
+        /// <summary>
         /// Shows the detail.
         /// </summary>
         private void ShowDetail()
@@ -206,46 +224,39 @@ namespace RockWeb.Blocks.Crm.PersonDetail
 
             Person.LoadAttributes();
             var rockContext = new RockContext();
-            var transactionService = new FinancialTransactionService( rockContext );
             var minMonthlyDate = RockDateTime.Now.StartOfMonth().AddMonths( -35 );
 
-            var allGiftsQuery = transactionService.GetGivingAnalyticsSourceTransactionQuery()
-                .AsNoTracking()
-                .Where( t =>
-                    t.TransactionTypeValueId == contributionType.Id &&
-                    t.TransactionDateTime.HasValue &&
-                    t.AuthorizedPersonAlias.Person.GivingId == Person.GivingId );
+            var historyJson = Person.GetAttributeValue( Rock.SystemGuid.Attribute.PERSON_GIVING_HISTORY_JSON.AsGuid() );
+            var historyObjects = FinancialTransactionService.GetGivingAnalyticsMonthlyAccountGivingHistoryFromJson( historyJson );
 
-            var threeYearsGiftData = allGiftsQuery
-                .Where( t => t.TransactionDateTime.Value >= minMonthlyDate )
-                .Select( t => new
-                {
-                    TransactionDateTime = t.TransactionDateTime.Value,
-                    Details = t.TransactionDetails.Select( td => new
-                    {
-                        td.AccountId,
-                        td.Amount
-                    } )
-                } )
-                .ToList()
-                .OrderBy( t => t.TransactionDateTime )
+            var threeYearsGiftData = historyObjects
+                .Where( h =>
+                    h.Year >= minMonthlyDate.Year ||
+                    ( h.Year == minMonthlyDate.Year && h.Month >= minMonthlyDate.Month )
+                )
+                .OrderBy( h => h.Year )
+                .ThenBy( h => h.Month )
                 .ToList();
 
             if ( threeYearsGiftData.Any() )
             {
                 var inactiveGiverCutOffDate = RockDateTime.Now.AddDays( -GetAttributeValue( AttributeKey.InactiveGiverCutoff ).AsInteger() ).Date;
                 pnlGiving.Visible = true;
-                var hasGiftsAfterCutoff = threeYearsGiftData.Any( t => t.TransactionDateTime >= inactiveGiverCutOffDate );
+                var hasGiftsAfterCutoff = threeYearsGiftData
+                    .Any( h =>
+                        h.Amount > 0 && (
+                            h.Year >= inactiveGiverCutOffDate.Year ||
+                            ( h.Year == inactiveGiverCutOffDate.Year && h.Month >= inactiveGiverCutOffDate.Month )
+                        )
+                    );
 
                 if ( !hasGiftsAfterCutoff )
                 {
+                    var lastGaveObject = historyObjects.FirstOrDefault( h => h.Amount > 0 );
+                    var lastGaveDate = lastGaveObject != null ? ( DateTime? ) new DateTime( lastGaveObject.Year, lastGaveObject.Month, 1 ) : null;
                     pnlInactiveGiver.Visible = true;
                     pnlGivingStats.AddCssClass( "inactive-giving" );
-                    lLastGiver.Text = allGiftsQuery
-                        .OrderByDescending( a => a.TransactionDateTime.Value )
-                        .Select( a => a.TransactionDateTime.Value )
-                        .FirstOrDefault()
-                        .ToShortDateString();
+                    lLastGiver.Text = lastGaveDate.HasValue ? lastGaveDate.Value.ToString( "MMM yyyy" ) : string.Empty;
                 }
             }
             else
@@ -254,18 +265,9 @@ namespace RockWeb.Blocks.Crm.PersonDetail
                 return;
             }
 
-            var contributionByMonths = new Dictionary<DateTime, decimal>();
-            for ( var i = 0; i <= 35; i++ )
-            {
-                var startDate = RockDateTime.Now.AddMonths( -i ).StartOfMonth();
-                var endDate = startDate.AddMonths( 1 );
-
-                var amt = threeYearsGiftData
-                    .Where( t => t.TransactionDateTime >= startDate && t.TransactionDateTime < endDate )
-                    .Sum( t => t.Details.Sum( d => d.Amount ) );
-
-                contributionByMonths.AddOrReplace( startDate, amt );
-            }
+            var contributionByMonths = threeYearsGiftData
+                .GroupBy( h => new DateTime( h.Year, h.Month, 1 ) )
+                .ToDictionary( g => g.Key, g => g.Sum( h => h.Amount ) );
 
             MaxGiftAmount = contributionByMonths.Max( a => a.Value );
 
@@ -311,14 +313,11 @@ namespace RockWeb.Blocks.Crm.PersonDetail
             }
 
             var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( null );
-            var last12MonthStartDate = RockDateTime.Now.AddMonths( -12 ).StartOfMonth();
-            var last90DaysStartDate = RockDateTime.Now.AddDays( -90 ).Date;
-            var last180DaysStartDate = RockDateTime.Now.AddDays( -180 ).Date;
-            var last12MonthCount = threeYearsGiftData.Count( a => a.TransactionDateTime >= last12MonthStartDate );
-            var last90DaysGifts = threeYearsGiftData.Where( a => a.TransactionDateTime >= last90DaysStartDate );
-            var baseGrowthGifts = threeYearsGiftData.Where( a => a.TransactionDateTime >= last180DaysStartDate && a.TransactionDateTime < last90DaysStartDate );
-            var baseGrowthContribution = baseGrowthGifts.Sum( a => a.Details.Sum( d => d.Amount ) );
-            var last90DaysContribution = last90DaysGifts.Sum( a => a.Details.Sum( d => d.Amount ) );
+            var last12MonthTotal = Person.GetAttributeValue( Rock.SystemGuid.Attribute.PERSON_GIVING_12_MONTHS.AsGuid() ).AsDecimal();
+            var last12MonthCount = Person.GetAttributeValue( Rock.SystemGuid.Attribute.PERSON_GIVING_12_MONTHS_COUNT.AsGuid() ).AsInteger();
+            var last90DayCount = Person.GetAttributeValue( Rock.SystemGuid.Attribute.PERSON_GIVING_90_DAYS_COUNT.AsGuid() ).AsInteger();
+            var baseGrowthContribution = Person.GetAttributeValue( Rock.SystemGuid.Attribute.PERSON_GIVING_PRIOR_90_DAYS.AsGuid() ).AsDecimal();
+            var last90DaysContribution = Person.GetAttributeValue( Rock.SystemGuid.Attribute.PERSON_GIVING_90_DAYS.AsGuid() ).AsDecimal();
             decimal growthPercent = 0;
 
             if ( baseGrowthContribution == 0 )
@@ -340,7 +339,7 @@ namespace RockWeb.Blocks.Crm.PersonDetail
 
             string kpi = GetKpiShortCode(
                 "Last 12 Months",
-                FormatAsCurrency( contributionByMonths.Where( a => a.Key >= last12MonthStartDate ).Sum( a => a.Value ) ),
+                FormatAsCurrency( last12MonthTotal ),
                 subValue: string.Format( "<div class=\"d-block mt-2\"><span class=\"badge badge-warning \">First Gift: {0}</span></div>", Person.GetAttributeValue( "core_EraFirstGave" ).AsDateTime().ToShortDateString() ) );
 
             kpi += GetKpiShortCode(
@@ -354,7 +353,7 @@ namespace RockWeb.Blocks.Crm.PersonDetail
                     growthTitle ) ); // 3
 
             kpi += GetKpiShortCode( "Gifts Last 12 Months", last12MonthCount.ToStringSafe() );
-            kpi += GetKpiShortCode( "Gifts Last 90 Days", last90DaysGifts.Count().ToStringSafe() );
+            kpi += GetKpiShortCode( "Gifts Last 90 Days", last90DayCount.ToStringSafe() );
             lLastGiving.Text = string.Format( @"{{[kpis size:'lg' columnmin:'200px' columncount:'4' columncountmd:'3' columncountsm:'2']}}{0}{{[endkpis]}}", kpi ).ResolveMergeFields( mergeFields );
 
             GetGivingAnalyticsKPI( rockContext );
