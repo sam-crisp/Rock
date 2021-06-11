@@ -29,7 +29,9 @@
                                 <ul class="trend-chart trend-chart-gap" style="height:85px;">
                                     <asp:Repeater ID="rptGivingByMonth" runat="server">
                                         <ItemTemplate>
-                                            <li title="<%#( ( ( DateTime ) Eval( "key" ) ).ToString( "MMM yyyy" ) ) %>: <%#  Rock.ExtensionMethods.FormatAsCurrency((decimal)Eval("value")) %>"><span style="<%# GetGivingByMonthPercent ( (decimal)Eval( "value" ) ) %>"></span></li>
+                                            <li title="<%#( ( ( DateTime ) Eval( "key" ) ).ToString( "MMM yyyy" ) ) %>: <%#  Rock.ExtensionMethods.FormatAsCurrency((decimal)Eval("value")) %>">
+                                                <span style="<%# GetGivingByMonthPercent ( (decimal)Eval( "value" ) ) %>"></span>
+                                            </li>
                                         </ItemTemplate>
                                     </asp:Repeater>
                                 </ul>

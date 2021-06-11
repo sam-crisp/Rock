@@ -270,7 +270,7 @@ Processed {context.TransactionsChecked} {"transaction".PluralizeIf( context.Tran
 
             if ( key.IsNullOrWhiteSpace() )
             {
-                context.Errors.Add( $"An attribute was excepted using the guid '{guidString}', but failed to resolve" );
+                context.Errors.Add( $"An attribute was expected using the guid '{guidString}', but failed to resolve" );
             }
 
             return key;
@@ -1486,12 +1486,12 @@ Processed {context.TransactionsChecked} {"transaction".PluralizeIf( context.Tran
             // iii.) Classification for: Median Amount, IQR Amount, Mean Frequency, Frequency Standard Deviation
             //      a.) If there is 12 months of giving use all of those
             //      b.) If not use the previous gifts that are within 12 months but there must be at least 5 gifts.
-            //      c.) For Amount: we will calulate the median and interquartile range
+            //      c.) For Amount: we will calculate the median and interquartile range
             //      d.) For Frequency: we will calculate the trimmed mean and standard deviation. The trimmed mean will
-            //          exlcude the top 10 % largest and smallest gifts with in the dataset. If the number of gifts
+            //          exclude the top 10 % largest and smallest gifts with in the dataset. If the number of gifts
             //          available is < 10 then we’ll remove the top largest and smallest gift.
 
-            if ( transactionCount < 5 )
+            if ( transactionTwelveMonthCount < 5 )
             {
                 SetGivingUnitAttributeValue( context, people, SystemGuid.Attribute.PERSON_GIVING_AMOUNT_MEDIAN, string.Empty );
                 SetGivingUnitAttributeValue( context, people, SystemGuid.Attribute.PERSON_GIVING_AMOUNT_IQR, string.Empty );
@@ -2057,7 +2057,7 @@ Processed {context.TransactionsChecked} {"transaction".PluralizeIf( context.Tran
         /// <summary>
         /// The date time to consider as current time. The time when this processing instance began
         /// </summary>
-        public readonly DateTime Now = RockDateTime.Now;
+        public DateTime Now { get; set; } = RockDateTime.Now;
 
         /// <summary>
         /// The errors
