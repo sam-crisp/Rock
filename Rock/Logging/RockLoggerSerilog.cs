@@ -17,9 +17,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using Microsoft.Extensions.Logging;
 using Rock.Model;
 using Serilog;
+using Serilog.Events;
 using Serilog.Formatting.Compact;
+using Serilog.Parsing;
 
 namespace Rock.Logging
 {
@@ -33,10 +37,129 @@ namespace Rock.Logging
     {
         private const string DEFAULT_DOMAIN = "OTHER";
         private DateTime _ConfigurationLastLoaded;
-        private ILogger _logger;
+        private Serilog.ILogger _logger;
         private HashSet<string> _domains;
         private readonly string _rockLogDirectory;
         private readonly string _searchPattern;
+
+        public IDisposable BeginScope<TState>( TState state ) => default;
+
+        public bool IsEnabled( LogLevel logLevel ) => true;
+
+        static readonly MessageTemplateParser _messageTemplateParser = new MessageTemplateParser();
+
+        public void Log<TState>( LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter )
+        {
+            var level = ToSerilogLevel( logLevel );
+            if ( !_logger.IsEnabled( level ) )
+            {
+                return;
+            }
+
+            var logger = _logger;
+            string messageTemplate = null;
+
+            var properties = new List<LogEventProperty>();
+
+            var structure = state as IEnumerable<KeyValuePair<string, object>>;
+            if ( structure != null )
+            {
+                foreach ( var property in structure )
+                {
+                    if ( property.Key == "{OriginalFormat}" && property.Value is string )
+                    {
+                        messageTemplate = ( string ) property.Value;
+                    }
+                    else if ( property.Key.StartsWith( "@" ) )
+                    {
+                        LogEventProperty destructured;
+                        if ( logger.BindProperty( property.Key.Substring( 1 ), property.Value, true, out destructured ) )
+                            properties.Add( destructured );
+                    }
+                    else
+                    {
+                        LogEventProperty bound;
+                        if ( logger.BindProperty( property.Key, property.Value, false, out bound ) )
+                            properties.Add( bound );
+                    }
+                }
+
+                var stateType = state.GetType();
+                var stateTypeInfo = stateType.GetTypeInfo();
+                // Imperfect, but at least eliminates `1 names
+                if ( messageTemplate == null && !stateTypeInfo.IsGenericType )
+                {
+                    messageTemplate = "{" + stateType.Name + ":l}";
+                    LogEventProperty stateTypeProperty;
+                    if ( logger.BindProperty( stateType.Name, AsLoggableValue( state, formatter ), false, out stateTypeProperty ) )
+                        properties.Add( stateTypeProperty );
+                }
+            }
+
+            if ( messageTemplate == null && state != null )
+            {
+                messageTemplate = "{State:l}";
+                LogEventProperty stateProperty;
+                if ( logger.BindProperty( "State", AsLoggableValue( state, formatter ), false, out stateProperty ) )
+                    properties.Add( stateProperty );
+            }
+
+            if ( string.IsNullOrEmpty( messageTemplate ) )
+                return;
+
+            if ( eventId.Id != 0 || eventId.Name != null )
+                properties.Add( CreateEventIdProperty( eventId ) );
+
+            var parsedTemplate = _messageTemplateParser.Parse( messageTemplate );
+            var evt = new LogEvent( DateTimeOffset.Now, level, exception, parsedTemplate, properties );
+            logger.Write( evt );
+        }
+
+        static object AsLoggableValue<TState>( TState state, Func<TState, Exception, string> formatter )
+        {
+            object sobj = state;
+            if ( formatter != null )
+                sobj = formatter( state, null );
+            return sobj;
+        }
+
+        static LogEventProperty CreateEventIdProperty( EventId eventId )
+        {
+            var properties = new List<LogEventProperty>( 2 );
+
+            if ( eventId.Id != 0 )
+            {
+                properties.Add( new LogEventProperty( "Id", new ScalarValue( eventId.Id ) ) );
+            }
+
+            if ( eventId.Name != null )
+            {
+                properties.Add( new LogEventProperty( "Name", new ScalarValue( eventId.Name ) ) );
+            }
+
+            return new LogEventProperty( "EventId", new StructureValue( properties ) );
+        }
+
+        private LogEventLevel ToSerilogLevel( LogLevel logLevel )
+        {
+            switch ( logLevel )
+            {
+                case LogLevel.None:
+                case LogLevel.Critical:
+                    return LogEventLevel.Fatal;
+                case LogLevel.Error:
+                    return LogEventLevel.Error;
+                case LogLevel.Warning:
+                    return LogEventLevel.Warning;
+                case LogLevel.Information:
+                    return LogEventLevel.Information;
+                case LogLevel.Debug:
+                    return LogEventLevel.Debug;
+                case LogLevel.Trace:
+                default:
+                    return LogEventLevel.Verbose;
+            }
+        }
 
         /// <summary>
         /// Gets the log configuration.
@@ -832,7 +955,7 @@ namespace Rock.Logging
         public void ReloadConfiguration()
         {
             Close();
-            
+
             // The ctor loads up all the settings from the DB.
             LogConfiguration = new RockLogConfiguration();
             LoadConfiguration( LogConfiguration );

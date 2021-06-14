@@ -16,13 +16,14 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
 
 namespace Rock.Logging
 {
     /// <summary>
     /// The interface that RockLogger uses to log.
     /// </summary>
-    public interface IRockLogger
+    public interface IRockLogger : ILogger
     {
         /// <summary>
         /// Gets the log configuration.

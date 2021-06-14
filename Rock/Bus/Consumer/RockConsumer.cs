@@ -21,7 +21,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using MassTransit;
-
+using Microsoft.Extensions.Logging;
 using Rock.Bus.Message;
 using Rock.Bus.Queue;
 using Rock.Logging;
@@ -111,12 +111,16 @@ namespace Rock.Bus.Consumer
     public static class RockConsumer
     {
         private static readonly Type _genericInterfaceType = typeof( IRockConsumer<,> );
+        private static readonly Type _genericFaultInterfaceType = typeof( IConsumer<> );
+
 
         /// <summary>
         /// Configures the rock consumers.
         /// </summary>
         public static void ConfigureRockConsumers( IBusFactoryConfigurator configurator )
         {
+            configurator.UseExtensionsLogging( new LoggerFactory( new List<ILoggerProvider> { new RockLoggerProvider() } ) );
+
             var consumersByQueue = GetConsumerTypes()
                 .GroupBy( c => GetQueue( c ) )
                 .ToDictionary( g => g.Key, g => g.ToList() );

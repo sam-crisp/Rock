@@ -14,8 +14,23 @@
 // limitations under the License.
 // </copyright>
 //
+using Microsoft.Extensions.Logging;
+
 namespace Rock.Logging
 {
+    public sealed class RockLoggerProvider : ILoggerProvider
+    {
+        public Microsoft.Extensions.Logging.ILogger CreateLogger( string categoryName )
+        {
+            return RockLogger.Log;
+        }
+
+        public void Dispose()
+        {
+            RockLogger.Log.Close();
+        }
+    }
+
     /// <summary>
     /// This is the static class that is used to log data in Rock.
     /// </summary>
