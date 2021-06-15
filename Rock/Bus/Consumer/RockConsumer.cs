@@ -25,6 +25,7 @@ using MassTransit;
 using Rock.Bus.Message;
 using Rock.Bus.Queue;
 using Rock.Logging;
+using Rock.Model;
 using Rock.Utility.ExtensionMethods;
 
 namespace Rock.Bus.Consumer
@@ -47,7 +48,7 @@ namespace Rock.Bus.Consumer
     /// Rock Consumer Interface
     /// </summary>
     /// <seealso cref="IConsumer" />
-    public interface IRockConsumer<TQueue, TMessage> : IRockConsumer, IConsumer<TMessage>
+    public interface IRockConsumer<TQueue, TMessage> : IRockConsumer, IConsumer<TMessage>, IConsumer<Fault<TMessage>>
         where TQueue : IRockQueue, new()
         where TMessage : class, IRockMessage<TQueue>
     {
@@ -84,6 +85,21 @@ namespace Rock.Bus.Consumer
             RockLogger.Log.Debug( RockLogDomains.Core, "Rock Task Consumer: {0} TMessage Type: {1} Context: {@context}", GetType(), typeof( TMessage ), context );
             ConsumeContext = context;
             Consume( context.Message );
+            return RockMessageBus.GetCompletedTask();
+        }
+
+        /// <summary>
+        /// Consumes the specified fault context.
+        /// </summary>
+        /// <param name="context">The context.</param>
+        /// <returns></returns>
+        public virtual Task Consume( ConsumeContext<Fault<TMessage>> context )
+        {
+            foreach ( var exception in context.Message.Exceptions )
+            {
+                ExceptionLogService.LogException( $"{exception.ExceptionType} - {exception.Message}" );
+            }
+
             return RockMessageBus.GetCompletedTask();
         }
 
