@@ -17,13 +17,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using Microsoft.Extensions.Logging;
 using Rock.Model;
 using Serilog;
-using Serilog.Events;
 using Serilog.Formatting.Compact;
-using Serilog.Parsing;
 
 namespace Rock.Logging
 {
@@ -42,122 +39,67 @@ namespace Rock.Logging
         private readonly string _rockLogDirectory;
         private readonly string _searchPattern;
 
+        /// <summary>
+        /// Begins a logical operation scope.
+        /// </summary>
+        /// <typeparam name="TState"></typeparam>
+        /// <param name="state">The identifier for the scope.</param>
+        /// <returns>
+        /// An IDisposable that ends the logical operation scope on dispose.
+        /// </returns>
         public IDisposable BeginScope<TState>( TState state ) => default;
 
-        public bool IsEnabled( LogLevel logLevel ) => true;
+        /// <summary>
+        /// Checks if the given <paramref name="logLevel" /> is enabled.
+        /// </summary>
+        /// <param name="logLevel">level to be checked.</param>
+        /// <returns>
+        ///   <c>true</c> if enabled.
+        /// </returns>
+        public bool IsEnabled( LogLevel logLevel ) => ShouldLogEntry( ToRockLogLevel( logLevel ), RockLogDomains.Core );
 
-        static readonly MessageTemplateParser _messageTemplateParser = new MessageTemplateParser();
-
+        /// <summary>
+        /// Writes a log entry.
+        /// </summary>
+        /// <typeparam name="TState"></typeparam>
+        /// <param name="logLevel">Entry will be written on this level.</param>
+        /// <param name="eventId">Id of the event.</param>
+        /// <param name="state">The entry to be written. Can be also an object.</param>
+        /// <param name="exception">The exception related to this entry.</param>
+        /// <param name="formatter">Function to create a <c>string</c> message of the <paramref name="state" /> and <paramref name="exception" />.</param>
         public void Log<TState>( LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter )
         {
-            var level = ToSerilogLevel( logLevel );
-            if ( !_logger.IsEnabled( level ) )
+            if ( !IsEnabled( logLevel ) )
             {
                 return;
             }
 
-            var logger = _logger;
-            string messageTemplate = null;
-
-            var properties = new List<LogEventProperty>();
-
-            var structure = state as IEnumerable<KeyValuePair<string, object>>;
-            if ( structure != null )
-            {
-                foreach ( var property in structure )
-                {
-                    if ( property.Key == "{OriginalFormat}" && property.Value is string )
-                    {
-                        messageTemplate = ( string ) property.Value;
-                    }
-                    else if ( property.Key.StartsWith( "@" ) )
-                    {
-                        LogEventProperty destructured;
-                        if ( logger.BindProperty( property.Key.Substring( 1 ), property.Value, true, out destructured ) )
-                            properties.Add( destructured );
-                    }
-                    else
-                    {
-                        LogEventProperty bound;
-                        if ( logger.BindProperty( property.Key, property.Value, false, out bound ) )
-                            properties.Add( bound );
-                    }
-                }
-
-                var stateType = state.GetType();
-                var stateTypeInfo = stateType.GetTypeInfo();
-                // Imperfect, but at least eliminates `1 names
-                if ( messageTemplate == null && !stateTypeInfo.IsGenericType )
-                {
-                    messageTemplate = "{" + stateType.Name + ":l}";
-                    LogEventProperty stateTypeProperty;
-                    if ( logger.BindProperty( stateType.Name, AsLoggableValue( state, formatter ), false, out stateTypeProperty ) )
-                        properties.Add( stateTypeProperty );
-                }
-            }
-
-            if ( messageTemplate == null && state != null )
-            {
-                messageTemplate = "{State:l}";
-                LogEventProperty stateProperty;
-                if ( logger.BindProperty( "State", AsLoggableValue( state, formatter ), false, out stateProperty ) )
-                    properties.Add( stateProperty );
-            }
-
-            if ( string.IsNullOrEmpty( messageTemplate ) )
-                return;
-
-            if ( eventId.Id != 0 || eventId.Name != null )
-                properties.Add( CreateEventIdProperty( eventId ) );
-
-            var parsedTemplate = _messageTemplateParser.Parse( messageTemplate );
-            var evt = new LogEvent( DateTimeOffset.Now, level, exception, parsedTemplate, properties );
-            logger.Write( evt );
+            WriteToLog( ToRockLogLevel( logLevel ), RockLogDomains.Core, formatter( state, exception ) );
         }
 
-        static object AsLoggableValue<TState>( TState state, Func<TState, Exception, string> formatter )
-        {
-            object sobj = state;
-            if ( formatter != null )
-                sobj = formatter( state, null );
-            return sobj;
-        }
-
-        static LogEventProperty CreateEventIdProperty( EventId eventId )
-        {
-            var properties = new List<LogEventProperty>( 2 );
-
-            if ( eventId.Id != 0 )
-            {
-                properties.Add( new LogEventProperty( "Id", new ScalarValue( eventId.Id ) ) );
-            }
-
-            if ( eventId.Name != null )
-            {
-                properties.Add( new LogEventProperty( "Name", new ScalarValue( eventId.Name ) ) );
-            }
-
-            return new LogEventProperty( "EventId", new StructureValue( properties ) );
-        }
-
-        private LogEventLevel ToSerilogLevel( LogLevel logLevel )
+        /// <summary>
+        /// Converts to rockloglevel.
+        /// </summary>
+        /// <param name="logLevel">The log level.</param>
+        /// <returns></returns>
+        private RockLogLevel ToRockLogLevel( LogLevel logLevel )
         {
             switch ( logLevel )
             {
                 case LogLevel.None:
                 case LogLevel.Critical:
-                    return LogEventLevel.Fatal;
+                    return RockLogLevel.Fatal;
                 case LogLevel.Error:
-                    return LogEventLevel.Error;
+                    return RockLogLevel.Error;
                 case LogLevel.Warning:
-                    return LogEventLevel.Warning;
+                    return RockLogLevel.Warning;
                 case LogLevel.Information:
-                    return LogEventLevel.Information;
+                    return RockLogLevel.Info;
                 case LogLevel.Debug:
-                    return LogEventLevel.Debug;
+                    return RockLogLevel.Debug;
                 case LogLevel.Trace:
                 default:
-                    return LogEventLevel.Verbose;
+                    return RockLogLevel.All;
             }
         }
 
