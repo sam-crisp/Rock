@@ -2927,7 +2927,12 @@ Sys.Application.add_load(function () {
         {
             if ( page != null && page.Header != null )
             {
-                RemoveExistingHtmlMeta( page, htmlMeta );
+                var isExisting = ReplaceHtmlMetaIfExists( page, htmlMeta );
+
+                if ( isExisting )
+                {
+                    return;
+                }
 
                 // Find last meta element
                 int index = 0;
@@ -2955,18 +2960,19 @@ Sys.Application.add_load(function () {
         }
 
         /// <summary>
-        /// Removes an existing HtmlMeta control if all attributes match except for Content.
+        /// Replaces an existing HtmlMeta control if all attributes match except for Content.
         /// Returns <c>true</c> if the meta tag already exists and was removed.
         /// </summary>
         /// <param name="page">The <see cref="System.Web.UI.Page"/>.</param>
         /// <param name="newMeta">The <see cref="System.Web.UI.HtmlControls.HtmlMeta"/> tag to check for.</param>
         /// <returns>A <see cref="System.Boolean"/> that is <c>true</c> if the meta tag already exists; otherwise <c>false</c>.</returns>
-        private static bool RemoveExistingHtmlMeta( Page page, HtmlMeta newMeta )
+        private static bool ReplaceHtmlMetaIfExists( Page page, HtmlMeta newMeta )
         {
             bool existsAlready = false;
 
             if ( page != null && page.Header != null )
             {
+                var index = 0;
                 foreach ( Control control in page.Header.Controls )
                 {
                     if ( control is HtmlMeta )
@@ -2991,11 +2997,21 @@ Sys.Application.add_load(function () {
 
                         if ( sameAttributes )
                         {
-                            page.Header.Controls.Remove( existingMeta );
+                            index = page.Header.Controls.IndexOf( control );
+                            page.Header.Controls.Remove( control );
                             existsAlready = true;
                             break;
                         }
                     }
+                }
+
+                if ( existsAlready )
+                {
+                    /* 2021-06-16 SK
+                        Meta tags which are duplicate are first removed and then added at the same position to match the control tree and solves viewstate issue.
+                        This changes are being made to fix https://github.com/SparkDevNetwork/Rock/issues/4560
+                     */
+                    page.Header.Controls.AddAt( index, newMeta );
                 }
             }
 
