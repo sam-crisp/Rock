@@ -1968,6 +1968,10 @@ function onTaskCompleted( resultData )
             mdEmailPreview.Show();
         }
 
+        private string GetHtmlContent()
+        {
+            return HttpUtility.HtmlDecode( hfEmailEditorHtml.Value );
+        }
         private string GetEmailPreviewHtml( Rock.Model.Communication communication, Person currentPerson, Dictionary<string, object> mergeFields )
         {
             var emailMediumWithActiveTransport = MediumContainer
@@ -1975,7 +1979,7 @@ function onTaskCompleted( resultData )
                 .Where( a => a.EntityType.Guid == Rock.SystemGuid.EntityType.COMMUNICATION_MEDIUM_EMAIL.AsGuid() )
                 .FirstOrDefault();
 
-            string communicationHtml = hfEmailEditorHtml.Value;
+            string communicationHtml = GetHtmlContent();
 
             if ( emailMediumWithActiveTransport != null )
             {
@@ -2038,7 +2042,7 @@ function onTaskCompleted( resultData )
 
             // See if the template supports preview-text
             HtmlAgilityPack.HtmlDocument templateDoc = new HtmlAgilityPack.HtmlDocument();
-            templateDoc.LoadHtml( hfEmailEditorHtml.Value );
+            templateDoc.LoadHtml( GetHtmlContent() );
             var preheaderTextNode = templateDoc.GetElementbyId( "preheader-text" );
             tbEmailPreview.Visible = preheaderTextNode != null;
             tbEmailPreview.Text = preheaderTextNode != null ? preheaderTextNode.InnerHtml : string.Empty;
@@ -2071,7 +2075,7 @@ function onTaskCompleted( resultData )
             {
                 // set the preheader-text of our email html
                 HtmlAgilityPack.HtmlDocument templateDoc = new HtmlAgilityPack.HtmlDocument();
-                templateDoc.LoadHtml( hfEmailEditorHtml.Value );
+                templateDoc.LoadHtml( GetHtmlContent() );
                 var preheaderTextNode = templateDoc.GetElementbyId( "preheader-text" );
                 if ( preheaderTextNode != null )
                 {
@@ -3131,7 +3135,7 @@ function onTaskCompleted( resultData )
             var details = new CommunicationDetails();
 
             details.Subject = tbEmailSubject.Text;
-            details.Message = hfEmailEditorHtml.Value;
+            details.Message = GetHtmlContent();
 
             details.FromName = tbFromName.Text;
             details.FromEmail = ebFromAddress.Text;
