@@ -335,7 +335,7 @@ internal class SendGridResponseAsync : IAsyncResult
             case "failed":
             case "dropped":
             case "blocked":
-            case "bounced":
+            case "bounce":
                 status = SendEmailWithEvents.FAILED_STATUS;
                 string message = payload.ServerResponse.IsNotNullOrWhiteSpace() ? payload.ServerResponse : payload.EventTypeReason;
 
