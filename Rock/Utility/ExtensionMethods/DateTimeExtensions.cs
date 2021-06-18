@@ -16,6 +16,7 @@
 //
 using System;
 using System.Globalization;
+using Rock.Utility.Enums;
 
 namespace Rock
 {
@@ -542,6 +543,35 @@ namespace Rock
             return new DateTimeOffset( unspecifiedDateTime, RockDateTime.OrgTimeZoneInfo.GetUtcOffset( unspecifiedDateTime ) );
         }
 
+        /// <summary>
+        /// Converts to the flag (bit per day) friendly enum.
+        /// </summary>
+        /// <param name="dayOfWeek">The day of week.</param>
+        /// <returns></returns>
+        /// <exception cref="Exception">Rock is not familiar with this day of the week: {dateTime.DayOfWeek}</exception>
+        public static DayOfWeekFlag AsFlag( this DayOfWeek dayOfWeek )
+        {
+            switch ( dayOfWeek )
+            {
+                case DayOfWeek.Sunday:
+                    return DayOfWeekFlag.Sunday;
+                case DayOfWeek.Monday:
+                    return DayOfWeekFlag.Monday;
+                case DayOfWeek.Tuesday:
+                    return DayOfWeekFlag.Tuesday;
+                case DayOfWeek.Wednesday:
+                    return DayOfWeekFlag.Wednesday;
+                case DayOfWeek.Thursday:
+                    return DayOfWeekFlag.Thursday;
+                case DayOfWeek.Friday:
+                    return DayOfWeekFlag.Friday;
+                case DayOfWeek.Saturday:
+                    return DayOfWeekFlag.Saturday;
+                default:
+                    throw new Exception( $"Rock is not familiar with this day of the week: {dayOfWeek}" );
+            }
+        }
+
         #endregion DateTime Extensions
 
         #region TimeSpan Extensions
@@ -560,7 +590,7 @@ namespace Rock
 
         #endregion TimeSpan Extensions
 
-        #region Time/Date Rounding 
+        #region Time/Date Rounding
 
         /// <summary>
         /// Rounds the specified rounding interval.
@@ -612,6 +642,6 @@ namespace Rock
             return new DateTime( ( datetime - DateTime.MinValue ).Round( roundingInterval ).Ticks );
         }
 
-        #endregion Time/Date Rounding 
+        #endregion Time/Date Rounding
     }
 }

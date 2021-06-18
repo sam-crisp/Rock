@@ -21,16 +21,14 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity.ModelConfiguration;
-using System.Linq;
 using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
 using Rock.Data;
+using Rock.Utility.Enums;
 
 namespace Rock.Model
 {
     /// <summary>
-    /// 
+    ///
     /// </summary>
     [RockDomain( "Finance" )]
     [Table( "FinancialTransactionAlertType" )]
@@ -209,9 +207,46 @@ namespace Rock.Model
         [DataMember]
         public int? MaximumDaysSinceLastGift { get; set; }
 
+        /// <summary>
+        /// Gets or sets the run days for this alert type.
+        /// Null means all days of the week are run days.
+        /// </summary>
+        /// <value>
+        /// The run days.
+        /// </value>
+        [DataMember]
+        public DayOfWeekFlag? RunDays { get; set; }
+
+        /// <summary>
+        /// Gets or sets the last run date time.
+        /// </summary>
+        /// <value>
+        /// The last run date time.
+        /// </value>
+        [DataMember]
+        public DateTime? LastRunDateTime { get; set; }
+
+        /// <summary>
+        /// Gets or sets the alert summary notification group identifier.
+        /// </summary>
+        /// <value>
+        /// The alert summary notification group identifier.
+        /// </value>
+        [DataMember]
+        public int? AlertSummaryNotificationGroupId { get; set; }
+
         #endregion Entity Properties
 
         #region Virtual Properties
+
+        /// <summary>
+        /// Gets or sets the alert summary notification group.
+        /// </summary>
+        /// <value>
+        /// The alert summary notification group.
+        /// </value>
+        [DataMember]
+        public virtual Group AlertSummaryNotificationGroup { get; set; }
 
         /// <summary>
         /// Gets or sets the campus that this financial transaction alert type is associated with.
@@ -282,6 +317,7 @@ namespace Rock.Model
         /// </summary>
         public FinancialTransactionAlertTypeConfiguration()
         {
+            this.HasOptional( t => t.AlertSummaryNotificationGroup ).WithMany().HasForeignKey( t => t.AlertSummaryNotificationGroupId ).WillCascadeOnDelete( false );
             this.HasOptional( t => t.Campus ).WithMany().HasForeignKey( t => t.CampusId ).WillCascadeOnDelete( false );
             this.HasOptional( t => t.DataView ).WithMany().HasForeignKey( t => t.DataViewId ).WillCascadeOnDelete( false );
             this.HasOptional( t => t.WorkflowType ).WithMany().HasForeignKey( t => t.WorkflowTypeId ).WillCascadeOnDelete( false );
@@ -311,5 +347,6 @@ namespace Rock.Model
         [Description( "Follow-up" )]
         FollowUp = 1,
     }
+
     #endregion
 }

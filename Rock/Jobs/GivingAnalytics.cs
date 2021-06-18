@@ -118,16 +118,6 @@ namespace Rock.Jobs
             // job class itself being a single use instance
             var context = new GivingAnalyticsContext( jobContext );
 
-            // Check if the job should run today
-            var settings = GetGivingAnalyticsSettings();
-            var daysToRun = settings?.GivingAnalytics?.GiverAnalyticsRunDays ?? new List<DayOfWeek>();
-
-            if ( !daysToRun.Contains( context.Now.DayOfWeek ) )
-            {
-                jobContext.Result = "The job is not configured to run on this day of the week.";
-                return;
-            }
-
             // First determine the ranges for each of the 4 giving bins by looking at all contribution transactions in the last 12 months.
             // These ranges will be updated in the Giving Analytics system settings.
             UpdateGiverBinRanges( context );
@@ -455,7 +445,7 @@ Processed {context.TransactionsChecked} {"transaction".PluralizeIf( context.Tran
         }
 
         /// <summary>
-        /// Gets the gratitiude repeat prevention days.
+        /// Gets the gratitude repeat prevention days.
         /// </summary>
         /// <value>
         /// The global repeat prevention days.
@@ -619,6 +609,119 @@ Processed {context.TransactionsChecked} {"transaction".PluralizeIf( context.Tran
         }
 
         /// <summary>
+        /// Gets the amount IQR count.
+        /// </summary>
+        /// <param name="context">The context.</param>
+        /// <param name="people">The people.</param>
+        /// <param name="amount">The amount.</param>
+        /// <returns></returns>
+        public static decimal GetAmountIqrCount( GivingAnalyticsContext context, List<Person> people, decimal amount )
+        {
+            // For the purpose of having a high number that is reasonable and also does not overflow any c# type, I am choosing
+            // a constant to represent infinity other than max value of any particular type
+            var infinity = 1000;
+            var negativeInfinity = 0 - infinity;
+
+            // Check the number of IQRs that the amount varies
+            var medianGiftAmount = GetGivingUnitAttributeValue( context, people, Rock.SystemGuid.Attribute.PERSON_GIVING_AMOUNT_MEDIAN ).AsDecimal();
+            var amountIqr = GetGivingUnitAttributeValue( context, people, Rock.SystemGuid.Attribute.PERSON_GIVING_AMOUNT_IQR ).AsDecimal();
+            var amountDeviation = amount - medianGiftAmount;
+            decimal numberOfAmountIqrs;
+
+            if ( amountDeviation == 0 )
+            {
+                numberOfAmountIqrs = 0;
+            }
+            else if ( amountIqr != 0 )
+            {
+                numberOfAmountIqrs = amountDeviation / amountIqr;
+            }
+            else
+            {
+                // If the amount IQR is 0, then this giving group gives the same amount every time and even a $1 increase would be an infinite
+                // number of IQRs since the formula is dividing by zero. Since we don't want alerts for scenarios like an increase of $1, we use
+                // a fallback formula for IQR.
+                // Use 15% of the median amount or $100 if the median amount is somehow $0.
+                amountIqr = 0.15m * medianGiftAmount;
+
+                if ( amountIqr == 0 )
+                {
+                    amountIqr = 100m;
+                }
+
+                numberOfAmountIqrs = amountDeviation / amountIqr;
+            }
+
+            // Make sure the calculation doesn't exceed "infinity"
+            if ( numberOfAmountIqrs > infinity )
+            {
+                numberOfAmountIqrs = infinity;
+            }
+            else if ( numberOfAmountIqrs < negativeInfinity )
+            {
+                numberOfAmountIqrs = negativeInfinity;
+            }
+
+            return numberOfAmountIqrs;
+        }
+
+        /// <summary>
+        /// Gets the frequency deviation count.
+        /// </summary>
+        /// <param name="context">The context.</param>
+        /// <param name="people">The people.</param>
+        /// <param name="daysSinceLastTransaction">The days since last transaction.</param>
+        /// <returns></returns>
+        public static decimal GetFrequencyDeviationCount( GivingAnalyticsContext context, List<Person> people, double daysSinceLastTransaction )
+        {
+            // For the purpose of having a high number that is reasonable and also does not overflow any c# type, I am choosing
+            // a constant to represent infinity other than max value of any particular type
+            const int infinity = 1000;
+            const int negativeInfinity = 0 - infinity;
+
+            var frequencyStdDev = GetGivingUnitAttributeValue( context, people, Rock.SystemGuid.Attribute.PERSON_GIVING_FREQUENCY_STD_DEV_DAYS ).AsDecimal();
+            var frequencyMean = GetGivingUnitAttributeValue( context, people, Rock.SystemGuid.Attribute.PERSON_GIVING_FREQUENCY_MEAN_DAYS ).AsDecimal();
+            var frequencyDeviation = frequencyMean - Convert.ToDecimal( daysSinceLastTransaction );
+            decimal numberOfFrequencyStdDevs;
+
+            if ( frequencyDeviation == 0 )
+            {
+                numberOfFrequencyStdDevs = 0;
+            }
+            else if ( frequencyStdDev >= 1 )
+            {
+                numberOfFrequencyStdDevs = frequencyDeviation / frequencyStdDev;
+            }
+            else
+            {
+                // If the frequency std dev is less than 1, then this giving group gives the same interval and even a 1.1 day change would be a large
+                // number of std devs since the formula is dividing by zero. Since we don't want alerts for scenarios like being 1 day early, we use
+                // a fallback formula for std dev.
+                // Use 15% of the mean or 3 days if the mean is still 0.
+                frequencyStdDev = 0.15m * frequencyMean;
+
+                if ( frequencyStdDev < 1 )
+                {
+                    frequencyStdDev = 3m;
+                }
+
+                numberOfFrequencyStdDevs = frequencyDeviation / frequencyStdDev;
+            }
+
+            // Make sure the calculation doesn't exceed "infinity"
+            if ( numberOfFrequencyStdDevs > infinity )
+            {
+                numberOfFrequencyStdDevs = infinity;
+            }
+            else if ( numberOfFrequencyStdDevs < negativeInfinity )
+            {
+                numberOfFrequencyStdDevs = negativeInfinity;
+            }
+
+            return numberOfFrequencyStdDevs;
+        }
+
+        /// <summary>
         /// Are follow-up alerts allowed given the recent alerts.
         /// </summary>
         /// <param name="recentAlerts">The recent alerts.</param>
@@ -692,7 +795,7 @@ Processed {context.TransactionsChecked} {"transaction".PluralizeIf( context.Tran
 
                 if ( daysSinceLastGratitiudeAlert <= GratitiudeRepeatPreventionDays.Value )
                 {
-                    // This group has gratitiude alerts within the repeat duration. Don't create any new gratitiude alerts.
+                    // This group has gratitude alerts within the repeat duration. Don't create any new gratitude alerts.
                     return false;
                 }
             }
@@ -705,7 +808,7 @@ Processed {context.TransactionsChecked} {"transaction".PluralizeIf( context.Tran
         #region Execute Logic
 
         /// <summary>
-        /// Hydrates the alert types.
+        /// Hydrates the alert types that should be considered today (according to the alert type RunDays).
         /// </summary>
         /// <param name="context">The context.</param>
         private static void HydrateAlertTypes( GivingAnalyticsContext context )
@@ -717,6 +820,15 @@ Processed {context.TransactionsChecked} {"transaction".PluralizeIf( context.Tran
                 var alertTypes = alertTypeService.Queryable()
                     .AsNoTracking()
                     .OrderBy( at => at.Order )
+                    .ToList();
+
+                // Filter out alert types that are not supposed to run today
+                var currentDayOfWeekFlag = context.Now.DayOfWeek.AsFlag();
+
+                alertTypes = alertTypes
+                    .Where( at =>
+                        !at.RunDays.HasValue ||
+                        ( at.RunDays.Value & currentDayOfWeekFlag ) == currentDayOfWeekFlag )
                     .ToList();
 
                 context.AlertTypes = alertTypes;
@@ -734,7 +846,7 @@ Processed {context.TransactionsChecked} {"transaction".PluralizeIf( context.Tran
             // is always the one giving the gift.
 
             // We will reclassify anyone who has given since the last run of this job. This covers all alerts except
-            // the "late gift" alert, which needs to find people based on the absense of a gift.
+            // the "late gift" alert, which needs to find people based on the absence of a gift.
             using ( var rockContext = new RockContext() )
             {
                 var financialTransactionService = new FinancialTransactionService( rockContext );
@@ -846,7 +958,7 @@ Processed {context.TransactionsChecked} {"transaction".PluralizeIf( context.Tran
                 // off of all giving in the last 12 months.In the case of a tie in values( e.g. 50% credit card, 50%
                 // cash ) use the most recent value as the tie breaker. This could be calculated with only one gift.
                 var oneYearAgo = context.Now.AddMonths( -12 );
-                var transactions = financialTransactionService.GetGivingAnalyticsSourceTransactionQuery()
+                var twelveMonthsTransactions = financialTransactionService.GetGivingAnalyticsSourceTransactionQuery()
                     .Where( t =>
                         t.AuthorizedPersonAliasId.HasValue &&
                         personAliasIds.Contains( t.AuthorizedPersonAliasId.Value ) &&
@@ -866,12 +978,13 @@ Processed {context.TransactionsChecked} {"transaction".PluralizeIf( context.Tran
                     .ToList();
 
                 // If there are no transactions, then there is no basis to classify or alert
-                if ( !transactions.Any() )
+                if ( !twelveMonthsTransactions.Any() )
                 {
                     return;
                 }
 
-                foreach ( var transaction in transactions )
+                // Load the defined value guids into the transaction views from cache rather than using a table join in the SQL above
+                foreach ( var transaction in twelveMonthsTransactions )
                 {
                     if ( transaction.CurrencyTypeValueId.HasValue )
                     {
@@ -897,6 +1010,7 @@ Processed {context.TransactionsChecked} {"transaction".PluralizeIf( context.Tran
 
                 // If the group doesn't have FirstGiftDate attribute, set it by querying for the value
                 var firstGiftDate = GetGivingUnitAttributeValue( context, people, SystemGuid.Attribute.PERSON_ERA_FIRST_GAVE ).AsDateTime();
+                var updatedFirstGiftDate = false;
 
                 if ( !firstGiftDate.HasValue )
                 {
@@ -909,54 +1023,69 @@ Processed {context.TransactionsChecked} {"transaction".PluralizeIf( context.Tran
                         .Select( t => t.TransactionDateTime )
                         .FirstOrDefault();
 
-                    SetGivingUnitAttributeValue( context, people, SystemGuid.Attribute.PERSON_ERA_FIRST_GAVE, firstGiftDate );
+                    if ( firstGiftDate.HasValue )
+                    {
+                        SetGivingUnitAttributeValue( context, people, SystemGuid.Attribute.PERSON_ERA_FIRST_GAVE, firstGiftDate );
+                        updatedFirstGiftDate = true;
+                    }
                 }
 
                 // If the first gift date was less than 12 months ago and there are less than 5 gifts, do not process this giving group
                 // because there is not enough data to develop any meaningful insights
-                if ( ( !firstGiftDate.HasValue || firstGiftDate.Value > oneYearAgo ) && transactions.Count < 5 )
+                if ( ( !firstGiftDate.HasValue || firstGiftDate.Value > oneYearAgo ) && twelveMonthsTransactions.Count < 5 )
                 {
                     return;
                 }
 
-                // Update the attributes using the logic function
-                var classificationSuccess = UpdateGivingUnitClassifications( givingId, people, transactions, mostRecentOldTransactionDate, context, oneYearAgo );
+                // Only run classifications on the days specified by the settings
+                var settings = GetGivingAnalyticsSettings();
+                var daysToRun = settings?.GivingAnalytics?.GiverAnalyticsRunDays ?? new List<DayOfWeek>();
 
-                if ( !classificationSuccess )
+                if ( daysToRun.Contains( context.Now.DayOfWeek ) )
                 {
-                    context.GivingIdsFailed++;
+                    // Update the attributes using the logic function
+                    var classificationSuccess = UpdateGivingUnitClassifications( givingId, people, twelveMonthsTransactions, mostRecentOldTransactionDate, context, oneYearAgo );
 
-                    // Do not continue with alerts if classification failed
+                    if ( !classificationSuccess )
+                    {
+                        context.GivingIdsFailed++;
+
+                        // Do not continue with alerts if classification failed
+                        return;
+                    }
+
+                    // Update the giving history attribute. This is done outside of the UpdateGivingUnitClassifications method because it
+                    // requires a unique query
+                    var givingHistoryObjects = financialTransactionService.GetGivingAnalyticsMonthlyAccountGivingHistory( givingId );
+                    var givingHistoryJson = givingHistoryObjects.ToJson();
+                    SetGivingUnitAttributeValue( context, people, SystemGuid.Attribute.PERSON_GIVING_HISTORY_JSON, givingHistoryJson );
+
+                    // Save all the attribute value changes
+                    people.ForEach( p => p.SaveAttributeValues( rockContext ) );
+                    rockContext.SaveChanges();
+                    context.GivingIdsSuccessful++;
+
+                    // Fire the bus event to notify that these people have been classified
+                    GivingUnitWasClassifiedMessage.Publish( people.Select( p => p.Id ) );
+                }
+                else if ( updatedFirstGiftDate )
+                {
+                    // Save attribute value change for first gift date
+                    // First gift date isn't technically part of classification since this attribute predates giving analytics
+                    people.ForEach( p => p.SaveAttributeValues( rockContext ) );
+                    rockContext.SaveChanges();
+                }
+
+                // Next we will generate alerts if there are any to process to today. The HydrateAlerts method already executed
+                // and provided with alerts types that are scheduled to be run today
+                if ( !context.AlertTypes.Any() )
+                {
                     return;
                 }
 
-                // Update the giving history attribute. This is done outside of the UpdateGivingUnitClassifications method because it
-                // requires a unique query
-                var givingHistoryObjects = financialTransactionService.GetGivingAnalyticsMonthlyAccountGivingHistory( givingId );
-                var givingHistoryJson = givingHistoryObjects.ToJson();
-                SetGivingUnitAttributeValue( context, people, SystemGuid.Attribute.PERSON_GIVING_HISTORY_JSON, givingHistoryJson );
-
-                // Save all the attribute value changes
-                people.ForEach( p => p.SaveAttributeValues( rockContext ) );
-                rockContext.SaveChanges();
-                context.GivingIdsSuccessful++;
-
-                // Fire the bus event to notify that these people have been classified
-                GivingUnitWasClassifiedMessage.Publish( people.Select( p => p.Id ) );
-
-                // Alerts are generated for transactions since last run
-                var transactionsSinceLastRun = LastRunDateTime.HasValue ?
-                    transactions.Where( t => t.TransactionDateTime > LastRunDateTime.Value ).ToList() :
-                    transactions;
-
-                if ( !transactionsSinceLastRun.Any() || !context.AlertTypes.Any() )
-                {
-                    return;
-                }
-
-                // Get any recent alerts for these people
+                // Get any recent alerts for these people. These will be used in the "repeat alert prevention" logic
                 var financialTransactionAlertService = new FinancialTransactionAlertService( rockContext );
-                var recentAlerts = financialTransactionAlertService.Queryable()
+                var twelveMonthsAlerts = financialTransactionAlertService.Queryable()
                     .AsNoTracking()
                     .Where( a =>
                         personAliasIds.Contains( a.PersonAliasId ) &&
@@ -971,57 +1100,76 @@ Processed {context.TransactionsChecked} {"transaction".PluralizeIf( context.Tran
                     .OrderBy( a => a.AlertDateTime )
                     .ToList();
 
-                // Check the repeat prevention durations
-                var allowFollowUp = AllowFollowUpAlerts( recentAlerts, context );
-                var allowGratitiude = AllowGratitudeAlerts( recentAlerts, context );
+                // Check the repeat prevention durations. These prevent multiple alert types from being generated
+                // for these people in a short time period (if configured)
+                var allowFollowUp = AllowFollowUpAlerts( twelveMonthsAlerts, context );
+                var allowGratitiude = AllowGratitudeAlerts( twelveMonthsAlerts, context );
+                var alertsToAddToDb = new List<FinancialTransactionAlert>();
 
                 if ( allowFollowUp || allowGratitiude )
                 {
-                    var alertsToAddToDb = new List<FinancialTransactionAlert>();
+                    // As we're looping through the transactions, we keep track of the previous transaction's date. This is used to
+                    // calculate the days since the last transaction, which is the basis for frequency calculations.
+                    // Alerts don't make sense without a previous transaction to give a basis for analysis.
+                    var lastTransactionDate = mostRecentOldTransactionDate;
 
-                    // Keep track of the previous transaction's date. This is used to calculate the days since the last
-                    // transaction, which is the basis for frequency calculations.
-                    var transactionsBeforeLastRun = transactions.Except( transactionsSinceLastRun ).ToList();
-                    var lastTransactionDate = transactionsBeforeLastRun.Any() ?
-                        transactionsBeforeLastRun.Last().TransactionDateTime :
-                        mostRecentOldTransactionDate;
-
-                    foreach ( var transaction in transactionsSinceLastRun )
+                    foreach ( var transaction in twelveMonthsTransactions )
                     {
-                        var alertsForTransaction = lastTransactionDate.HasValue ? CreateAlertsForTransaction(
-                            rockContext,
-                            people,
-                            recentAlerts,
-                            transaction,
-                            lastTransactionDate.Value,
-                            context,
-                            allowGratitiude,
-                            allowFollowUp ) : new List<FinancialTransactionAlert>();
+                        var alertsForTransaction = lastTransactionDate.HasValue ?
+                            CreateAlertsForTransaction(
+                                rockContext,
+                                people,
+                                twelveMonthsAlerts,
+                                transaction,
+                                lastTransactionDate.Value,
+                                context,
+                                allowGratitiude,
+                                allowFollowUp ) :
+                            new List<FinancialTransactionAlert>();
 
                         lastTransactionDate = transaction.TransactionDateTime;
                         alertsToAddToDb.AddRange( alertsForTransaction );
 
-                        recentAlerts.AddRange( alertsForTransaction.Select( a => new AlertView
+                        if ( alertsForTransaction.Any() )
                         {
-                            AlertDateTime = a.AlertDateTime,
-                            AlertType = context.AlertTypes.First( at => at.Id == a.AlertTypeId ).AlertType,
-                            AlertTypeId = a.AlertTypeId,
-                            TransactionId = a.TransactionId
-                        } ) );
-                    }
+                            twelveMonthsAlerts.AddRange( alertsForTransaction.Select( a => new AlertView
+                            {
+                                AlertDateTime = a.AlertDateTime,
+                                AlertType = context.AlertTypes.First( at => at.Id == a.AlertTypeId ).AlertType,
+                                AlertTypeId = a.AlertTypeId,
+                                TransactionId = a.TransactionId
+                            } ) );
 
-                    if ( alertsToAddToDb.Any() )
-                    {
-                        var service = new FinancialTransactionAlertService( rockContext );
-                        service.AddRange( alertsToAddToDb );
-                        rockContext.SaveChanges();
+                            // Recheck if more alerts can be created now that there are more alerts created
+                            allowFollowUp = AllowFollowUpAlerts( twelveMonthsAlerts, context );
+                            allowGratitiude = AllowGratitudeAlerts( twelveMonthsAlerts, context );
 
-                        context.AlertsCreated += alertsToAddToDb.Count;
-                        HandlePostAlertsAddedLogic( alertsToAddToDb );
+                            if ( !allowFollowUp && !allowGratitiude )
+                            {
+                                // Break out of the for loop since no more alerts can be generated
+                                break;
+                            }
+                        }
                     }
                 }
 
-                context.TransactionsChecked += transactionsSinceLastRun.Count;
+                // Update the alert types' last run date
+                var alertTypeService = new FinancialTransactionAlertTypeService( rockContext );
+                var alertTypeIds = context.AlertTypes.Select( at => at.Id );
+                var alertTypes = alertTypeService.Queryable().Where( at => alertTypeIds.Contains( at.Id ) ).ToList();
+                alertTypes.ForEach( at => at.LastRunDateTime = context.Now );
+
+                // Add any alerts to the database
+                if ( alertsToAddToDb.Any() )
+                {
+                    var service = new FinancialTransactionAlertService( rockContext );
+                    service.AddRange( alertsToAddToDb );
+
+                    context.AlertsCreated += alertsToAddToDb.Count;
+                    HandlePostAlertsAddedLogic( alertsToAddToDb );
+                }
+
+                rockContext.SaveChanges();
             }
         }
 
@@ -1058,11 +1206,21 @@ Processed {context.TransactionsChecked} {"transaction".PluralizeIf( context.Tran
             // The people all have the same attribute values, so this method will use the first person
             var person = people.First();
 
-            // Alerts are ordered by the hydrate method. We will loop through them and check if the gift matches.
+            // Go through the ordered alert types (ordered in the hydrate method)
             foreach ( var alertType in context.AlertTypes )
             {
-                // Make sure this transaction / alert type combo doesn't already exist somehow
-                var alreadyAlerted = recentAlerts.Where( a => a.AlertTypeId == alertType.Id ).Any( a => a.TransactionId == transaction.Id );
+                // Alerts have been filtered already for which alerts are to run today. However, we need to filter
+                // alerts that have already checked this transaction (meaning the last run of the alert type is after the
+                // transaction's date
+                if ( alertType.LastRunDateTime.HasValue && alertType.LastRunDateTime.Value > transaction.TransactionDateTime )
+                {
+                    continue;
+                }
+
+                // Make sure this transaction / alert type combo doesn't already exist
+                var alreadyAlerted = recentAlerts.Any( a =>
+                    a.AlertTypeId == alertType.Id &&
+                    a.TransactionId == transaction.Id );
 
                 if ( alreadyAlerted )
                 {
@@ -1140,89 +1298,15 @@ Processed {context.TransactionsChecked} {"transaction".PluralizeIf( context.Tran
                     continue;
                 }
 
-                // For the purpose of having a high number that is reasonable and also does not overflow any c# type, I am choosing
-                // a constant to represent infinity other than max value of any particular type
-                var infinity = 1000;
-                var negativeInfinity = 0 - infinity;
-
                 // Check the number of IQRs that the amount varies
                 var amountIqr = GetGivingUnitAttributeValue( context, people, Rock.SystemGuid.Attribute.PERSON_GIVING_AMOUNT_IQR ).AsDecimal();
-                var amountDeviation = transaction.TotalAmount - medianGiftAmount;
-                decimal numberOfAmountIqrs;
-
-                if ( amountDeviation == 0 )
-                {
-                    numberOfAmountIqrs = 0;
-                }
-                else if ( amountIqr != 0 )
-                {
-                    numberOfAmountIqrs = amountDeviation / amountIqr;
-                }
-                else
-                {
-                    // If the amount IQR is 0, then this giving group gives the same amount every time and even a $1 increase would be an infinite
-                    // number of IQRs since the formula is dividing by zero. Since we don't want alerts for scenarios like an increase of $1, we use
-                    // a fallback formula for IQR.
-                    // Use 15% of the median amount or $100 if the median amount is somehow $0.
-                    amountIqr = 0.15m * medianGiftAmount;
-
-                    if ( amountIqr == 0 )
-                    {
-                        amountIqr = 100m;
-                    }
-
-                    numberOfAmountIqrs = amountDeviation / amountIqr;
-                }
-
-                // Make sure the calculation doesn't exceed "infinity"
-                if ( numberOfAmountIqrs > infinity )
-                {
-                    numberOfAmountIqrs = infinity;
-                }
-                else if ( numberOfAmountIqrs < negativeInfinity )
-                {
-                    numberOfAmountIqrs = negativeInfinity;
-                }
+                var numberOfAmountIqrs = GetAmountIqrCount( context, people, transaction.TotalAmount );
 
                 // Check the frequency sensitivity scale
                 var frequencyStdDev = GetGivingUnitAttributeValue( context, people, Rock.SystemGuid.Attribute.PERSON_GIVING_FREQUENCY_STD_DEV_DAYS ).AsDecimal();
                 var frequencyMean = GetGivingUnitAttributeValue( context, people, Rock.SystemGuid.Attribute.PERSON_GIVING_FREQUENCY_MEAN_DAYS ).AsDecimal();
                 var frequencyDeviation = frequencyMean - Convert.ToDecimal( daysSinceLastTransaction );
-                decimal numberOfFrequencyStdDevs;
-
-                if ( frequencyDeviation == 0 )
-                {
-                    numberOfFrequencyStdDevs = 0;
-                }
-                else if ( frequencyStdDev >= 1 )
-                {
-                    numberOfFrequencyStdDevs = frequencyDeviation / frequencyStdDev;
-                }
-                else
-                {
-                    // If the frequency std dev is less than 1, then this giving group gives the same interval and even a 1.1 day change would be a large
-                    // number of std devs since the formula is dividing by zero. Since we don't want alerts for scenarios like being 1 day early, we use
-                    // a fallback formula for std dev.
-                    // Use 15% of the mean or 3 days if the mean is still 0.
-                    frequencyStdDev = 0.15m * frequencyMean;
-
-                    if ( frequencyStdDev < 1 )
-                    {
-                        frequencyStdDev = 3m;
-                    }
-
-                    numberOfFrequencyStdDevs = frequencyDeviation / frequencyStdDev;
-                }
-
-                // Make sure the calculation doesn't exceed "infinity"
-                if ( numberOfFrequencyStdDevs > infinity )
-                {
-                    numberOfFrequencyStdDevs = infinity;
-                }
-                else if ( numberOfFrequencyStdDevs < negativeInfinity )
-                {
-                    numberOfFrequencyStdDevs = negativeInfinity;
-                }
+                var numberOfFrequencyStdDevs = GetFrequencyDeviationCount( context, people, daysSinceLastTransaction );
 
                 // Detect which thing, amount or frequency, is exceeding the rule's sensitivity scale
                 var reasons = new List<string>();
@@ -1256,7 +1340,8 @@ Processed {context.TransactionsChecked} {"transaction".PluralizeIf( context.Tran
                     }
                 }
 
-                if ( !reasons.Any() )
+                // Sensitivity scales are optional. If all other filters are met, then allow the alert to be created
+                if ( !reasons.Any() && ( alertType.AmountSensitivityScale.HasValue || alertType.FrequencySensitivityScale.HasValue ) )
                 {
                     // If amount and frequency are within "normal" sensitivity levels for this rule, then continue on without an alert.
                     continue;
@@ -1388,7 +1473,7 @@ Processed {context.TransactionsChecked} {"transaction".PluralizeIf( context.Tran
                 .Sum( t => t.TotalAmount );
             SetGivingUnitAttributeValue( context, people, SystemGuid.Attribute.PERSON_GIVING_PRIOR_90_DAYS, transactionPriorNinetyDayTotal );
 
-            // Update the groups lastgiftdate attribute
+            // Update the groups "last gift date" attribute
             var lastGiftDate = transactions.LastOrDefault().TransactionDateTime;
             SetGivingUnitAttributeValue( context, people, SystemGuid.Attribute.PERSON_ERA_LAST_GAVE, lastGiftDate );
 
@@ -1603,7 +1688,7 @@ Processed {context.TransactionsChecked} {"transaction".PluralizeIf( context.Tran
         /// <param name="context">The context.</param>
         private static void ProcessLateAlerts( GivingAnalyticsContext context )
         {
-            // Find the late gift alert types
+            // Find the late gift alert types. There are already filtered to the alert types that should run today
             var lateGiftAlertTypes = context.AlertTypes
                 .Where( at =>
                      at.AlertType == AlertType.FollowUp &&
@@ -1747,9 +1832,6 @@ Processed {context.TransactionsChecked} {"transaction".PluralizeIf( context.Tran
                         stopWatch.Start();
                     }
 
-                    // The people all have the same attribute values, so this method will use the first person
-                    var person = people.First();
-
                     // Get any recent alerts for these people
                     var recentAlerts = financialTransactionAlertService.Queryable()
                         .AsNoTracking()
@@ -1847,31 +1929,9 @@ Processed {context.TransactionsChecked} {"transaction".PluralizeIf( context.Tran
 
             var daysSinceLastTransaction = ( context.Now - lastGiftDate.Value ).TotalDays;
             var frequencyDeviation = frequencyMean - Convert.ToDecimal( daysSinceLastTransaction );
-            decimal numberOfFrequencyStdDevs;
 
-            if ( frequencyDeviation == 0 )
-            {
-                numberOfFrequencyStdDevs = 0;
-            }
-            else if ( frequencyStdDev != 0 )
-            {
-                numberOfFrequencyStdDevs = frequencyDeviation / frequencyStdDev;
-            }
-            else
-            {
-                // If the frequency std dev is 0, then this giving group gives the same interval and even a 1 day change would be an infinite
-                // number of std devs since the formula is dividing by zero. Since we don't want alerts for scenarios like being 1 day early, we use
-                // a fallback formula for std dev.
-                // Use 15% of the mean or 3 days if the mean is still 0.
-                var fallbackFrequencyStdDev = 0.15m * frequencyMean;
-
-                if ( fallbackFrequencyStdDev == 0 )
-                {
-                    fallbackFrequencyStdDev = 3m;
-                }
-
-                numberOfFrequencyStdDevs = frequencyDeviation / fallbackFrequencyStdDev;
-            }
+            // Check the frequency sensitivity scale
+            var numberOfFrequencyStdDevs = GetFrequencyDeviationCount( context, people, daysSinceLastTransaction );
 
             // Find the correct alert type to tie the new alert with
             foreach ( var alertType in lateGiftAlertTypes )

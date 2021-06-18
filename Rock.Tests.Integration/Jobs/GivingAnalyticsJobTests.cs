@@ -83,6 +83,252 @@ namespace Rock.Tests.Integration.Jobs
 
         #endregion SplitQuartileRanges
 
+        #region GetAmountIqrCount
+
+        /// <summary>
+        /// Tests that normal amount deviation count calculates correctly.
+        /// </summary>
+        /// <param name="daysSinceLastTransaction">The days since last transaction.</param>
+        /// <param name="expected">The expected.</param>
+        [TestMethod]
+        [DataRow( 30.0, 0.0 )]
+        [DataRow( 32.5, 1.0 )]
+        [DataRow( 35.0, 2.0 )]
+        [DataRow( 27.5, -1.0 )]
+        [DataRow( 25.0, -2.0 )]
+        [DataRow( 31.0, 0.4 )]
+        [DataRow( 29.0, -0.4 )]
+        [DataRow( -9999999.9, -1000.0 )]
+        [DataRow( 9999999.9, 1000.0 )]
+        public void GetAmountIqrCount_CalculatesCorrectly( double amount, double expected )
+        {
+            var jobExecutionContext = new TestJobContext();
+            var context = new GivingAnalyticsContext( jobExecutionContext );
+
+            var people = new List<Person>
+            {
+                new Person(),
+                new Person()
+            };
+
+            var amountMedian = 30m;
+            var amountIqr = 2.5m;
+
+            foreach ( var person in people )
+            {
+                person.LoadAttributes();
+                SetAttributeValue( person, SystemGuid.Attribute.PERSON_GIVING_AMOUNT_MEDIAN, amountMedian.ToString() );
+                SetAttributeValue( person, SystemGuid.Attribute.PERSON_GIVING_AMOUNT_IQR, amountIqr.ToString() );
+            }
+
+            var amountIqrCount = Rock.Jobs.GivingAnalytics.GetAmountIqrCount( context, people, Convert.ToDecimal( amount ) );
+            Assert.AreEqual( Convert.ToDecimal( expected ), amountIqrCount );
+        }
+
+        /// <summary>
+        /// Tests that amount deviation count calculates correctly when standard deviation is 0.  There is a fallback of 15%.
+        /// </summary>
+        /// <param name="daysSinceLastTransaction">The days since last transaction.</param>
+        /// <param name="expected">The expected.</param>
+        [TestMethod]
+        [DataRow( 30.0, 0.0 )]
+        [DataRow( 34.5, 1.0 )]
+        [DataRow( 39.0, 2.0 )]
+        [DataRow( 25.5, -1.0 )]
+        [DataRow( 21.0, -2.0 )]
+        [DataRow( 30.45, 0.1 )]
+        [DataRow( 29.55, -0.1 )]
+        [DataRow( -9999999.9, -1000.0 )]
+        [DataRow( 9999999.9, 1000.0 )]
+        public void GetAmountIqrCount_CalculatesCorrectlyWhenLowMedian( double amount, double expected )
+        {
+            var jobExecutionContext = new TestJobContext();
+            var context = new GivingAnalyticsContext( jobExecutionContext );
+
+            var people = new List<Person>
+            {
+                new Person(),
+                new Person()
+            };
+
+            var amountMedian = 30m;
+            var amountIqr = 0.0m;
+
+            foreach ( var person in people )
+            {
+                person.LoadAttributes();
+                SetAttributeValue( person, SystemGuid.Attribute.PERSON_GIVING_AMOUNT_MEDIAN, amountMedian.ToString() );
+                SetAttributeValue( person, SystemGuid.Attribute.PERSON_GIVING_AMOUNT_IQR, amountIqr.ToString() );
+            }
+
+            var amountIqrCount = Rock.Jobs.GivingAnalytics.GetAmountIqrCount( context, people, Convert.ToDecimal( amount ) );
+            Assert.AreEqual( Convert.ToDecimal( expected ), amountIqrCount );
+        }
+
+        /// <summary>
+        /// Tests that amount deviation count calculates correctly when standard deviation is 0 and the median is also 0.
+        /// In this case the fallback is 100.
+        /// </summary>
+        /// <param name="daysSinceLastTransaction">The days since last transaction.</param>
+        /// <param name="expected">The expected.</param>
+        [TestMethod]
+        [DataRow( 100.0, 1.0 )]
+        [DataRow( 9.0, 0.09 )]
+        [DataRow( -9999999.9, -1000.0 )]
+        [DataRow( 9999999.9, 1000.0 )]
+        public void GetAmountIqrCount_CalculatesCorrectlyWhenLowIqrAndMedian( double amount, double expected )
+        {
+            var jobExecutionContext = new TestJobContext();
+            var context = new GivingAnalyticsContext( jobExecutionContext );
+
+            var people = new List<Person>
+            {
+                new Person(),
+                new Person()
+            };
+
+            var amountMedian = 0m;
+            var amountIqr = 0m;
+
+            foreach ( var person in people )
+            {
+                person.LoadAttributes();
+                SetAttributeValue( person, SystemGuid.Attribute.PERSON_GIVING_AMOUNT_MEDIAN, amountMedian.ToString() );
+                SetAttributeValue( person, SystemGuid.Attribute.PERSON_GIVING_AMOUNT_IQR, amountIqr.ToString() );
+            }
+
+            var amountIqrCount = Rock.Jobs.GivingAnalytics.GetAmountIqrCount( context, people, Convert.ToDecimal( amount ) );
+            Assert.AreEqual( Convert.ToDecimal( expected ), amountIqrCount );
+        }
+
+        #endregion GetAmountIqrCount
+
+        #region GetFrequencyDeviationCount
+
+        /// <summary>
+        /// Tests that normal frequency deviation count calculates correctly.
+        /// </summary>
+        /// <param name="daysSinceLastTransaction">The days since last transaction.</param>
+        /// <param name="expected">The expected.</param>
+        [TestMethod]
+        [DataRow( 30.0, 0.0 )]
+        [DataRow( 32.5, -1.0 )]
+        [DataRow( 35.0, -2.0 )]
+        [DataRow( 27.5, 1.0 )]
+        [DataRow( 25.0, 2.0 )]
+        [DataRow( 31.0, -0.4 )]
+        [DataRow( 29.0, 0.4 )]
+        [DataRow( -9999999.9, 1000.0 )]
+        [DataRow( 9999999.9, -1000.0 )]
+        public void GetFrequencyDeviationCount_CalculatesCorrectly( double daysSinceLastTransaction, double expected )
+        {
+            var jobExecutionContext = new TestJobContext();
+            var context = new GivingAnalyticsContext( jobExecutionContext );
+
+            var people = new List<Person>
+            {
+                new Person(),
+                new Person()
+            };
+
+            var frequencyMean = 30m;
+            var frequencyStdDev = 2.5m;
+
+            foreach ( var person in people )
+            {
+                person.LoadAttributes();
+                SetAttributeValue( person, SystemGuid.Attribute.PERSON_GIVING_FREQUENCY_MEAN_DAYS, frequencyMean.ToString() );
+                SetAttributeValue( person, SystemGuid.Attribute.PERSON_GIVING_FREQUENCY_STD_DEV_DAYS, frequencyStdDev.ToString() );
+            }
+
+            var frequencyDeviationCount = Rock.Jobs.GivingAnalytics.GetFrequencyDeviationCount( context, people, daysSinceLastTransaction );
+            Assert.AreEqual( Convert.ToDecimal( expected ), frequencyDeviationCount );
+        }
+
+        /// <summary>
+        /// Tests that frequency deviation count calculates correctly when standard deviation is below 1.  There is a fallback of 15%
+        /// for the standard deviation when the actual number is less than 1.
+        /// </summary>
+        /// <param name="daysSinceLastTransaction">The days since last transaction.</param>
+        /// <param name="expected">The expected.</param>
+        [TestMethod]
+        [DataRow( 30.0, 0.0 )]
+        [DataRow( 34.5, -1.0 )]
+        [DataRow( 39.0, -2.0 )]
+        [DataRow( 25.5, 1.0 )]
+        [DataRow( 21.0, 2.0 )]
+        [DataRow( 30.45, -0.1 )]
+        [DataRow( 29.55, 0.1 )]
+        [DataRow( -9999999.9, 1000.0 )]
+        [DataRow( 9999999.9, -1000.0 )]
+        public void GetFrequencyDeviationCount_CalculatesCorrectlyWhenLowStdDev( double daysSinceLastTransaction, double expected )
+        {
+            var jobExecutionContext = new TestJobContext();
+            var context = new GivingAnalyticsContext( jobExecutionContext );
+
+            var people = new List<Person>
+            {
+                new Person(),
+                new Person()
+            };
+
+            var frequencyMean = 30m;
+            var frequencyStdDev = 0.5m;
+
+            foreach ( var person in people )
+            {
+                person.LoadAttributes();
+                SetAttributeValue( person, SystemGuid.Attribute.PERSON_GIVING_FREQUENCY_MEAN_DAYS, frequencyMean.ToString() );
+                SetAttributeValue( person, SystemGuid.Attribute.PERSON_GIVING_FREQUENCY_STD_DEV_DAYS, frequencyStdDev.ToString() );
+            }
+
+            var frequencyDeviationCount = Rock.Jobs.GivingAnalytics.GetFrequencyDeviationCount( context, people, daysSinceLastTransaction );
+            Assert.AreEqual( Convert.ToDecimal( expected ), frequencyDeviationCount );
+        }
+
+        /// <summary>
+        /// Tests that frequency deviation count calculates correctly when standard deviation is below 1 and mean is also low.
+        /// There is a fallback of 3 for the standard deviation when this occurs.
+        /// </summary>
+        /// <param name="daysSinceLastTransaction">The days since last transaction.</param>
+        /// <param name="expected">The expected.</param>
+        [TestMethod]
+        [DataRow( 6.0, 0.0 )]
+        [DataRow( 9.0, -1.0 )]
+        [DataRow( 12.0, -2.0 )]
+        [DataRow( 3.0, 1.0 )]
+        [DataRow( 0.0, 2.0 )]
+        [DataRow( 6.3, -0.1 )]
+        [DataRow( 5.7, 0.1 )]
+        [DataRow( -9999999.9, 1000.0 )]
+        [DataRow( 9999999.9, -1000.0 )]
+        public void GetFrequencyDeviationCount_CalculatesCorrectlyWhenLowStdDevAndMean( double daysSinceLastTransaction, double expected )
+        {
+            var jobExecutionContext = new TestJobContext();
+            var context = new GivingAnalyticsContext( jobExecutionContext );
+
+            var people = new List<Person>
+            {
+                new Person(),
+                new Person()
+            };
+
+            var frequencyMean = 6m;
+            var frequencyStdDev = 0.5m;
+
+            foreach ( var person in people )
+            {
+                person.LoadAttributes();
+                SetAttributeValue( person, SystemGuid.Attribute.PERSON_GIVING_FREQUENCY_MEAN_DAYS, frequencyMean.ToString() );
+                SetAttributeValue( person, SystemGuid.Attribute.PERSON_GIVING_FREQUENCY_STD_DEV_DAYS, frequencyStdDev.ToString() );
+            }
+
+            var frequencyDeviationCount = Rock.Jobs.GivingAnalytics.GetFrequencyDeviationCount( context, people, daysSinceLastTransaction );
+            Assert.AreEqual( Convert.ToDecimal( expected ), frequencyDeviationCount );
+        }
+
+        #endregion GetFrequencyDeviationCount
+
         #region CreateAlertsForLateTransaction
 
         /// <summary>
@@ -147,6 +393,95 @@ namespace Rock.Tests.Integration.Jobs
 
             var alert = alerts.Single();
             Assert.AreEqual( 2, alert.AlertTypeId );
+            Assert.AreEqual( context.Now, alert.AlertDateTime );
+            Assert.IsNull( alert.TransactionId );
+
+            Assert.AreEqual( amountMedian, alert.AmountCurrentMedian );
+            Assert.AreEqual( amountIqr, alert.AmountCurrentIqr );
+            Assert.IsNull( alert.AmountIqrMultiplier );
+
+            Assert.AreEqual( frequencyMean, alert.FrequencyCurrentMean );
+            Assert.AreEqual( frequencyStdDev, alert.FrequencyCurrentStandardDeviation );
+            Assert.IsNull( alert.FrequencyDifferenceFromMean );
+            Assert.IsNull( alert.FrequencyZScore );
+
+            var reasons = alert.ReasonsKey.FromJsonOrNull<List<string>>();
+            Assert.IsNotNull( reasons );
+            Assert.AreEqual( 1, reasons.Count );
+            Assert.AreEqual( nameof( FinancialTransactionAlertType.FrequencySensitivityScale ), reasons.Single() );
+        }
+
+        /// <summary>
+        /// Tests an example missing transaction
+        /// Scenario: Transaction was made before the last rule type run date.
+        /// </summary>
+        [TestMethod]
+        public void CreateAlertsForLateTransaction_SkipsForLastRunDate()
+        {
+            var jobExecutionContext = new TestJobContext();
+            var context = new GivingAnalyticsContext( jobExecutionContext )
+            {
+                Now = new DateTime( 2020, 3, 1 )
+            };
+
+            var lateGiftAlertTypes = new List<FinancialTransactionAlertType> {
+                new FinancialTransactionAlertType {
+                    Id = 1,
+                    Order = 1,
+                    FrequencySensitivityScale = 3,
+                    MaximumDaysSinceLastGift = 35,
+                    ContinueIfMatched = true,
+                    AlertType = AlertType.FollowUp
+                },
+                new FinancialTransactionAlertType {
+                    Id = 2,
+                    Order = 2,
+                    FrequencySensitivityScale = 3,
+                    ContinueIfMatched = true,
+                    AlertType = AlertType.FollowUp,
+                    LastRunDateTime = context.Now.AddDays( -1 )
+                },
+                new FinancialTransactionAlertType {
+                    Id = 3,
+                    Order = 3,
+                    FrequencySensitivityScale = 3,
+                    ContinueIfMatched = true,
+                    AlertType = AlertType.FollowUp
+                },
+            };
+
+            var people = new List<Person>
+            {
+                new Person(),
+                new Person()
+            };
+
+            var amountMedian = 500m;
+            var amountIqr = 100m;
+            var frequencyMean = 30m;
+            var frequencyStdDev = 3m;
+            var lastGave = context.Now.AddDays( -40 );
+
+            foreach ( var person in people )
+            {
+                person.LoadAttributes();
+                SetAttributeValue( person, SystemGuid.Attribute.PERSON_GIVING_AMOUNT_MEDIAN, amountMedian.ToString() );
+                SetAttributeValue( person, SystemGuid.Attribute.PERSON_GIVING_AMOUNT_IQR, amountIqr.ToString() );
+                SetAttributeValue( person, SystemGuid.Attribute.PERSON_GIVING_FREQUENCY_MEAN_DAYS, frequencyMean.ToString() );
+                SetAttributeValue( person, SystemGuid.Attribute.PERSON_GIVING_FREQUENCY_STD_DEV_DAYS, frequencyStdDev.ToString() );
+                SetAttributeValue( person, SystemGuid.Attribute.PERSON_ERA_LAST_GAVE, lastGave.ToISO8601DateString() );
+            }
+
+            var recentAlerts = new List<Rock.Jobs.AlertView>();
+            var lastTransactionAuthorizedAliasId = 999;
+
+            var alerts = Rock.Jobs.GivingAnalytics.CreateAlertsForLateTransaction( null, lateGiftAlertTypes, lastTransactionAuthorizedAliasId, people, recentAlerts, context );
+
+            Assert.IsNotNull( alerts );
+            Assert.AreEqual( 1, alerts.Count );
+
+            var alert = alerts.Single();
+            Assert.AreEqual( 3, alert.AlertTypeId );
             Assert.AreEqual( context.Now, alert.AlertDateTime );
             Assert.IsNull( alert.TransactionId );
 
@@ -841,6 +1176,246 @@ namespace Rock.Tests.Integration.Jobs
             Assert.IsNotNull( reasons );
             Assert.AreEqual( 1, reasons.Count );
             Assert.AreEqual( nameof( FinancialTransactionAlertType.AmountSensitivityScale ), reasons.Single() );
+        }
+
+        /// <summary>
+        /// Tests an example transaction that is large
+        /// Scenario: Family typically gives monthly between $400 and $600. This gift is larger in amount at $1000.
+        /// There is an alert type that matches, but it has already run since the transaction was created. That alert
+        /// type should be skipped.
+        /// </summary>
+        [TestMethod]
+        public void CreateAlertsForTransaction_SkipsAlertTypeBecauseOfLastRunDate()
+        {
+            var jobExecutionContext = new TestJobContext();
+            var now = new DateTime( 2020, 3, 1 );
+            var context = new GivingAnalyticsContext( jobExecutionContext )
+            {
+                Now = now,
+                AlertTypes = new List<FinancialTransactionAlertType> {
+                    new FinancialTransactionAlertType {
+                        Id = 1,
+                        Order = 1,
+                        MinimumGiftAmount = 100000m,
+                        ContinueIfMatched = true,
+                        AlertType = AlertType.Gratitude
+                    },
+                    new FinancialTransactionAlertType {
+                        Id = 2,
+                        Order = 2,
+                        AmountSensitivityScale = 3,
+                        ContinueIfMatched = true,
+                        AlertType = AlertType.FollowUp
+                    },
+                    new FinancialTransactionAlertType {
+                        Id = 3,
+                        Order = 3,
+                        AmountSensitivityScale = 3,
+                        MaximumDaysSinceLastGift = 10,
+                        ContinueIfMatched = true,
+                        AlertType = AlertType.Gratitude,
+                        LastRunDateTime = now.AddDays(-4)
+                    },
+                    new FinancialTransactionAlertType {
+                        Id = 4,
+                        Order = 4,
+                        AmountSensitivityScale = 3,
+                        ContinueIfMatched = true,
+                        AlertType = AlertType.Gratitude
+                    },
+                    new FinancialTransactionAlertType {
+                        Id = 6,
+                        Order = 6,
+                        FrequencySensitivityScale = 2,
+                        ContinueIfMatched = true,
+                        AlertType = AlertType.Gratitude
+                    },
+                    new FinancialTransactionAlertType {
+                        Id = 7,
+                        Order = 7,
+                        FrequencySensitivityScale = 2,
+                        ContinueIfMatched = true,
+                        AlertType = AlertType.FollowUp
+                    }
+                }
+            };
+
+            var people = new List<Person>
+            {
+                new Person(),
+                new Person()
+            };
+
+            var amountMedian = 500m;
+            var amountIqr = 100m;
+            var frequencyMean = 30m;
+            var frequencyStdDev = 2m;
+
+            foreach ( var person in people )
+            {
+                person.LoadAttributes();
+                SetAttributeValue( person, SystemGuid.Attribute.PERSON_GIVING_AMOUNT_MEDIAN, amountMedian.ToString() );
+                SetAttributeValue( person, SystemGuid.Attribute.PERSON_GIVING_AMOUNT_IQR, amountIqr.ToString() );
+                SetAttributeValue( person, SystemGuid.Attribute.PERSON_GIVING_FREQUENCY_MEAN_DAYS, frequencyMean.ToString() );
+                SetAttributeValue( person, SystemGuid.Attribute.PERSON_GIVING_FREQUENCY_STD_DEV_DAYS, frequencyStdDev.ToString() );
+            }
+
+            var recentAlerts = new List<Rock.Jobs.AlertView>();
+            var lastGiftDate = now.AddDays( -36 );
+
+            var transaction = new Rock.Jobs.TransactionView
+            {
+                Id = 888,
+                TransactionDateTime = now.AddDays( -5 ),
+                TotalAmount = 1000m
+            };
+
+            var alerts = Rock.Jobs.GivingAnalytics.CreateAlertsForTransaction( null, people, recentAlerts, transaction, lastGiftDate, context, true, true );
+
+            Assert.IsNotNull( alerts );
+            Assert.AreEqual( 1, alerts.Count );
+
+            var alert = alerts.Single();
+            Assert.AreEqual( 4, alert.AlertTypeId );
+            Assert.AreEqual( context.Now, alert.AlertDateTime );
+            Assert.AreEqual( transaction.Id, alert.TransactionId );
+
+            Assert.AreEqual( amountMedian, alert.AmountCurrentMedian );
+            Assert.AreEqual( amountIqr, alert.AmountCurrentIqr );
+            Assert.AreEqual( 5m, alert.AmountIqrMultiplier );
+
+            Assert.AreEqual( frequencyMean, alert.FrequencyCurrentMean );
+            Assert.AreEqual( frequencyStdDev, alert.FrequencyCurrentStandardDeviation );
+            Assert.AreEqual( -1m, alert.FrequencyDifferenceFromMean );
+            Assert.AreEqual( -0.5m, alert.FrequencyZScore );
+
+            var reasons = alert.ReasonsKey.FromJsonOrNull<List<string>>();
+            Assert.IsNotNull( reasons );
+            Assert.AreEqual( 1, reasons.Count );
+            Assert.AreEqual( nameof( FinancialTransactionAlertType.AmountSensitivityScale ), reasons.Single() );
+        }
+
+        /// <summary>
+        /// Tests an example transaction that is large
+        /// Scenario: Family typically gives monthly between $400 and $600. This gift is larger in amount at $1000.
+        /// There is an alert type that has no sensitivity settings. It should be matched because of the other filters.
+        /// </summary>
+        [TestMethod]
+        public void CreateAlertsForTransaction_CreatesAlertWithNoSensitivity()
+        {
+            var jobExecutionContext = new TestJobContext();
+            var now = new DateTime( 2020, 3, 1 );
+            var context = new GivingAnalyticsContext( jobExecutionContext )
+            {
+                Now = now,
+                AlertTypes = new List<FinancialTransactionAlertType> {
+                    new FinancialTransactionAlertType {
+                        Id = 1,
+                        Order = 1,
+                        MinimumGiftAmount = 100000m,
+                        ContinueIfMatched = true,
+                        AlertType = AlertType.Gratitude
+                    },
+                    new FinancialTransactionAlertType {
+                        Id = 2,
+                        Order = 2,
+                        AmountSensitivityScale = 3,
+                        ContinueIfMatched = true,
+                        AlertType = AlertType.FollowUp
+                    },
+                    new FinancialTransactionAlertType {
+                        Id = 3,
+                        Order = 3,
+                        AmountSensitivityScale = 3,
+                        MaximumDaysSinceLastGift = 10,
+                        ContinueIfMatched = true,
+                        AlertType = AlertType.Gratitude,
+                        LastRunDateTime = now.AddDays(-4)
+                    },
+                    new FinancialTransactionAlertType {
+                        Id = 4,
+                        Order = 4,
+                        MinimumGiftAmount = 999,
+                        MaximumGiftAmount = 1001,
+                        ContinueIfMatched = true,
+                        AlertType = AlertType.Gratitude
+                    },
+                    new FinancialTransactionAlertType {
+                        Id = 5,
+                        Order = 5,
+                        MinimumGiftAmount = 1001,
+                        ContinueIfMatched = true,
+                        AlertType = AlertType.Gratitude
+                    },
+                    new FinancialTransactionAlertType {
+                        Id = 6,
+                        Order = 6,
+                        FrequencySensitivityScale = 2,
+                        ContinueIfMatched = true,
+                        AlertType = AlertType.Gratitude
+                    },
+                    new FinancialTransactionAlertType {
+                        Id = 7,
+                        Order = 7,
+                        FrequencySensitivityScale = 2,
+                        ContinueIfMatched = true,
+                        AlertType = AlertType.FollowUp
+                    }
+                }
+            };
+
+            var people = new List<Person>
+            {
+                new Person(),
+                new Person()
+            };
+
+            var amountMedian = 500m;
+            var amountIqr = 100m;
+            var frequencyMean = 30m;
+            var frequencyStdDev = 2m;
+
+            foreach ( var person in people )
+            {
+                person.LoadAttributes();
+                SetAttributeValue( person, SystemGuid.Attribute.PERSON_GIVING_AMOUNT_MEDIAN, amountMedian.ToString() );
+                SetAttributeValue( person, SystemGuid.Attribute.PERSON_GIVING_AMOUNT_IQR, amountIqr.ToString() );
+                SetAttributeValue( person, SystemGuid.Attribute.PERSON_GIVING_FREQUENCY_MEAN_DAYS, frequencyMean.ToString() );
+                SetAttributeValue( person, SystemGuid.Attribute.PERSON_GIVING_FREQUENCY_STD_DEV_DAYS, frequencyStdDev.ToString() );
+            }
+
+            var recentAlerts = new List<Rock.Jobs.AlertView>();
+            var lastGiftDate = now.AddDays( -36 );
+
+            var transaction = new Rock.Jobs.TransactionView
+            {
+                Id = 888,
+                TransactionDateTime = now.AddDays( -5 ),
+                TotalAmount = 1000m
+            };
+
+            var alerts = Rock.Jobs.GivingAnalytics.CreateAlertsForTransaction( null, people, recentAlerts, transaction, lastGiftDate, context, true, true );
+
+            Assert.IsNotNull( alerts );
+            Assert.AreEqual( 1, alerts.Count );
+
+            var alert = alerts.Single();
+            Assert.AreEqual( 4, alert.AlertTypeId );
+            Assert.AreEqual( context.Now, alert.AlertDateTime );
+            Assert.AreEqual( transaction.Id, alert.TransactionId );
+
+            Assert.AreEqual( amountMedian, alert.AmountCurrentMedian );
+            Assert.AreEqual( amountIqr, alert.AmountCurrentIqr );
+            Assert.AreEqual( 5m, alert.AmountIqrMultiplier );
+
+            Assert.AreEqual( frequencyMean, alert.FrequencyCurrentMean );
+            Assert.AreEqual( frequencyStdDev, alert.FrequencyCurrentStandardDeviation );
+            Assert.AreEqual( -1m, alert.FrequencyDifferenceFromMean );
+            Assert.AreEqual( -0.5m, alert.FrequencyZScore );
+
+            var reasons = alert.ReasonsKey.FromJsonOrNull<List<string>>();
+            Assert.IsNotNull( reasons );
+            Assert.AreEqual( 0, reasons.Count );
         }
 
         /// <summary>

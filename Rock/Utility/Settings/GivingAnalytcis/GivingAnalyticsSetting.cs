@@ -109,7 +109,7 @@ namespace Rock.Utility.Settings.GivingAnalytics
         public bool IsEnabled { get; set; } = true;
 
         /// <summary>
-        /// Gets or sets the days of the week to run the analytics for each giver.
+        /// Gets or sets the days of the week to run the classifications for each giver.
         /// </summary>
         /// <value>
         /// The days of the week to run the analytics for each giver.

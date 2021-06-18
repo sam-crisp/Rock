@@ -301,6 +301,8 @@ namespace RockWeb.Blocks.Finance
             financialTransactionAlertType.ConnectionOpportunityId = ddlConnectionOpportunity.SelectedValueAsId();
             financialTransactionAlertType.SystemCommunicationId = ddlSystemCommunication.SelectedValueAsId();
             financialTransactionAlertType.WorkflowTypeId = wtpLaunchWorkflow.SelectedValueAsId();
+            financialTransactionAlertType.AlertSummaryNotificationGroupId = gpNotificationGroup.GroupId;
+            financialTransactionAlertType.RunDays = dwpDaysToRunAlertType.SelectedDaysOfWeekAsFlags();
             rockContext.SaveChanges();
 
             hfIdValue.Value = string.Empty;
