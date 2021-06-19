@@ -20,7 +20,7 @@ using System.Web.UI.WebControls;
 namespace Rock.Web.UI.Controls
 {
     /// <summary>
-    /// A <see cref="T:System.Web.UI.WebControls.Literal"/> control with an associated label.
+    /// A <see cref="T:System.Web.UI.WebControls.Literal"/> control wrapped by the specified tag.
     /// </summary>
     [ToolboxData( "<{0}:TagLiteral runat=server></{0}:TagLiteral>" )]
     public class TagLiteral : Literal
@@ -28,10 +28,10 @@ namespace Rock.Web.UI.Controls
         #region Properties
 
         /// <summary>
-        /// Gets or sets the label text.
+        /// Gets or sets the tag.
         /// </summary>
         /// <value>
-        /// The label text.
+        /// The tag.
         /// </value>
         public string Tag
         {
@@ -54,7 +54,7 @@ namespace Rock.Web.UI.Controls
         #endregion
 
         /// <summary>
-        /// Renders a label and <see cref="T:System.Web.UI.WebControls.TextBox"/> control to the specified <see cref="T:System.Web.UI.HtmlTextWriter"/> object.
+        /// Renders the tag to the specified <see cref="T:System.Web.UI.HtmlTextWriter"/> object.
         /// </summary>
         /// <param name="writer">The <see cref="T:System.Web.UI.HtmlTextWriter"/> that receives the rendered output.</param>
         public override void RenderControl( HtmlTextWriter writer )
