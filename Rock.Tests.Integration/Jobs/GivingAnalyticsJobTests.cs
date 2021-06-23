@@ -439,14 +439,15 @@ namespace Rock.Tests.Integration.Jobs
                     FrequencySensitivityScale = 3,
                     ContinueIfMatched = true,
                     AlertType = AlertType.FollowUp,
-                    LastRunDateTime = context.Now.AddDays( -1 )
+                    LastRunDateTime = context.Now.AddDays( -0.5 )
                 },
                 new FinancialTransactionAlertType {
                     Id = 3,
                     Order = 3,
                     FrequencySensitivityScale = 3,
                     ContinueIfMatched = true,
-                    AlertType = AlertType.FollowUp
+                    AlertType = AlertType.FollowUp,
+                    LastRunDateTime = context.Now.AddDays( -1.5 )
                 },
             };
 

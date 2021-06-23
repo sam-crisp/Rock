@@ -128,6 +128,12 @@ namespace Rock.Tasks
                     }
                 }
 
+                // Send a notification to a group if configured
+                if ( alertType.AlertSummaryNotificationGroupId.HasValue )
+                {
+                    // TODO
+                }
+
                 rockContext.SaveChanges();
             }
         }

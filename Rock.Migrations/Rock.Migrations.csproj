@@ -97,6 +97,10 @@
     <Compile Include="Migrations\202106101408167_GivingAnalyticsPersonAttributes.Designer.cs">
       <DependentUpon>202106101408167_GivingAnalyticsPersonAttributes.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202106232109364_AlertTypeConfig.cs" />
+    <Compile Include="Migrations\202106232109364_AlertTypeConfig.Designer.cs">
+      <DependentUpon>202106232109364_AlertTypeConfig.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Version 12.0\Version 1.12.4\202105280103566_StatementGenerator.cs" />
     <Compile Include="Migrations\Version 12.0\Version 1.12.4\202105280103566_StatementGenerator.Designer.cs">
       <DependentUpon>202105280103566_StatementGenerator.cs</DependentUpon>
@@ -1797,6 +1801,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202106101408167_GivingAnalyticsPersonAttributes.resx">
       <DependentUpon>202106101408167_GivingAnalyticsPersonAttributes.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202106232109364_AlertTypeConfig.resx">
+      <DependentUpon>202106232109364_AlertTypeConfig.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\Version 12.0\Version 1.12.4\202105280103566_StatementGenerator.resx">
       <DependentUpon>202105280103566_StatementGenerator.cs</DependentUpon>

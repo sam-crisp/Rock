@@ -1995,6 +1995,20 @@ Processed {context.TransactionsChecked} {"transaction".PluralizeIf( context.Tran
                     continue;
                 }
 
+                // How many std deviations does this transaction exceed the sensitivity level by?
+                // FrequencySensitivityScale is going to be positive, and numberOfFrequencyStdDevs is negative
+                var exceedingFrequencyStdDevs = Math.Abs( numberOfFrequencyStdDevs ) - alertType.FrequencySensitivityScale.Value;
+                var exceedingFrequencyStdDevsAsDays = exceedingFrequencyStdDevs * frequencyStdDev;
+                var daysSinceLastRun = alertType.LastRunDateTime.HasValue ?
+                    ( context.Now - alertType.LastRunDateTime.Value ).TotalDays :
+                    1000;
+
+                // Ensure that this alert type didn't already have a chance to run since the alert could have been created
+                if ( Convert.ToDecimal( daysSinceLastRun ) < exceedingFrequencyStdDevsAsDays )
+                {
+                    continue;
+                }
+
                 // Check at least one of the people are within the dataview
                 if ( alertType.DataViewId.HasValue )
                 {
