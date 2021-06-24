@@ -31,6 +31,7 @@ using Rock.Data;
 using Rock.Model;
 using Rock.SystemKey;
 using Rock.Tasks;
+using Rock.Utility.Enums;
 using Rock.Utility.Settings.GivingAnalytics;
 using Rock.Web.Cache;
 
@@ -440,7 +441,7 @@ Processed {context.TransactionsChecked} {"transaction".PluralizeIf( context.Tran
             get
             {
                 var settings = GetGivingAnalyticsSettings();
-                return settings.Alerting?.GlobalRepeatPreventionDurationDays;
+                return settings?.Alerting?.GlobalRepeatPreventionDurationDays;
             }
         }
 
@@ -455,7 +456,7 @@ Processed {context.TransactionsChecked} {"transaction".PluralizeIf( context.Tran
             get
             {
                 var settings = GetGivingAnalyticsSettings();
-                return settings.Alerting?.GratitudeRepeatPreventionDurationDays;
+                return settings?.Alerting?.GratitudeRepeatPreventionDurationDays;
             }
         }
 
@@ -470,7 +471,7 @@ Processed {context.TransactionsChecked} {"transaction".PluralizeIf( context.Tran
             get
             {
                 var settings = GetGivingAnalyticsSettings();
-                return settings.Alerting?.FollowupRepeatPreventionDurationDays;
+                return settings?.Alerting?.FollowupRepeatPreventionDurationDays;
             }
         }
 
@@ -488,14 +489,18 @@ Processed {context.TransactionsChecked} {"transaction".PluralizeIf( context.Tran
                 }
 
                 var settings = GetGivingAnalyticsSettings();
-                _lastRunDateTime = settings.GivingAnalytics.GivingAnalyticsLastRunDateTime;
+                _lastRunDateTime = settings?.GivingAnalytics?.GivingAnalyticsLastRunDateTime;
                 return _lastRunDateTime;
             }
             set
             {
                 _lastRunDateTime = value;
-                var settings = GetGivingAnalyticsSettings();
-                settings.GivingAnalytics.GivingAnalyticsLastRunDateTime = _lastRunDateTime;
+                var settings = GetGivingAnalyticsSettings() ?? new GivingAnalyticsSetting();
+                var givingAnalytics = settings.GivingAnalytics ?? new Utility.Settings.GivingAnalytics.GivingAnalytics();
+
+                givingAnalytics.GivingAnalyticsLastRunDateTime = _lastRunDateTime;
+                settings.GivingAnalytics = givingAnalytics;
+
                 SaveGivingAnalyticsSettings( settings );
             }
         }
@@ -508,7 +513,7 @@ Processed {context.TransactionsChecked} {"transaction".PluralizeIf( context.Tran
         private static decimal? GetGivingBinLowerLimit( int binIndex )
         {
             var settings = GetGivingAnalyticsSettings();
-            var giverBin = settings.GivingAnalytics.GiverBins.Count > binIndex ?
+            var giverBin = settings?.GivingAnalytics?.GiverBins?.Count > binIndex ?
                 settings.GivingAnalytics.GiverBins[binIndex] :
                 null;
 
@@ -522,13 +527,15 @@ Processed {context.TransactionsChecked} {"transaction".PluralizeIf( context.Tran
         private static void SetGivingBinLowerLimit( int binIndex, decimal? lowerLimit )
         {
             var settings = GetGivingAnalyticsSettings();
+            var givingAnalytics = settings.GivingAnalytics ?? new Utility.Settings.GivingAnalytics.GivingAnalytics();
+            settings.GivingAnalytics = givingAnalytics;
 
-            if ( settings.GivingAnalytics.GiverBins == null )
+            if ( givingAnalytics.GiverBins == null )
             {
                 settings.GivingAnalytics.GiverBins = new List<GiverBin>();
             }
 
-            while ( settings.GivingAnalytics.GiverBins.Count <= binIndex )
+            while ( givingAnalytics.GiverBins.Count <= binIndex )
             {
                 settings.GivingAnalytics.GiverBins.Add( new GiverBin() );
             }
@@ -1039,7 +1046,7 @@ Processed {context.TransactionsChecked} {"transaction".PluralizeIf( context.Tran
 
                 // Only run classifications on the days specified by the settings
                 var settings = GetGivingAnalyticsSettings();
-                var daysToRun = settings?.GivingAnalytics?.GiverAnalyticsRunDays ?? new List<DayOfWeek>();
+                var daysToRun = settings?.GivingAnalytics?.GiverAnalyticsRunDays ?? DayOfWeekFlag.All.AsDayOfWeekList();
 
                 if ( daysToRun.Contains( context.Now.DayOfWeek ) )
                 {

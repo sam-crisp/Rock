@@ -15,6 +15,7 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using Rock.Utility.Enums;
 
@@ -570,6 +571,53 @@ namespace Rock
                 default:
                     throw new Exception( $"Rock is not familiar with this day of the week: {dayOfWeek}" );
             }
+        }
+
+        /// <summary>
+        /// Converts the flags to "day of week" enum list.
+        /// </summary>
+        /// <param name="flags">The flags.</param>
+        /// <returns></returns>
+        public static List<DayOfWeek> AsDayOfWeekList( this DayOfWeekFlag flags )
+        {
+            var enums = new List<DayOfWeek>();
+
+            if ( ( flags & DayOfWeekFlag.Sunday ) == DayOfWeekFlag.Sunday )
+            {
+                enums.Add( DayOfWeek.Sunday );
+            }
+
+            if ( ( flags & DayOfWeekFlag.Monday ) == DayOfWeekFlag.Monday )
+            {
+                enums.Add( DayOfWeek.Monday );
+            }
+
+            if ( ( flags & DayOfWeekFlag.Tuesday ) == DayOfWeekFlag.Tuesday )
+            {
+                enums.Add( DayOfWeek.Tuesday );
+            }
+
+            if ( ( flags & DayOfWeekFlag.Wednesday ) == DayOfWeekFlag.Wednesday )
+            {
+                enums.Add( DayOfWeek.Wednesday );
+            }
+
+            if ( ( flags & DayOfWeekFlag.Thursday ) == DayOfWeekFlag.Thursday )
+            {
+                enums.Add( DayOfWeek.Thursday );
+            }
+
+            if ( ( flags & DayOfWeekFlag.Friday ) == DayOfWeekFlag.Friday )
+            {
+                enums.Add( DayOfWeek.Friday );
+            }
+
+            if ( ( flags & DayOfWeekFlag.Saturday ) == DayOfWeekFlag.Saturday )
+            {
+                enums.Add( DayOfWeek.Saturday );
+            }
+
+            return enums;
         }
 
         #endregion DateTime Extensions

@@ -25,7 +25,7 @@ namespace Rock.Utility.Enums
     public enum DayOfWeekFlag
     {
         /// <summary>
-        /// None
+        /// No days of the week
         /// </summary>
         None = 0x0000_0000,
 
@@ -62,6 +62,11 @@ namespace Rock.Utility.Enums
         /// <summary>
         /// Saturday
         /// </summary>
-        Saturday = 0x0100_0000
+        Saturday = 0x0100_0000,
+
+        /// <summary>
+        /// All days of the week
+        /// </summary>
+        All = Sunday | Monday | Tuesday | Wednesday | Thursday | Friday | Saturday
     }
 }

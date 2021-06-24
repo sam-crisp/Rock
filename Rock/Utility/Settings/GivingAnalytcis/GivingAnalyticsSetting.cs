@@ -16,6 +16,7 @@
 //
 using System;
 using System.Collections.Generic;
+using Rock.Utility.Enums;
 
 namespace Rock.Utility.Settings.GivingAnalytics
 {
@@ -24,15 +25,6 @@ namespace Rock.Utility.Settings.GivingAnalytics
     /// </summary>
     public class GivingAnalyticsSetting
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="GivingAnalyticsSetting"/> class.
-        /// </summary>
-        public GivingAnalyticsSetting()
-        {
-            GivingAnalytics = new GivingAnalytics();
-            Alerting = new Alerting();
-        }
-
         /// <summary>
         /// Gets or sets the giving analytics.
         /// </summary>
@@ -80,26 +72,6 @@ namespace Rock.Utility.Settings.GivingAnalytics
     /// </summary>
     public class GivingAnalytics
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="GivingAnalytics"/> class.
-        /// </summary>
-        public GivingAnalytics()
-        {
-            // Default to 7 days a week if there is not already a setting
-            this.GiverAnalyticsRunDays = new List<DayOfWeek>
-            {
-                DayOfWeek.Sunday,
-                DayOfWeek.Monday,
-                DayOfWeek.Tuesday,
-                DayOfWeek.Wednesday,
-                DayOfWeek.Thursday,
-                DayOfWeek.Friday,
-                DayOfWeek.Saturday
-            };
-
-            this.GiverBins = new List<GiverBin>();
-        }
-
         /// <summary>
         /// Gets or sets a value indicating whether this instance is enabled.
         /// </summary>
@@ -155,10 +127,10 @@ namespace Rock.Utility.Settings.GivingAnalytics
         public int? GratitudeRepeatPreventionDurationDays { get; set; }
 
         /// <summary>
-        /// Gets or sets the followup repeat prevention duration in days.
+        /// Gets or sets the follow-up repeat prevention duration in days.
         /// </summary>
         /// <value>
-        /// The followup repeat prevention duration.
+        /// The follow-up repeat prevention duration.
         /// </value>
         public int? FollowupRepeatPreventionDurationDays { get; set; }
     }

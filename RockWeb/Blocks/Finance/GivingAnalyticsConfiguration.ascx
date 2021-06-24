@@ -20,7 +20,7 @@
                             <Rock:RockCheckBox ID="cbEnableGivingAnalytics" runat="server" Label="Enable Giving Analytics" Checked="true" />
                         </div>
                         <div class="col-md-12">
-                            <Rock:DaysOfWeekPicker ID="dwpDaysToUpdateAnalytics" runat="server" Label="Days to Update Analytics" RepeatDirection="Horizontal" />
+                            <Rock:DaysOfWeekPicker ID="dwpDaysToUpdateAnalytics" runat="server" Label="Days to Update Giving Group Classifications" RepeatDirection="Horizontal" />
                         </div>
                         <div class="col-md-12">
                             <Rock:RockCheckBoxList ID="cblTransactionTypes" runat="server" Label="TransactionTypes" RepeatDirection="Horizontal" />
@@ -168,14 +168,10 @@
                     <span class="text-muted">If the criteria above is matched the following actions will be taken.</span>
                     <hr class="margin-t-sm">
                     <Rock:WorkflowTypePicker ID="wtpLaunchWorkflow" runat="server" Label="Launch Workflow of Type" ValidationGroup="vgAlertDetails" Help="If matched a workflow of the provided type will be launched setting the authorized person as the initiator and setting the attribute with the key of 'FinancialTransactionId' is it exists" />
-                    <hr class="margin-t-sm">
                     <Rock:RockDropDownList ID="ddlConnectionType" runat="server" Label="Connection Type" AutoPostBack="true" ValidationGroup="vgAlertDetails" OnSelectedIndexChanged="ddlConnectionType_SelectedIndexChanged" CssClass="input-width-xxl" />
                     <Rock:RockDropDownList ID="ddlConnectionOpportunity" runat="server" Label="Connection Opportunity" ValidationGroup="vgAlertDetails" CssClass="input-width-xxl" Help="If matched will create a new connection request with the authorized person as the requestor and setting the attribute with the key 'FinancialTransactionId' if it exists." />
-                    <hr class="margin-t-sm">
                     <Rock:RockDropDownList ID="ddlSystemCommunication" runat="server" Label="Send Communication From Template" Help="If matched a new communication will be sent to the person authorizing the gift using the provided communication template." ValidationGroup="vgAlertDetails" />
-                    <hr class="margin-t-sm">
                     <Rock:RockCheckBox ID="cbSendBusEvent" runat="server" Label="Send Bus Event" Help="If matched will send an event via the Event Bus to notify external systems." ValidationGroup="vgAlertDetails" />
-                    <hr class="margin-t-sm">
                     <Rock:GroupPicker ID="gpNotificationGroup" runat="server" Label="Alert Summary Notification Group" Help="This group will receive a summary email when an alert of this type is created." ValidationGroup="vgAlertDetails" />
                 </div>
             </Content>
