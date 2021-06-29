@@ -342,7 +342,7 @@ namespace RockWeb.Blocks.Finance
 
             var isCustomAccounts = rblAccountTypes.SelectedValue == AccountTypes_Custom;
 
-            var givingAnalytics = _givingAnalyticsSetting.GivingAnalytics ?? new GivingAnalytics();
+            var givingAnalytics = _givingAnalyticsSetting.GivingAnalytics ?? new Rock.Utility.Settings.GivingAnalytics.GivingAnalytics();
             _givingAnalyticsSetting.GivingAnalytics = givingAnalytics;
 
             var alerting = _givingAnalyticsSetting.Alerting ?? new Alerting();
@@ -387,8 +387,12 @@ namespace RockWeb.Blocks.Finance
 
             // Load values from the system settings
             _givingAnalyticsSetting = Rock.Web.SystemSettings.GetValue( SystemSetting.GIVING_ANALYTICS_CONFIGURATION ).FromJsonOrNull<GivingAnalyticsSetting>() ?? new GivingAnalyticsSetting();
+
             var givingAnalytics = _givingAnalyticsSetting.GivingAnalytics ?? new Rock.Utility.Settings.GivingAnalytics.GivingAnalytics();
             _givingAnalyticsSetting.GivingAnalytics = givingAnalytics;
+
+            var alerting = _givingAnalyticsSetting.Alerting ?? new Rock.Utility.Settings.GivingAnalytics.Alerting();
+            _givingAnalyticsSetting.Alerting = alerting;
 
             var savedTransactionTypeGuids =
                 _givingAnalyticsSetting.TransactionTypeGuids ??
@@ -419,10 +423,10 @@ namespace RockWeb.Blocks.Finance
             cbIncludeChildAccounts.Checked = areChildAccountsIncluded;
             cblTransactionTypes.SetValues( savedTransactionTypeGuidStrings );
             cbEnableGivingAnalytics.Checked = _givingAnalyticsSetting.GivingAnalytics.IsEnabled;
-            dwpDaysToUpdateAnalytics.SelectedDaysOfWeek = _givingAnalyticsSetting.GivingAnalytics.GiverAnalyticsRunDays;
-            nbGlobalRepeatPreventionDuration.Text = _givingAnalyticsSetting.Alerting.GlobalRepeatPreventionDurationDays.ToStringSafe();
-            nbGratitudeRepeatPreventionDuration.Text = _givingAnalyticsSetting.Alerting.GratitudeRepeatPreventionDurationDays.ToStringSafe();
-            nbFollowupRepeatPreventionDuration.Text = _givingAnalyticsSetting.Alerting.FollowupRepeatPreventionDurationDays.ToStringSafe();
+            dwpDaysToUpdateAnalytics.SelectedDaysOfWeek = _givingAnalyticsSetting.GivingAnalytics.GiverAnalyticsRunDays ?? DayOfWeekFlag.All.AsDayOfWeekList();
+            nbGlobalRepeatPreventionDuration.Text = alerting.GlobalRepeatPreventionDurationDays.ToStringSafe();
+            nbGratitudeRepeatPreventionDuration.Text = alerting.GratitudeRepeatPreventionDurationDays.ToStringSafe();
+            nbFollowupRepeatPreventionDuration.Text = alerting.FollowupRepeatPreventionDurationDays.ToStringSafe();
 
             BindAlerts();
         }

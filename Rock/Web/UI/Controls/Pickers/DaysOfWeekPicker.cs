@@ -58,7 +58,7 @@ namespace Rock.Web.UI.Controls
             {
                 foreach ( ListItem item in this.Items )
                 {
-                    item.Selected = value.Exists( a => a.Equals( ( DayOfWeek ) int.Parse( item.Value ) ) );
+                    item.Selected = value?.Exists( a => a.Equals( ( DayOfWeek ) int.Parse( item.Value ) ) ) == true;
                 }
             }
         }

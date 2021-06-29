@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -14,38 +14,72 @@
 // limitations under the License.
 // </copyright>
 //
+using Rock.Model;
+
 namespace Rock.Migrations
 {
-    using System;
-    using System.Data.Entity.Migrations;
-    
     /// <summary>
     ///
     /// </summary>
-    public partial class AlertTypeConfig : Rock.Migrations.RockMigration
+    public partial class AlertTypeConfig : RockMigration
     {
         /// <summary>
         /// Operations to be performed during the upgrade process.
         /// </summary>
         public override void Up()
         {
-            AddColumn("dbo.FinancialTransactionAlertType", "RunDays", c => c.Int());
-            AddColumn("dbo.FinancialTransactionAlertType", "LastRunDateTime", c => c.DateTime());
-            AddColumn("dbo.FinancialTransactionAlertType", "AlertSummaryNotificationGroupId", c => c.Int());
-            CreateIndex("dbo.FinancialTransactionAlertType", "AlertSummaryNotificationGroupId");
-            AddForeignKey("dbo.FinancialTransactionAlertType", "AlertSummaryNotificationGroupId", "dbo.Group", "Id");
+            AddColumn( "dbo.FinancialTransactionAlertType", "RunDays", c => c.Int() );
+            AddColumn( "dbo.FinancialTransactionAlertType", "LastRunDateTime", c => c.DateTime() );
+            AddColumn( "dbo.FinancialTransactionAlertType", "AlertSummaryNotificationGroupId", c => c.Int() );
+            CreateIndex( "dbo.FinancialTransactionAlertType", "AlertSummaryNotificationGroupId" );
+            AddForeignKey( "dbo.FinancialTransactionAlertType", "AlertSummaryNotificationGroupId", "dbo.Group", "Id" );
+
+            RockMigrationHelper.UpdateSystemCommunication( "Finance", "Financial Transaction Alert Summary", string.Empty, string.Empty, string.Empty, string.Empty, string.Empty,
+                "Giving Alert for {{ 'Global' | Attribute:'OrganizationName'}}",
+                "{{ 'Global' | Attribute:'EmailHeader' }} <p> A giving alert has been created for {{ Person.FullName }}. Click <a href=\"{{ 'Global' | Attribute:'PublicApplicationRoot' }}{{ RelativeAlertLink }}\">here</a> to view the alert. </p> {{ 'Global' | Attribute:'EmailFooter' }}",
+                SystemGuid.SystemCommunication.FINANCIAL_TRANSACTION_ALERT_NOTIFICATION_SUMMARY );
+
+            CmsUp();
         }
-        
+
         /// <summary>
         /// Operations to be performed during the downgrade process.
         /// </summary>
         public override void Down()
         {
-            DropForeignKey("dbo.FinancialTransactionAlertType", "AlertSummaryNotificationGroupId", "dbo.Group");
-            DropIndex("dbo.FinancialTransactionAlertType", new[] { "AlertSummaryNotificationGroupId" });
-            DropColumn("dbo.FinancialTransactionAlertType", "AlertSummaryNotificationGroupId");
-            DropColumn("dbo.FinancialTransactionAlertType", "LastRunDateTime");
-            DropColumn("dbo.FinancialTransactionAlertType", "RunDays");
+            CmsDown();
+
+            RockMigrationHelper.DeleteSystemCommunication( SystemGuid.SystemCommunication.FINANCIAL_TRANSACTION_ALERT_NOTIFICATION_SUMMARY );
+            DropForeignKey( "dbo.FinancialTransactionAlertType", "AlertSummaryNotificationGroupId", "dbo.Group" );
+            DropIndex( "dbo.FinancialTransactionAlertType", new[] { "AlertSummaryNotificationGroupId" } );
+            DropColumn( "dbo.FinancialTransactionAlertType", "AlertSummaryNotificationGroupId" );
+            DropColumn( "dbo.FinancialTransactionAlertType", "LastRunDateTime" );
+            DropColumn( "dbo.FinancialTransactionAlertType", "RunDays" );
+        }
+
+        /// <summary>
+        /// CMS up.
+        /// </summary>
+        private void CmsUp()
+        {
+            // Add Page Giving Alerts to Site:Rock RMS
+            RockMigrationHelper.AddPage( true, "18C9E5C3-3E28-4AA3-84F6-78CD4EA2DD3C", "D65F783D-87A9-4CC9-8110-E83466A0EADB", "Giving Alerts", "", SystemGuid.Page.GIVING_ALERTS, "" );
+            // Add Block Giving Analytics Alerts to Page: Giving Alerts, Site: Rock RMS
+            RockMigrationHelper.AddBlock( true, SystemGuid.Page.GIVING_ALERTS.AsGuid(), null, "C2D29296-6A87-47A9-A753-EE4E9159C4C4".AsGuid(), "0A813EC3-EC36-499B-9EBD-C3388DC7F49D".AsGuid(), "Giving Analytics Alerts", "Main", @"", @"", 0, "DB2CE9D5-B6BE-42C1-ACC0-3EBE03CD6208" );
+
+            // Hide the page for now
+            Sql( $"UPDATE [Page] SET [DisplayInNavWhen] = {( int ) DisplayInNavWhen.Never} WHERE [Guid] = '{SystemGuid.Page.GIVING_ALERTS}';" );
+        }
+
+        /// <summary>
+        /// CMS down.
+        /// </summary>
+        private void CmsDown()
+        {
+            // Remove Block: Giving Analytics Alerts, from Page: Giving Alerts, Site: Rock RMS
+            RockMigrationHelper.DeleteBlock( "DB2CE9D5-B6BE-42C1-ACC0-3EBE03CD6208" );
+            // Delete Page Giving Alerts from Site:Rock RMS
+            RockMigrationHelper.DeletePage( SystemGuid.Page.GIVING_ALERTS ); //  Page: Giving Alerts, Layout: Full Width, Site: Rock RMS
         }
     }
 }

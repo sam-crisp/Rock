@@ -175,7 +175,7 @@ namespace Rock.Jobs
             // Format the result message
             jobContext.Result = $@"Classified {context.GivingIdsSuccessful} giving {"group".PluralizeIf( context.GivingIdsSuccessful != 1 )}.
 There were {context.GivingIdsFailed} {"failure".PluralizeIf( context.GivingIdsFailed != 1 )}.
-Processed {context.TransactionsChecked} {"transaction".PluralizeIf( context.TransactionsChecked != 1 )}, creating {context.AlertsCreated} {"alert".PluralizeIf( context.AlertsCreated != 1 )}.";
+Created {context.AlertsCreated} {"alert".PluralizeIf( context.AlertsCreated != 1 )}.";
 
             if ( context.Errors.Any() )
             {
@@ -2176,14 +2176,6 @@ Processed {context.TransactionsChecked} {"transaction".PluralizeIf( context.Tran
         /// The giving ids classified.
         /// </value>
         public int GivingIdsSuccessful { get; set; }
-
-        /// <summary>
-        /// Gets or sets the transactions checked.
-        /// </summary>
-        /// <value>
-        /// The transactions checked.
-        /// </value>
-        public int TransactionsChecked { get; set; }
 
         /// <summary>
         /// Gets or sets the alerts created.
