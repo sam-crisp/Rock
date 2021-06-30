@@ -1090,6 +1090,29 @@ Created {context.AlertsCreated} {"alert".PluralizeIf( context.AlertsCreated != 1
                     return;
                 }
 
+                // If this giving group has not been classified in the last week, then don't generate any alerts
+                // because those alerts will be based on outdated statistics. One week was chosen since classifications
+                // can occur at a minimum of 1 day per week since the control is a day of the week picker without being
+                // all the way turned off.
+                var lastClassifiedDate = GetGivingUnitAttributeValue( context, people, SystemGuid.Attribute.PERSON_GIVING_LAST_CLASSIFICATION_DATE ).AsDateTime() ?? DateTime.MinValue;
+                var oneWeekAgo = context.Now.AddDays( -7 );
+                var hasBeenClassifiedRecently = lastClassifiedDate >= oneWeekAgo;
+
+                if ( !hasBeenClassifiedRecently )
+                {
+                    return;
+                }
+
+                // Alerts can be generated for transactions given in the last week. One week was chosen since alert types
+                // can run at a minimum of 1 day per week since the control is a day of the week picker without being
+                // all the way turned off.
+                var transactionsToCheckAlerts = twelveMonthsTransactions.Where( t => t.TransactionDateTime >= oneWeekAgo ).ToList();
+
+                if ( !transactionsToCheckAlerts.Any() )
+                {
+                    return;
+                }
+
                 // Get any recent alerts for these people. These will be used in the "repeat alert prevention" logic
                 var financialTransactionAlertService = new FinancialTransactionAlertService( rockContext );
                 var twelveMonthsAlerts = financialTransactionAlertService.Queryable()
@@ -1115,13 +1138,12 @@ Created {context.AlertsCreated} {"alert".PluralizeIf( context.AlertsCreated != 1
 
                 if ( allowFollowUp || allowGratitiude )
                 {
-                    // As we're looping through the transactions, we keep track of the previous transaction's date. This is used to
-                    // calculate the days since the last transaction, which is the basis for frequency calculations.
-                    // Alerts don't make sense without a previous transaction to give a basis for analysis.
-                    var lastTransactionDate = mostRecentOldTransactionDate;
-
-                    foreach ( var transaction in twelveMonthsTransactions )
+                    foreach ( var transaction in transactionsToCheckAlerts )
                     {
+                        var lastTransactionDate = twelveMonthsTransactions
+                            .LastOrDefault( t => t.TransactionDateTime < transaction.TransactionDateTime )?
+                            .TransactionDateTime;
+
                         var alertsForTransaction = lastTransactionDate.HasValue ?
                             CreateAlertsForTransaction(
                                 rockContext,
@@ -1134,7 +1156,6 @@ Created {context.AlertsCreated} {"alert".PluralizeIf( context.AlertsCreated != 1
                                 allowFollowUp ) :
                             new List<FinancialTransactionAlert>();
 
-                        lastTransactionDate = transaction.TransactionDateTime;
                         alertsToAddToDb.AddRange( alertsForTransaction );
 
                         if ( alertsForTransaction.Any() )
@@ -1160,23 +1181,16 @@ Created {context.AlertsCreated} {"alert".PluralizeIf( context.AlertsCreated != 1
                     }
                 }
 
-                // Update the alert types' last run date
-                var alertTypeService = new FinancialTransactionAlertTypeService( rockContext );
-                var alertTypeIds = context.AlertTypes.Select( at => at.Id );
-                var alertTypes = alertTypeService.Queryable().Where( at => alertTypeIds.Contains( at.Id ) ).ToList();
-                alertTypes.ForEach( at => at.LastRunDateTime = context.Now );
-
                 // Add any alerts to the database
                 if ( alertsToAddToDb.Any() )
                 {
                     var service = new FinancialTransactionAlertService( rockContext );
                     service.AddRange( alertsToAddToDb );
-
-                    context.AlertsCreated += alertsToAddToDb.Count;
-                    HandlePostAlertsAddedLogic( alertsToAddToDb );
                 }
 
                 rockContext.SaveChanges();
+                context.AlertsCreated += alertsToAddToDb.Count;
+                HandlePostAlertsAddedLogic( alertsToAddToDb );
             }
         }
 
@@ -1216,14 +1230,6 @@ Created {context.AlertsCreated} {"alert".PluralizeIf( context.AlertsCreated != 1
             // Go through the ordered alert types (ordered in the hydrate method)
             foreach ( var alertType in context.AlertTypes )
             {
-                // Alerts have been filtered already for which alerts are to run today. However, we need to filter
-                // alerts that have already checked this transaction (meaning the last run of the alert type is after the
-                // transaction's date
-                if ( alertType.LastRunDateTime.HasValue && alertType.LastRunDateTime.Value > transaction.TransactionDateTime )
-                {
-                    continue;
-                }
-
                 // Make sure this transaction / alert type combo doesn't already exist
                 var alreadyAlerted = recentAlerts.Any( a =>
                     a.AlertTypeId == alertType.Id &&
@@ -1943,6 +1949,14 @@ Created {context.AlertsCreated} {"alert".PluralizeIf( context.AlertsCreated != 1
             // Find the correct alert type to tie the new alert with
             foreach ( var alertType in lateGiftAlertTypes )
             {
+                // Make sure that we don't generate late alerts more than once for a giving group since the last time they gave
+                var mostRecentAlertOfThisType = recentAlerts.LastOrDefault( a => a.AlertTypeId == alertType.Id )?.AlertDateTime;
+
+                if ( mostRecentAlertOfThisType.HasValue && mostRecentAlertOfThisType > lastGiftDate.Value )
+                {
+                    continue;
+                }
+
                 // Check the maximum days since the last alert
                 if ( alertType.MaximumDaysSinceLastGift.HasValue && daysSinceLastTransaction > alertType.MaximumDaysSinceLastGift )
                 {
@@ -2006,15 +2020,6 @@ Created {context.AlertsCreated} {"alert".PluralizeIf( context.AlertsCreated != 1
                 // FrequencySensitivityScale is going to be positive, and numberOfFrequencyStdDevs is negative
                 var exceedingFrequencyStdDevs = Math.Abs( numberOfFrequencyStdDevs ) - alertType.FrequencySensitivityScale.Value;
                 var exceedingFrequencyStdDevsAsDays = exceedingFrequencyStdDevs * frequencyStdDev;
-                var daysSinceLastRun = alertType.LastRunDateTime.HasValue ?
-                    ( context.Now - alertType.LastRunDateTime.Value ).TotalDays :
-                    1000;
-
-                // Ensure that this alert type didn't already have a chance to run since the alert could have been created
-                if ( Convert.ToDecimal( daysSinceLastRun ) < exceedingFrequencyStdDevsAsDays )
-                {
-                    continue;
-                }
 
                 // Check at least one of the people are within the dataview
                 if ( alertType.DataViewId.HasValue )

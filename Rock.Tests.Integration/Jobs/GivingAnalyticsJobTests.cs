@@ -413,96 +413,6 @@ namespace Rock.Tests.Integration.Jobs
 
         /// <summary>
         /// Tests an example missing transaction
-        /// Scenario: Transaction was made before the last rule type run date.
-        /// </summary>
-        [TestMethod]
-        public void CreateAlertsForLateTransaction_SkipsForLastRunDate()
-        {
-            var jobExecutionContext = new TestJobContext();
-            var context = new GivingAnalyticsContext( jobExecutionContext )
-            {
-                Now = new DateTime( 2020, 3, 1 )
-            };
-
-            var lateGiftAlertTypes = new List<FinancialTransactionAlertType> {
-                new FinancialTransactionAlertType {
-                    Id = 1,
-                    Order = 1,
-                    FrequencySensitivityScale = 3,
-                    MaximumDaysSinceLastGift = 35,
-                    ContinueIfMatched = true,
-                    AlertType = AlertType.FollowUp
-                },
-                new FinancialTransactionAlertType {
-                    Id = 2,
-                    Order = 2,
-                    FrequencySensitivityScale = 3,
-                    ContinueIfMatched = true,
-                    AlertType = AlertType.FollowUp,
-                    LastRunDateTime = context.Now.AddDays( -0.5 )
-                },
-                new FinancialTransactionAlertType {
-                    Id = 3,
-                    Order = 3,
-                    FrequencySensitivityScale = 3,
-                    ContinueIfMatched = true,
-                    AlertType = AlertType.FollowUp,
-                    LastRunDateTime = context.Now.AddDays( -1.5 )
-                },
-            };
-
-            var people = new List<Person>
-            {
-                new Person(),
-                new Person()
-            };
-
-            var amountMedian = 500m;
-            var amountIqr = 100m;
-            var frequencyMean = 30m;
-            var frequencyStdDev = 3m;
-            var lastGave = context.Now.AddDays( -40 );
-
-            foreach ( var person in people )
-            {
-                person.LoadAttributes();
-                SetAttributeValue( person, SystemGuid.Attribute.PERSON_GIVING_AMOUNT_MEDIAN, amountMedian.ToString() );
-                SetAttributeValue( person, SystemGuid.Attribute.PERSON_GIVING_AMOUNT_IQR, amountIqr.ToString() );
-                SetAttributeValue( person, SystemGuid.Attribute.PERSON_GIVING_FREQUENCY_MEAN_DAYS, frequencyMean.ToString() );
-                SetAttributeValue( person, SystemGuid.Attribute.PERSON_GIVING_FREQUENCY_STD_DEV_DAYS, frequencyStdDev.ToString() );
-                SetAttributeValue( person, SystemGuid.Attribute.PERSON_ERA_LAST_GAVE, lastGave.ToISO8601DateString() );
-            }
-
-            var recentAlerts = new List<Rock.Jobs.AlertView>();
-            var lastTransactionAuthorizedAliasId = 999;
-
-            var alerts = Rock.Jobs.GivingAnalytics.CreateAlertsForLateTransaction( null, lateGiftAlertTypes, lastTransactionAuthorizedAliasId, people, recentAlerts, context );
-
-            Assert.IsNotNull( alerts );
-            Assert.AreEqual( 1, alerts.Count );
-
-            var alert = alerts.Single();
-            Assert.AreEqual( 3, alert.AlertTypeId );
-            Assert.AreEqual( context.Now, alert.AlertDateTime );
-            Assert.IsNull( alert.TransactionId );
-
-            Assert.AreEqual( amountMedian, alert.AmountCurrentMedian );
-            Assert.AreEqual( amountIqr, alert.AmountCurrentIqr );
-            Assert.IsNull( alert.AmountIqrMultiplier );
-
-            Assert.AreEqual( frequencyMean, alert.FrequencyCurrentMean );
-            Assert.AreEqual( frequencyStdDev, alert.FrequencyCurrentStandardDeviation );
-            Assert.IsNull( alert.FrequencyDifferenceFromMean );
-            Assert.IsNull( alert.FrequencyZScore );
-
-            var reasons = alert.ReasonsKey.FromJsonOrNull<List<string>>();
-            Assert.IsNotNull( reasons );
-            Assert.AreEqual( 1, reasons.Count );
-            Assert.AreEqual( nameof( FinancialTransactionAlertType.FrequencySensitivityScale ), reasons.Single() );
-        }
-
-        /// <summary>
-        /// Tests an example missing transaction
         /// Scenario: Family typically gives monthly, but has not given in 40 days. Skips the
         /// first alert type because of alert type.
         /// </summary>
@@ -1209,15 +1119,6 @@ namespace Rock.Tests.Integration.Jobs
                         AlertType = AlertType.FollowUp
                     },
                     new FinancialTransactionAlertType {
-                        Id = 3,
-                        Order = 3,
-                        AmountSensitivityScale = 3,
-                        MaximumDaysSinceLastGift = 10,
-                        ContinueIfMatched = true,
-                        AlertType = AlertType.Gratitude,
-                        LastRunDateTime = now.AddDays(-4)
-                    },
-                    new FinancialTransactionAlertType {
                         Id = 4,
                         Order = 4,
                         AmountSensitivityScale = 3,
@@ -1323,15 +1224,6 @@ namespace Rock.Tests.Integration.Jobs
                         AmountSensitivityScale = 3,
                         ContinueIfMatched = true,
                         AlertType = AlertType.FollowUp
-                    },
-                    new FinancialTransactionAlertType {
-                        Id = 3,
-                        Order = 3,
-                        AmountSensitivityScale = 3,
-                        MaximumDaysSinceLastGift = 10,
-                        ContinueIfMatched = true,
-                        AlertType = AlertType.Gratitude,
-                        LastRunDateTime = now.AddDays(-4)
                     },
                     new FinancialTransactionAlertType {
                         Id = 4,
@@ -3134,7 +3026,7 @@ namespace Rock.Tests.Integration.Jobs
                 new Person
                 {
                     Id = personId,
-                    GivingGroupId = null 
+                    GivingGroupId = null
                 },
             };
 
@@ -4222,6 +4114,9 @@ namespace Rock.Tests.Integration.Jobs
         private static void SetGivingAnalyticsSetting( decimal bin1, decimal bin2, decimal bin3, decimal bin4 )
         {
             var settings = new GivingAnalyticsSetting();
+            var givingAnalytics = settings.GivingAnalytics ?? new Rock.Utility.Settings.GivingAnalytics.GivingAnalytics();
+            settings.GivingAnalytics = givingAnalytics;
+
             settings.GivingAnalytics.GiverBins = new List<GiverBin> {
                 new GiverBin { LowerLimit = bin1 },
                 new GiverBin { LowerLimit = bin2 },

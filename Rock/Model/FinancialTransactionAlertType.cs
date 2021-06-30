@@ -218,15 +218,6 @@ namespace Rock.Model
         public DayOfWeekFlag? RunDays { get; set; }
 
         /// <summary>
-        /// Gets or sets the last run date time.
-        /// </summary>
-        /// <value>
-        /// The last run date time.
-        /// </value>
-        [DataMember]
-        public DateTime? LastRunDateTime { get; set; }
-
-        /// <summary>
         /// Gets or sets the alert summary notification group identifier.
         /// </summary>
         /// <value>
@@ -303,6 +294,21 @@ namespace Rock.Model
         public virtual ICollection<FinancialTransactionAlert> FinancialTransactionAlerts { get; set; } = new Collection<FinancialTransactionAlert>();
 
         #endregion Virtual Properties
+
+        #region Methods
+
+        /// <summary>
+        /// Converts to string.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="System.String" /> that represents this instance.
+        /// </returns>
+        public override string ToString()
+        {
+            return Name.IsNullOrWhiteSpace() ? base.ToString() : Name;
+        }
+
+        #endregion Methods
     }
 
     #region Entity Configuration

@@ -598,8 +598,8 @@ namespace RockWeb.Blocks.Finance
             var financialTransactionAlertQry = new FinancialTransactionAlertService( rockContext ).Queryable();
 
             // Filter by date range
-            var startDate = PageParameter( PageParameterKey.StartDate ).AsDateTime();
-            var endDate = PageParameter( PageParameterKey.EndDate ).AsDateTime();
+            var startDate = PageParameter( PageParameterKey.StartDate ).AsDateTime()?.Date;
+            var endDate = PageParameter( PageParameterKey.EndDate ).AsDateTime()?.Date;
 
             if ( endDate.HasValue )
             {

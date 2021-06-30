@@ -29,7 +29,6 @@ namespace Rock.Migrations
         public override void Up()
         {
             AddColumn( "dbo.FinancialTransactionAlertType", "RunDays", c => c.Int() );
-            AddColumn( "dbo.FinancialTransactionAlertType", "LastRunDateTime", c => c.DateTime() );
             AddColumn( "dbo.FinancialTransactionAlertType", "AlertSummaryNotificationGroupId", c => c.Int() );
             CreateIndex( "dbo.FinancialTransactionAlertType", "AlertSummaryNotificationGroupId" );
             AddForeignKey( "dbo.FinancialTransactionAlertType", "AlertSummaryNotificationGroupId", "dbo.Group", "Id" );
@@ -53,7 +52,6 @@ namespace Rock.Migrations
             DropForeignKey( "dbo.FinancialTransactionAlertType", "AlertSummaryNotificationGroupId", "dbo.Group" );
             DropIndex( "dbo.FinancialTransactionAlertType", new[] { "AlertSummaryNotificationGroupId" } );
             DropColumn( "dbo.FinancialTransactionAlertType", "AlertSummaryNotificationGroupId" );
-            DropColumn( "dbo.FinancialTransactionAlertType", "LastRunDateTime" );
             DropColumn( "dbo.FinancialTransactionAlertType", "RunDays" );
         }
 
