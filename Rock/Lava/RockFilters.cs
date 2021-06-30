@@ -5105,6 +5105,38 @@ namespace Rock.Lava
             return $"Configuration setting \"{ input }\" is not available.";
         }
 
+
+        /// <summary>
+        /// Deletes the user preference.
+        /// </summary>
+        /// <param name="context">The context.</param>
+        /// <param name="input">The input.</param>
+        /// <param name="typeName">The type name.</param>
+        /// <param name="typeOrder">The type order.</param>
+        /// <returns></returns>
+        public static void AddQuickReturn( DotLiquid.Context context, object input, string typeName, int typeOrder = 0 )
+        {
+            RockPage page = HttpContext.Current.Handler as RockPage;
+
+            if ( input is IEntity )
+            {
+                IEntity entity = input as IEntity;
+                dynamic rockDynamicItem = new RockDynamic( entity );
+                var entityType = EntityTypeCache.Get( entity.GetType() );
+                RockPage.AddScriptToHead( page, string.Format( @"$( document ).ready(function () {{ personalLinks.addQuickReturn( '{0}', {1}, '{2}' ) }});",
+                typeName,
+                typeOrder,
+                entityType.Name ), true );
+            }
+            else if ( input is string )
+            {
+                RockPage.AddScriptToHead( page, string.Format( @"$( document ).ready(function () {{ personalLinks.addQuickReturn( '{0}', {1}, '{2}' ) }});",
+                typeName,
+                typeOrder,
+                input ), true );
+            }
+        }
+
         #endregion Misc Filters
 
         #region Array Filters
