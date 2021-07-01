@@ -968,6 +968,32 @@ namespace RockWeb.Blocks.Groups
             return qry;
         }
 
+        private Expression BuildQueryExpression<T>( IFieldType fieldType, Control filterControl, AttributeCache attribute, IService serviceInstance, ParameterExpression parameterExpression, FilterMode filterMode ) where T : Entity<T>, new()
+        {
+            if ( filterControl == null || attribute == null )
+            {
+                return null;
+            }
+
+            // We're going to assume the QualifierValues are the same for all attributes in the array.
+            var filterValues = fieldType.GetFilterValues( filterControl, attribute.QualifierValues, filterMode );
+            if ( filterValues == null || filterValues.All( v => v.IsNullOrWhiteSpace() ) )
+            {
+                return null;
+            }
+
+            var entityFields = EntityHelper.GetEntityFields( typeof( T ) );
+
+            var entityField = entityFields.Where( a => a.FieldKind == FieldKind.Attribute && a.AttributeGuid == attribute.Guid ).FirstOrDefault();
+            if ( entityField == null )
+            {
+                entityField = EntityHelper.GetEntityFieldForAttribute( attribute, false );
+            }
+
+            var attributeExpression = Rock.Utility.ExpressionHelper.GetAttributeExpression( serviceInstance, parameterExpression, entityField, filterValues );
+            return attributeExpression;
+        }
+
         /// <summary>
         /// Binds the grid.
         /// </summary>
@@ -1079,27 +1105,62 @@ namespace RockWeb.Blocks.Groups
                 var processedAttributes = new HashSet<string>();
                 /*
                     07/01/2021 - MSB
-                    If the attributes have the same key and field type then we will OR the filter across the group types.
 
-                    If the attributes from different group types are included and filled out then no results will
-                    ever be returned because the attribute doesn't exists in both group types.
+                    The section of code creates and expression for each attribute in the search. The attributes from the same
+                    Group Type get grouped and &&'d together. Then the grouped Expressions will get ||'d together so that results
+                    will be returned.
 
-                    This is how the spec said it should work so we're leaving it for now, but if the requirements get changed this
-                    is where that change should happen.
-
-                    Reason: Requirements
+                    If we don't do this if the Admin adds attributes from two different Group Types and then the user enters data
+                    for both attributes they would get no results because Attribute A from Group Type A doesn't exists in Group Type B.
+                    
+                    Reason: Queries across Group Types
                 */
+                var filters = new Dictionary<string, Expression>();
+                var parameterExpression = groupService.ParameterExpression;
+
                 foreach ( var attribute in AttributeFilters )
                 {
                     var filterId = string.Format( "filter_{0}_{1}", attribute.Key, attribute.FieldType.Id );
-                    if ( processedAttributes.Contains( filterId ) )
-                    {
-                        continue;
-                    }
+                    var queryKey = string.Format( "{0}_{1}", attribute.EntityTypeQualifierColumn, attribute.EntityTypeQualifierValue );
+
                     var filterControl = phFilterControls.FindControl( filterId );
-                    var attributes = AttributeFilters.Where( a => a.Key == attribute.Key && a.FieldTypeId == attribute.FieldTypeId ).ToArray();
-                    groupQry = ApplyAttributeQueryFilter( attribute.FieldType.Field, groupQry, filterControl, attributes, groupService, FilterMode.SimpleFilter );
+
+                    Expression leftExpression = null;
+                    if ( filters.ContainsKey( queryKey ) )
+                    {
+                        leftExpression = filters[queryKey];
+                    }
+
+                    var expression = BuildQueryExpression<Group>( attribute.FieldType.Field, filterControl, attribute, groupService, parameterExpression, FilterMode.SimpleFilter );
+                    if ( expression != null )
+                    {
+                        if ( leftExpression == null )
+                        {
+                            filters[queryKey] = expression;
+                        }
+                        else
+                        {
+                            filters[queryKey] = Expression.And( leftExpression, expression );
+                        }
+                    }
                 }
+
+                if ( filters.Count == 1 )
+                {
+                    groupQry = groupQry.Where( parameterExpression, filters.FirstOrDefault().Value );
+                }
+                else if ( filters.Count > 1 )
+                {
+                    var keys = filters.Keys.ToList();
+                    var expression = filters[keys[0]];
+
+                    for ( var i = 1; i < filters.Count; i++ )
+                    {
+                        expression = Expression.Or( expression, filters[keys[i]] );
+                    }
+                    groupQry = groupQry.Where( parameterExpression, expression );
+                }
+
             }
 
             List<GroupLocation> fences = null;
