@@ -28,8 +28,10 @@ using DotLiquid;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
+using Rock.Field;
 using Rock.Field.Types;
 using Rock.Model;
+using Rock.Reporting;
 using Rock.Security;
 using Rock.Web;
 using Rock.Web.Cache;
@@ -813,9 +815,16 @@ namespace RockWeb.Blocks.Groups
 
             if ( AttributeFilters != null )
             {
+                var existingFilters = new HashSet<string>();
                 foreach ( var attribute in AttributeFilters )
                 {
-                    var control = attribute.FieldType.Field.FilterControl( attribute.QualifierValues, "filter_" + attribute.Id.ToString(), false, Rock.Reporting.FilterMode.SimpleFilter );
+                    var filterId = string.Format( "filter_{0}_{1}", attribute.Key, attribute.FieldType.Id );
+                    if ( existingFilters.Contains( filterId ) )
+                    {
+                        continue;
+                    }
+                    existingFilters.Add( filterId );
+                    var control = attribute.FieldType.Field.FilterControl( attribute.QualifierValues, filterId, false, Rock.Reporting.FilterMode.SimpleFilter );
                     if ( control != null )
                     {
                         AddFilterControl( control, attribute.Name, attribute.Description );
@@ -920,6 +929,43 @@ namespace RockWeb.Blocks.Groups
                 wrapper.Controls.Add( control );
                 phFilterControls.Controls.Add( wrapper );
             }
+        }
+
+        private IQueryable<T> ApplyAttributeQueryFilter<T>( IFieldType fieldType, IQueryable<T> qry, Control filterControl, AttributeCache[] attributes, IService serviceInstance, FilterMode filterMode ) where T : Entity<T>, new()
+        {
+            if ( filterControl == null || attributes == null || attributes.Length == 0 )
+            {
+                return qry;
+            }
+
+            // We're going to assume the QualifierValues are the same for all attributes in the array.
+            var filterValues = fieldType.GetFilterValues( filterControl, attributes[0].QualifierValues, filterMode );
+            var entityFields = EntityHelper.GetEntityFields( typeof( T ) );
+            var parameterExpression = serviceInstance.ParameterExpression;
+
+            Expression orExpression = null;
+            foreach ( var attribute in attributes )
+            {
+                var entityField = entityFields.Where( a => a.FieldKind == FieldKind.Attribute && a.AttributeGuid == attribute.Guid ).FirstOrDefault();
+                if ( entityField == null )
+                {
+                    entityField = EntityHelper.GetEntityFieldForAttribute( attribute, false );
+                }
+
+                var attributeExpression = Rock.Utility.ExpressionHelper.GetAttributeExpression( serviceInstance, parameterExpression, entityField, filterValues );
+
+                if ( orExpression == null )
+                {
+                    orExpression = attributeExpression;
+                }
+                else
+                {
+                    orExpression = Expression.Or( orExpression, attributeExpression );
+                }
+            }
+            qry = qry.Where( parameterExpression, orExpression );
+
+            return qry;
         }
 
         /// <summary>
@@ -1030,10 +1076,17 @@ namespace RockWeb.Blocks.Groups
             // Filter query by any configured attribute filters
             if ( AttributeFilters != null && AttributeFilters.Any() )
             {
+                var processedAttributes = new HashSet<string>();
                 foreach ( var attribute in AttributeFilters )
                 {
-                    var filterControl = phFilterControls.FindControl( "filter_" + attribute.Id.ToString() );
-                    groupQry = attribute.FieldType.Field.ApplyAttributeQueryFilter( groupQry, filterControl, attribute, groupService, Rock.Reporting.FilterMode.SimpleFilter );
+                    var filterId = string.Format( "filter_{0}_{1}", attribute.Key, attribute.FieldType.Id );
+                    if ( processedAttributes.Contains( filterId ) )
+                    {
+                        continue;
+                    }
+                    var filterControl = phFilterControls.FindControl( filterId );
+                    var attributes = AttributeFilters.Where( a => a.Key == attribute.Key && a.FieldTypeId == attribute.FieldTypeId ).ToArray();
+                    groupQry = ApplyAttributeQueryFilter( attribute.FieldType.Field, groupQry, filterControl, attributes, groupService, FilterMode.SimpleFilter );
                 }
             }
 
