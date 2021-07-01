@@ -69,7 +69,7 @@
                                     Help="An optional field used to qualify what the over-all purpose of this group type is for.  Additional values can be added by editing the 'Group Type Purpose' Defined Type." />
 
                                 <Rock:RockCheckBox ID="cbAllowAnyChildGroupType" runat="server" Label="Allow Any Child Group Type" Help="Determines if all types of child groups can be added to groups of this type" AutoPostBack="true" OnCheckedChanged="cbAllowAnyChildGroupType_CheckedChanged" />
-                                <Rock:RockControlWrapper ID="rcwAllowedChildGroupTypes" runat="server" Label="Allowed Child Group Types" 
+                                <Rock:RockControlWrapper ID="rcwAllowedChildGroupTypes" runat="server" Label="Allowed Child Group Types"
                                     Help="The types of child groups that can be added to groups of this type. This is used to define the group hierarchy. To allow an unlimited hierarchy add this type as an allowed child group type.">
 
                                     <div class="grid">
@@ -166,7 +166,7 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <Rock:RockCheckBox ID="cbGroupRSVPEnabled" runat="server" Label="Group RSVP Enabled" AutoPostBack="true" OnCheckedChanged="cbRsvp_CheckedChanged" Text="Yes"
-                                                           Help="This option will allow group RSVP." />
+                                            Help="This option will allow group RSVP." />
                                     </div>
                                 </div>
                                 <asp:Panel runat="server" ID="pnlRsvpSettings">
@@ -245,7 +245,7 @@
                     <Rock:PanelWidget ID="wpScheduling" runat="server" Title="Scheduling">
                         <div class="row">
                             <div class="col-md-6">
-                                <Rock:RockCheckBox ID="cbSchedulingEnabled" runat="server" Label="Scheduling Enabled" Help="Indicates whether scheduling is enabled for groups of this type."/>
+                                <Rock:RockCheckBox ID="cbSchedulingEnabled" runat="server" Label="Scheduling Enabled" Help="Indicates whether scheduling is enabled for groups of this type." />
                             </div>
                             <div class="col-md-6">
                             </div>
