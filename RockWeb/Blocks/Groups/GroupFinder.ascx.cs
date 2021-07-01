@@ -1110,7 +1110,7 @@ namespace RockWeb.Blocks.Groups
                     Group Type get grouped and &&'d together. Then the grouped Expressions will get ||'d together so that results
                     will be returned.
 
-                    If we don't do this when the Admin adds attributes from two different Group Types and then the user enters data
+                    If we don't do this, when the Admin adds attributes from two different Group Types and then the user enters data
                     for both attributes they would get no results because Attribute A from Group Type A doesn't exists in Group Type B.
                     
                     Reason: Queries across Group Types
