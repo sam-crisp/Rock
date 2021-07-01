@@ -977,6 +977,8 @@ namespace RockWeb.Blocks.Groups
 
             // We're going to assume the QualifierValues are the same for all attributes in the array.
             var filterValues = fieldType.GetFilterValues( filterControl, attribute.QualifierValues, filterMode );
+
+            // If the filterValues are all empty then no filtering needs to be done.
             if ( filterValues == null || filterValues.All( v => v.IsNullOrWhiteSpace() ) )
             {
                 return null;
