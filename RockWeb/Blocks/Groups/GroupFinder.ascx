@@ -311,22 +311,22 @@
                                         </Rock:RockDropDownList>
                                     </div>
                                     <div class="col-md-12">
+                                        <Rock:CodeEditor ID="ceMapInfo" runat="server" Label="Group Window Contents" EditorMode="Lava" EditorTheme="Rock" Height="300"
+                                            Help="The Lava template to use for formatting the group information that is displayed when user clicks the group marker on the map."
+                                            ValidationGroup="GroupFinderSettings" />
+                                    </div>
+                                    <div class="col-md-12">
                                         <asp:LinkButton
                                             runat="server"
                                             ID="lbShowAdditionalMapSettings"
                                             Text="Additional GeoFence Settings"
                                             OnClick="lbShowAdditionalMapSettings_Click"
                                             CausesValidation="false"
-                                            CssClass="pull-right"/>
+                                            CssClass="pull-right" />
                                     </div>
                                 </div>
 
                                 <div runat="server" id="dMapAdditionalSettings" visible="false" class="row">
-                                    <div class="col-md-12">
-                                        <Rock:CodeEditor ID="ceMapInfo" runat="server" Label="Group Window Contents" EditorMode="Lava" EditorTheme="Rock" Height="300"
-                                            Help="The Lava template to use for formatting the group information that is displayed when user clicks the group marker on the map."
-                                            ValidationGroup="GroupFinderSettings" />
-                                    </div>
                                     <div class="col-md-6">
                                         <Rock:RockCheckBox ID="cbShowFence" runat="server" Label="Show Fence(s)" Text="Yes"
                                             Help="If a Geofence group type was selected, should that group's boundary be displayed on the map?" ValidationGroup="GroupFinderSettings" />

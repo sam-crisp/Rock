@@ -1237,6 +1237,23 @@ namespace RockWeb.Blocks.Groups
                                 mapItem.Color = markerColor;
                             }
 
+                            var locationPrecisionLevel = GetAttributeValue( AttributeKey.LocationPrecisionLevel );
+                            switch ( locationPrecisionLevel.ToLower() )
+                            {
+                                case "narrow":
+                                    mapItem.Point.Latitude = mapItem.Point.Latitude != null ? Convert.ToDouble( mapItem.Point.Latitude.Value.ToString( "#.###5" ) ) : ( double? ) null;
+                                    mapItem.Point.Longitude = mapItem.Point.Longitude != null ? Convert.ToDouble( mapItem.Point.Longitude.Value.ToString( "#.###5" ) ) : ( double? ) null;
+                                    break;
+                                case "close":
+                                    mapItem.Point.Latitude = mapItem.Point.Latitude != null ? Convert.ToDouble( mapItem.Point.Latitude.Value.ToString( "#.###" ) ) : ( double? ) null;
+                                    mapItem.Point.Longitude = mapItem.Point.Longitude != null ? Convert.ToDouble( mapItem.Point.Longitude.Value.ToString( "#.###" ) ) : ( double? ) null;
+                                    break;
+                                case "wide":
+                                    mapItem.Point.Latitude = mapItem.Point.Latitude != null ? Convert.ToDouble( mapItem.Point.Latitude.Value.ToString( "#.##" ) ) : ( double? ) null;
+                                    mapItem.Point.Longitude = mapItem.Point.Longitude != null ? Convert.ToDouble( mapItem.Point.Longitude.Value.ToString( "#.##" ) ) : ( double? ) null;
+                                    break;
+                            }
+
                             mapItem.InfoWindow = HttpUtility.HtmlEncode( infoWindow.Replace( Environment.NewLine, string.Empty ).Replace( "\n", string.Empty ).Replace( "\t", string.Empty ) );
                             groupMapItems.Add( mapItem );
                         }
@@ -1527,12 +1544,25 @@ namespace RockWeb.Blocks.Groups
                 zoom = "null";
             }
 
+            var zoomThreshold = GetAttributeValue( AttributeKey.MarkerZoomLevel );
+            if ( zoomThreshold.IsNullOrWhiteSpace() )
+            {
+                zoomThreshold = "null";
+            }
+
+            var zoomAmount = GetAttributeValue( AttributeKey.MarkerZoomAmount );
+            if ( zoomAmount.IsNullOrWhiteSpace() )
+            {
+                zoomAmount = "null";
+            }
+
             // write script to page
             string mapScriptFormat = @"
 
         var locationData = {0};
         var fenceData = {1};
         var groupData = {2}; 
+        var markerScale = {11};
 
         var allMarkers = [];
 
@@ -1547,7 +1577,7 @@ namespace RockWeb.Blocks.Groups
 
         var min = .999999;
         var max = 1.000001;
-
+        
         initializeMap();
 
         function initializeMap() {{
@@ -1564,6 +1594,81 @@ namespace RockWeb.Blocks.Groups
 
             // Display a map on the page
             map = new google.maps.Map(document.getElementById('map_canvas'), mapOptions);
+            google.maps.event.addDomListener(map, 'zoom_changed', function() {{
+                var zoomThreshold = {14};
+                var zoomAmount = {15};
+
+                var zoom = map.getZoom();
+
+		        console.log( 'zoom:', zoom, 'zoomTHreshold', zoomThreshold, 'zoomAmount', zoomAmount );
+
+                if(!zoomThreshold || !zoomAmount) {{
+                    return;
+                }}
+
+                var scale = markerScale;
+                if ( zoom >= zoomThreshold ) {{
+                    scale = markerScale * zoom * zoomAmount / 3;
+                }}
+
+                var markerCount = allMarkers.length;
+                var updatedMarkers = [];
+                for (var i = 0; i < markerCount; i++) {{
+                    var marker = allMarkers[i];
+
+                    var pinImage = {{
+                        path: marker.icon.path,
+                        fillColor: marker.icon.fillColor,
+                        fillOpacity: marker.icon.fillOpacity,
+                        strokeColor: marker.icon.strokeColor,
+                        strokeWeight: marker.icon.strokeWeight,
+                        scale: scale,
+                        labelOrigin: marker.icon.labelOrigin,
+                        anchor: marker.icon.anchor,
+                    }};
+
+                    // Remove marker
+  			        marker.setMap(null);
+
+				    // Add marker back
+                    var updatedMarker = new google.maps.Marker({{
+                        position: marker.position,
+                        icon: pinImage,
+                        map: map,
+                        id: marker.id,
+                        title: marker.title,
+                        info_window: marker.info_window,
+                    }});
+
+                if ( updatedMarker.info_window != null ) {{ 
+                    google.maps.event.addListener(updatedMarker, 'click', (function (marker) {{
+                        return function () {{
+                            openInfoWindow(marker);
+                        }}
+                    }})(updatedMarker));
+                }}
+
+                if ( updatedMarker.id && updatedMarker.id > 0 ) {{ 
+                    google.maps.event.addListener(updatedMarker, 'mouseover', (function (marker) {{
+                        return function () {{
+                            $(""tr[datakey='"" + marker.id + ""']"").addClass('row-highlight');
+                        }}
+                    }})(updatedMarker));
+
+                    google.maps.event.addListener(updatedMarker, 'mouseout', (function (marker) {{
+                        return function () {{
+                            $(""tr[datakey='"" + marker.id + ""']"").removeClass('row-highlight');
+                        }}
+                    }})(updatedMarker));
+
+                }}
+
+                    updatedMarkers.push(updatedMarker);
+                }}
+
+                allMarkers = [...updatedMarkers];
+	        }});
+
             map.setTilt(45);
 
             if ( locationData != null )
@@ -1636,7 +1741,7 @@ namespace RockWeb.Blocks.Groups
                     fillOpacity: 1,
                     strokeColor: '#000',
                     strokeWeight: 1,
-                    scale: {11},
+                    scale: markerScale,
                     labelOrigin: new google.maps.Point(0, 0),
                     anchor: new google.maps.Point(0, 0),
                 }};
@@ -1709,7 +1814,7 @@ namespace RockWeb.Blocks.Groups
                 if ( mapItem.InfoWindow != null ) {{ 
                     google.maps.event.addListener(polygon, 'click', (function (polygon, i) {{
                         return function () {{
-                            infoWindow.setContent( mapItem.InfoWindow );
+                            infoWindow.setContent( $('<div/>').html(mapItem.InfoWindow).text() );
                             infoWindow.setPosition(polyBounds.getCenter());
                             infoWindow.open(map);
                         }}
@@ -1800,7 +1905,9 @@ namespace RockWeb.Blocks.Groups
                 marker,             // 10
                 scale,              // 11
                 maxZoomLevel,       // 12
-                minZoomLevel );     // 13
+                minZoomLevel,       // 13
+                zoomThreshold,      // 14
+                zoomAmount );       // 15
 
             ScriptManager.RegisterStartupScript( pnlMap, pnlMap.GetType(), "group-finder-map-script", mapScript, true );
         }
