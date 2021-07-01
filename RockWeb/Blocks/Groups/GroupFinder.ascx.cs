@@ -1077,6 +1077,18 @@ namespace RockWeb.Blocks.Groups
             if ( AttributeFilters != null && AttributeFilters.Any() )
             {
                 var processedAttributes = new HashSet<string>();
+                /*
+                    07/01/2021 - MSB
+                    If the attributes have the same key and field type then we will OR the filter across the group types.
+
+                    If the attributes from different group types are included and filled out then no results will
+                    ever be returned because the attribute doesn't exists in both group types.
+
+                    This is how the spec said it should work so we're leaving it for now, but if the requirements get changed this
+                    is where that change should happen.
+
+                    Reason: Requirements
+                */
                 foreach ( var attribute in AttributeFilters )
                 {
                     var filterId = string.Format( "filter_{0}_{1}", attribute.Key, attribute.FieldType.Id );
