@@ -13,18 +13,23 @@
             url: window.location.href
         };
 
-        const found = _returnItemArray.some(el => el.url === window.location.href);
+        const found = _returnItemArray.some(el => el.url.toLowerCase() === window.location.href.toLowerCase());
         if (found)
         {
             _returnItemArray = _returnItemArray.filter(function (el) {
-                return !(el.url === window.location.href && el.type === type);
+                return !(el.url.toLowerCase() === window.location.href.toLowerCase() && el.type.toLowerCase() === type.toLowerCase());
             });
         }
 
         _returnItemArray.push(returnItem);
+
+        _returnItemArray.sort(function (a, b) {
+            return new Date(b.createdDateTime) - new Date(a.createdDateTime);
+        });
+
         var arrLength = _returnItemArray.length;
         if (arrLength > 20) {
-            arr.splice(0, arrLength - maxNumber);
+            _returnItemArray.splice(20, arrLength - 20);
         }
 
         setLocalStorage();

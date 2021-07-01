@@ -25,7 +25,7 @@ using Rock.Data;
 namespace Rock.Model
 {
     /// <summary>
-    /// Personal Link Section Entity.
+    /// This represents a section that a link can belong to.
     /// </summary>
     [RockDomain( "CMS" )]
     [Table( "PersonalLinkSection" )]

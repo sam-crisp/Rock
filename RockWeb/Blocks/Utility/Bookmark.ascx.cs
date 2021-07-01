@@ -94,7 +94,6 @@ namespace RockWeb.Blocks.Utility
         {
             base.OnLoad( e );
 
-            RockPage.AddScriptLink( "~/Scripts/Rock/personalLinks.js" );
             if ( !Page.IsPostBack )
             {
                 if ( CurrentPersonAliasId.HasValue )

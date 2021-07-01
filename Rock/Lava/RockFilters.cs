@@ -5118,22 +5118,17 @@ namespace Rock.Lava
         {
             RockPage page = HttpContext.Current.Handler as RockPage;
 
-            if ( input is IEntity )
+            if ( input == null )
             {
-                IEntity entity = input as IEntity;
-                dynamic rockDynamicItem = new RockDynamic( entity );
-                var entityType = EntityTypeCache.Get( entity.GetType() );
-                RockPage.AddScriptToHead( page, string.Format( @"$( document ).ready(function () {{ personalLinks.addQuickReturn( '{0}', {1}, '{2}' ) }});",
-                typeName,
-                typeOrder,
-                entityType.Name ), true );
+                return;
             }
-            else if ( input is string )
+
+            if ( input is string )
             {
                 RockPage.AddScriptToHead( page, string.Format( @"$( document ).ready(function () {{ personalLinks.addQuickReturn( '{0}', {1}, '{2}' ) }});",
                 typeName,
                 typeOrder,
-                input ), true );
+                input.ToString().EscapeQuotes() ), true );
             }
         }
 

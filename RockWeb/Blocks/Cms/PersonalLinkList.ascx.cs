@@ -177,7 +177,7 @@ namespace RockWeb.Blocks.Cms
 
             if ( personalLink.PersonAliasId != CurrentPersonAliasId.Value && personalLink.IsAuthorized( Authorization.EDIT, CurrentPerson ) )
             {
-                mdGridWarning.Show( "Not authorized to make changes to this signal.", ModalAlertType.Information );
+                mdGridWarning.Show( "Not authorized to make changes to this link.", ModalAlertType.Information );
                 return;
             }
 

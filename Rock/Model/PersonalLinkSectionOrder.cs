@@ -22,7 +22,8 @@ using Rock.Data;
 namespace Rock.Model
 {
     /// <summary>
-    /// Personal Link Section Order Entity.
+    /// This represents the personalized order for a particular section.
+    /// This allows an individual to change the ordering of sections to better fit their needs without impacting the section order for everyone else.
     /// </summary>
     [RockDomain( "CMS" )]
     [Table( "PersonalLinkSectionOrder" )]
