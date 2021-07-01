@@ -1106,9 +1106,9 @@ namespace RockWeb.Blocks.Groups
                 /*
                     07/01/2021 - MSB
 
-                    The section of code creates an expression for each attribute in the search. The attributes from the same
+                    This section of code creates an expression for each attribute in the search. The attributes from the same
                     Group Type get grouped and &&'d together. Then the grouped Expressions will get ||'d together so that results
-                    will be returned.
+                    will be returned across Group Types.
 
                     If we don't do this, when the Admin adds attributes from two different Group Types and then the user enters data
                     for both attributes they would get no results because Attribute A from Group Type A doesn't exists in Group Type B.
