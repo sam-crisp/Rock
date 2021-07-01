@@ -344,6 +344,9 @@
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceModel" />
     <Reference Include="System.ServiceModel.Web" />
+    <Reference Include="System.Text.Encodings.Web, Version=4.0.3.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Text.Encodings.Web.5.0.1\lib\netstandard1.0\System.Text.Encodings.Web.dll</HintPath>
+    </Reference>
     <Reference Include="System.Transactions" />
     <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.ValueTuple.4.5.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
@@ -623,6 +626,7 @@
     <Compile Include="Data\SaveChangesResult.cs" />
     <Compile Include="Data\SaveChangesArgs.cs" />
     <Compile Include="Field\Types\AttendanceFieldType.cs" />
+    <Compile Include="Field\Types\CaptchaFieldType.cs" />
     <Compile Include="Field\Types\ConnectionRequestActivityFieldType.cs" />
     <Compile Include="Field\Types\CheckinConfigurationTypeFieldType.cs" />
     <Compile Include="Field\Types\FinancialStatementTemplateFieldType.cs" />
@@ -634,6 +638,7 @@
     <Compile Include="Financial\FinancialStatementGeneratorHelper.cs" />
     <Compile Include="Financial\FinancialStatementGeneratorRecipientRequest.cs" />
     <Compile Include="Financial\FinancialStatementGeneratorUploadGivingStatementData.cs" />
+    <Compile Include="Financial\FinancialStatementGeneratorUploadGivingStatementResult.cs" />
     <Compile Include="Financial\IFeeCoverageGatewayComponent.cs" />
     <Compile Include="Financial\IHostedGatewayPaymentControlCurrencyTypeEvent.cs" />
     <Compile Include="Financial\FinancialStatementGeneratorPledgeSummary.cs" />
@@ -653,6 +658,7 @@
     <Compile Include="Jobs\PostV12DataMigrationsAddStatusIndexToCommunicationRecipient.cs" />
     <Compile Include="Jobs\PostV12DataMigrationsAddIndexToCommunication.cs" />
     <Compile Include="Jobs\PostV12DataMigrationsAddInteractionIndexes.cs" />
+    <Compile Include="Jobs\PostV125UpdateStepProgramCompletion.cs" />
     <Compile Include="Jobs\RockJobWarningException.cs" />
     <Compile Include="Jobs\CampaignManager.cs" />
     <Compile Include="Jobs\SendGroupAttendanceDigest.cs" />
@@ -682,7 +688,9 @@
     <Compile Include="Media\MediaElementThumbnailData.cs" />
     <Compile Include="Model\AchievementAttemptService.Partial.cs" />
     <Compile Include="Model\AnalyticsSourceGivingUnit.cs" />
+    <Compile Include="Model\CampusSchedule.cs" />
     <Compile Include="Model\CodeGenerated\AnalyticsSourceGivingUnitService.cs" />
+    <Compile Include="Model\CodeGenerated\CampusScheduleService.cs" />
     <Compile Include="Model\CodeGenerated\CommunicationResponseAttachmentService.cs" />
     <Compile Include="Model\CodeGenerated\FinancialStatementTemplateService.cs" />
     <Compile Include="Model\CodeGenerated\FinancialTransactionAlertService.cs" />
@@ -691,10 +699,12 @@
     <Compile Include="Model\CodeGenerated\MediaElementService.cs" />
     <Compile Include="Model\CodeGenerated\MediaFolderService.cs" />
     <Compile Include="Model\CodeGenerated\RegistrationSessionService.cs" />
+    <Compile Include="Model\CodeGenerated\StepProgramCompletionService.cs" />
     <Compile Include="Model\CodeGenerated\WebFarmNodeLogService.cs" />
     <Compile Include="Model\CodeGenerated\WebFarmNodeMetricService.cs" />
     <Compile Include="Model\CodeGenerated\WebFarmNodeService.cs" />
     <Compile Include="Model\CommunicationResponseAttachment.cs" />
+    <Compile Include="Model\EventItemService.Partial.cs" />
     <Compile Include="Model\FinancialStatementTemplate.cs" />
     <Compile Include="Model\FinancialTransactionAlert.cs" />
     <Compile Include="Model\FinancialTransactionAlertType.cs" />
@@ -705,6 +715,7 @@
     <Compile Include="Model\MediaFolder.cs" />
     <Compile Include="Model\MediaFolderService.Partial.cs" />
     <Compile Include="Model\RegistrationSession.cs" />
+    <Compile Include="Model\StepProgramCompletion.cs" />
     <Compile Include="Model\StepProgramService.Partial.cs" />
     <Compile Include="Model\WebFarmNodeMetric.cs" />
     <Compile Include="Model\WebFarmNodeLog.cs" />
@@ -746,6 +757,7 @@
     <Compile Include="Security\Authentication\OidcClient.cs" />
     <Compile Include="SystemGuid\Badge.cs" />
     <Compile Include="SystemGuid\AuthScope.cs" />
+    <Compile Include="SystemGuid\BinaryFile.cs" />
     <Compile Include="SystemGuid\FinancialStatementTemplate.cs" />
     <Compile Include="SystemKey\DeviceAttributeKey.cs" />
     <Compile Include="SystemKey\TwilioAttributeKey.cs" />
@@ -754,6 +766,8 @@
     <Compile Include="Tasks\AddPersonViewed.cs" />
     <Compile Include="Transactions\AchievementsProcessTransaction.cs" />
     <Compile Include="Tasks\BusStartedTask.cs" />
+    <Compile Include="UniversalSearch\IndexModels\EventItemIndex.cs" />
+    <Compile Include="Utility\Enums\DayOfWeekFlag.cs" />
     <Compile Include="Utility\Enums\PushOpenAction.cs" />
     <Compile Include="Utility\ExtensionMethods\AssemblyExtensions.cs" />
     <Compile Include="Utility\ExtensionMethods\DateKeyExtensions.cs" />
@@ -833,6 +847,7 @@
     <Compile Include="Logging\RockLogger.cs" />
     <Compile Include="Logging\RockLogConfiguration.cs" />
     <Compile Include="Web\Cache\RockCacheConsumer.cs" />
+    <Compile Include="Web\UI\Controls\FieldVisibilityRuleField.cs" />
     <Compile Include="Web\UI\Controls\IDoNotBlockValidate.cs" />
     <Compile Include="Web\UI\Controls\NoteControl.cs" />
     <Compile Include="Web\UI\Controls\PageNavButtons.cs" />
@@ -843,6 +858,7 @@
     <Compile Include="Web\UI\Controls\Pickers\IntervalPicker.cs" />
     <Compile Include="Plugin\HotFixes\118_FixFailedPaymentCommunicationTemplate.cs" />
     <Compile Include="Web\UI\Controls\Pickers\MediaElementPicker.cs" />
+    <Compile Include="Web\UI\Controls\TagLiteral.cs" />
     <Compile Include="Web\UI\RegistrationInstanceBlock.cs">
       <SubType>ASPXCodeBehind</SubType>
     </Compile>

@@ -486,6 +486,14 @@ namespace Rock.Data
         public DbSet<Campus> Campuses { get; set; }
 
         /// <summary>
+        /// Gets or sets the campus schedules.
+        /// </summary>
+        /// <value>
+        /// The campus schedules.
+        /// </value>
+        public DbSet<CampusSchedule> CampusSchedules { get; set; }
+
+        /// <summary>
         /// Gets or sets the categories.
         /// </summary>
         /// <value>
@@ -1852,6 +1860,14 @@ namespace Rock.Data
         /// The step programs.
         /// </value>
         public DbSet<StepProgram> StepPrograms { get; set; }
+
+        /// <summary>
+        /// Gets or sets the step program completions.
+        /// </summary>
+        /// <value>
+        /// The step program completions.
+        /// </value>
+        public DbSet<StepProgramCompletion> StepProgramCompletions { get; set; }
 
         /// <summary>
         /// Gets or sets the step statuses.

@@ -201,7 +201,7 @@ namespace Rock.SystemGuid
         public const string PERSON_EQ_SCALES_UNDER_STRESS = "C3CB8FB5-34A2-48C8-B1FC-7CEBA670C1ED";
 
         /// <summary>
-        /// The person attribute for the Motivator Beliving
+        /// The person attribute for the Motivator Believing
         /// </summary>
         public const string PERSON_MOTIVATOR_BELIVING = "2045D752-2B7F-4314-A58D-AE77AE095CA8";
 
@@ -488,7 +488,7 @@ namespace Rock.SystemGuid
         public const string DEFINED_TYPE_CURRENCY_TYPE_ICONCSSCLASS = "CB1E9401-E1FD-4DBB-B15F-4E6994602723";
 
         /// <summary>
-        /// The Transaction Sourcee DefinedType > IconCssClass DefinedValue Attribute Guid
+        /// The Transaction Source DefinedType > IconCssClass DefinedValue Attribute Guid
         /// </summary>
         public const string DEFINED_TYPE_TRANSACTION_SOURCE_ICONCSSCLASS = "9617D1DC-6561-4314-83EB-7F0ACBA2E259";
 
@@ -841,9 +841,40 @@ namespace Rock.SystemGuid
 
         /// <summary>
         /// Last Classification Run Date Time - Date - sets the date time of then the giving unit was last classified.
-        /// Classification is updated after each new gift, but if they stop giving we’ll use this to occassionally update the classification. 
+        /// Classification is updated after each new gift, but if they stop giving we’ll use this to occasionally update the classification. 
         /// </summary>
         public const string PERSON_GIVING_LAST_CLASSIFICATION_DATE = "7220B230-03CE-4D1E-985B-26AA28BE06F8";
+
+        /// <summary>
+        /// Giving History JSON - Code - gets the JSON array of giving data by month objects.
+        /// [{ Year: 2020, Month: 1, AccountId: 1, Amount: 550.67 }, ...]
+        /// </summary>
+        public const string PERSON_GIVING_HISTORY_JSON = "3BF34F25-4D50-4417-B436-37FEA3FA5473";
+
+        /// <summary>
+        /// Giving Total past 12 months - Currency
+        /// </summary>
+        public const string PERSON_GIVING_12_MONTHS = "ADD9BE86-49CA-46C4-B4EA-547F2F277294";
+
+        /// <summary>
+        /// Giving Total past 90 days - Currency
+        /// </summary>
+        public const string PERSON_GIVING_90_DAYS = "0DE95B77-D26E-4513-9A71-92A7FD5C4B7C";
+
+        /// <summary>
+        /// Giving Total prior 90 days (90-180 days ago) - Currency
+        /// </summary>
+        public const string PERSON_GIVING_PRIOR_90_DAYS = "0170A267-942A-480A-A9CF-E4EA60CAA529";
+
+        /// <summary>
+        /// Gift count 12 month - Integer
+        /// </summary>
+        public const string PERSON_GIVING_12_MONTHS_COUNT = "23B6A7BD-BBBB-4F2D-9695-2B1E03B3013A";
+
+        /// <summary>
+        /// Gift count 90 days - Integer
+        /// </summary>
+        public const string PERSON_GIVING_90_DAYS_COUNT = "356B8F0B-AA54-4F44-8513-F8A5FF592F18";
 
         #endregion Giving Analytics
 
