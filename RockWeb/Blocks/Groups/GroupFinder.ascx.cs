@@ -824,7 +824,7 @@ namespace RockWeb.Blocks.Groups
                 var existingFilters = new HashSet<string>();
                 foreach ( var attribute in AttributeFilters )
                 {
-                    var filterId = string.Format( "filter_{0}_{1}", attribute.Key, attribute.FieldType.Id );
+                    var filterId = $"filter_{attribute.Key}_{attribute.FieldType.Id}";
                     if ( existingFilters.Contains( filterId ) )
                     {
                         continue;
@@ -935,43 +935,6 @@ namespace RockWeb.Blocks.Groups
                 wrapper.Controls.Add( control );
                 phFilterControls.Controls.Add( wrapper );
             }
-        }
-
-        private IQueryable<T> ApplyAttributeQueryFilter<T>( IFieldType fieldType, IQueryable<T> qry, Control filterControl, AttributeCache[] attributes, IService serviceInstance, FilterMode filterMode ) where T : Entity<T>, new()
-        {
-            if ( filterControl == null || attributes == null || attributes.Length == 0 )
-            {
-                return qry;
-            }
-
-            // We're going to assume the QualifierValues are the same for all attributes in the array.
-            var filterValues = fieldType.GetFilterValues( filterControl, attributes[0].QualifierValues, filterMode );
-            var entityFields = EntityHelper.GetEntityFields( typeof( T ) );
-            var parameterExpression = serviceInstance.ParameterExpression;
-
-            Expression orExpression = null;
-            foreach ( var attribute in attributes )
-            {
-                var entityField = entityFields.Where( a => a.FieldKind == FieldKind.Attribute && a.AttributeGuid == attribute.Guid ).FirstOrDefault();
-                if ( entityField == null )
-                {
-                    entityField = EntityHelper.GetEntityFieldForAttribute( attribute, false );
-                }
-
-                var attributeExpression = Rock.Utility.ExpressionHelper.GetAttributeExpression( serviceInstance, parameterExpression, entityField, filterValues );
-
-                if ( orExpression == null )
-                {
-                    orExpression = attributeExpression;
-                }
-                else
-                {
-                    orExpression = Expression.Or( orExpression, attributeExpression );
-                }
-            }
-            qry = qry.Where( parameterExpression, orExpression );
-
-            return qry;
         }
 
         private Expression BuildQueryExpression<T>( IFieldType fieldType, Control filterControl, AttributeCache attribute, IService serviceInstance, ParameterExpression parameterExpression, FilterMode filterMode ) where T : Entity<T>, new()
@@ -1128,8 +1091,8 @@ namespace RockWeb.Blocks.Groups
 
                 foreach ( var attribute in AttributeFilters )
                 {
-                    var filterId = string.Format( "filter_{0}_{1}", attribute.Key, attribute.FieldType.Id );
-                    var queryKey = string.Format( "{0}_{1}", attribute.EntityTypeQualifierColumn, attribute.EntityTypeQualifierValue );
+                    var filterId = $"filter_{attribute.Key}_{attribute.FieldType.Id}";
+                    var queryKey = $"{attribute.EntityTypeQualifierColumn}_{attribute.EntityTypeQualifierValue}";
 
                     var filterControl = phFilterControls.FindControl( filterId );
 
