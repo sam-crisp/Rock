@@ -214,6 +214,11 @@ namespace RockWeb.Blocks.Groups
 
             AttributeFilters = ViewState["AttributeFilters"] as List<AttributeCache>;
             AttributeColumns = ViewState["AttributeColumns"] as List<AttributeCache>;
+            GroupTypeLocations = ViewState["GroupTypeLocations"] as Dictionary<int, int>;
+            if ( GroupTypeLocations == null )
+            {
+                GroupTypeLocations = new Dictionary<int, int>();
+            }
 
             BuildDynamicControls();
         }
@@ -296,6 +301,7 @@ namespace RockWeb.Blocks.Groups
         {
             ViewState["AttributeFilters"] = AttributeFilters;
             ViewState["AttributeColumns"] = AttributeColumns;
+            ViewState["GroupTypeLocations"] = GroupTypeLocations;
 
             return base.SaveViewState();
         }
@@ -1856,14 +1862,17 @@ namespace RockWeb.Blocks.Groups
                 bounds.extend(position);
 
                 if (!color) {{
-                    color = 'FE7569'
+                    color = '#FE7569';
                 }}
 
-                color = color.replace('#', '');
+                if ( color.length > 0 && color.toLowerCase().indexOf('rgb') < 0 && color[0] != '#' )
+                {{
+                    color = '#' + color;
+                }}
 
                 var pinImage = {{
                     path: '{10}',
-                    fillColor: '#' + color,
+                    fillColor: color,
                     fillOpacity: 1,
                     strokeColor: '#000',
                     strokeWeight: 1,
@@ -2122,17 +2131,7 @@ namespace RockWeb.Blocks.Groups
             }
         }
 
-        private Dictionary<int, int> GroupTypeLocations
-        {
-            get
-            {
-                return ViewState["GroupTypeLocations"] as Dictionary<int, int>;
-            }
-            set
-            {
-                ViewState["GroupTypeLocations"] = value;
-            }
-        }
+        private Dictionary<int, int> GroupTypeLocations { get; set; }
 
         protected void lLocationList_SelectedIndexChanged( object sender, EventArgs e )
         {
