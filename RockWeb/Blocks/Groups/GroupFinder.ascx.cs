@@ -1728,8 +1728,6 @@ namespace RockWeb.Blocks.Groups
 
                 var zoom = map.getZoom();
 
-		        console.log( 'zoom:', zoom, 'zoomTHreshold', zoomThreshold, 'zoomAmount', zoomAmount );
-
                 if(!zoomThreshold || !zoomAmount) {{
                     return;
                 }}
