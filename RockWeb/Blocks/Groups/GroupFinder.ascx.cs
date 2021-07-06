@@ -245,6 +245,11 @@ namespace RockWeb.Blocks.Groups
             this.AddConfigurationUpdateTrigger( upnlContent );
 
             this.LoadGoogleMapsApi();
+
+            if( GroupTypeLocations == null )
+            {
+                GroupTypeLocations = new Dictionary<int, int>();
+            }
         }
 
         /// <summary>
