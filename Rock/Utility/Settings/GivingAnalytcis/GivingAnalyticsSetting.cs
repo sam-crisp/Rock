@@ -24,14 +24,14 @@ namespace Rock.Utility.Settings.GivingAnalytics
     /// </summary>
     public class GivingAnalyticsSetting
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="GivingAnalyticsSetting"/> class.
-        /// </summary>
-        public GivingAnalyticsSetting()
-        {
-            this.GivingAnalytics = new GivingAnalytics();
-            this.Alerting = new Alerting();
-        }
+        /*
+         * 2021-06-30 BJW
+         * There used to be a constructor here that would set GivingAnalytics and Alerting to new instances so
+         * that null values wouldn't be an issue. This was causing problems with the JSON serialization and
+         * deserialization. Particularly, lists of values were appended rather than being replaced when
+         * deserializing the value from the attribute value. So it was possible to get a list of days of the
+         * week that contained 10+ values for instance. Same issue with Giver Bins list.
+         */
 
         /// <summary>
         /// Gets or sets the giving analytics.
@@ -48,6 +48,31 @@ namespace Rock.Utility.Settings.GivingAnalytics
         /// The alerting.
         /// </value>
         public Alerting Alerting { get; set; }
+
+        /// <summary>
+        /// Gets or sets the transaction type guids (defined value guids) that will be included in
+        /// classification and alerting.
+        /// </summary>
+        /// <value>
+        /// The transaction type guids.
+        /// </value>
+        public List<Guid> TransactionTypeGuids { get; set; }
+
+        /// <summary>
+        /// Gets or sets the financial account guids. If empty, then we assume all tax deductible accounts are used.
+        /// </summary>
+        /// <value>
+        /// The financial account guids.
+        /// </value>
+        public List<Guid> FinancialAccountGuids { get; set; }
+
+        /// <summary>
+        /// Gets or sets the are child accounts included. This defaults to false.
+        /// </summary>
+        /// <value>
+        /// The are child accounts included.
+        /// </value>
+        public bool? AreChildAccountsIncluded { get; set; }
     }
 
     /// <summary>
@@ -55,26 +80,6 @@ namespace Rock.Utility.Settings.GivingAnalytics
     /// </summary>
     public class GivingAnalytics
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="GivingAnalytics"/> class.
-        /// </summary>
-        public GivingAnalytics()
-        {
-            // Default to 7 days a week if there is not already a setting
-            this.GiverAnalyticsRunDays = new List<DayOfWeek>
-            {
-                DayOfWeek.Sunday,
-                DayOfWeek.Monday,
-                DayOfWeek.Tuesday,
-                DayOfWeek.Wednesday,
-                DayOfWeek.Thursday,
-                DayOfWeek.Friday,
-                DayOfWeek.Saturday
-            };
-
-            this.GiverBins = new List<GiverBin>();
-        }
-
         /// <summary>
         /// Gets or sets a value indicating whether this instance is enabled.
         /// </summary>
@@ -84,7 +89,7 @@ namespace Rock.Utility.Settings.GivingAnalytics
         public bool IsEnabled { get; set; } = true;
 
         /// <summary>
-        /// Gets or sets the days of the week to run the analytics for each giver.
+        /// Gets or sets the days of the week to run the classifications for each giver.
         /// </summary>
         /// <value>
         /// The days of the week to run the analytics for each giver.
@@ -130,10 +135,10 @@ namespace Rock.Utility.Settings.GivingAnalytics
         public int? GratitudeRepeatPreventionDurationDays { get; set; }
 
         /// <summary>
-        /// Gets or sets the followup repeat prevention duration in days.
+        /// Gets or sets the follow-up repeat prevention duration in days.
         /// </summary>
         /// <value>
-        /// The followup repeat prevention duration.
+        /// The follow-up repeat prevention duration.
         /// </value>
         public int? FollowupRepeatPreventionDurationDays { get; set; }
     }

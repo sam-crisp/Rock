@@ -206,7 +206,7 @@ namespace Rock.SystemGuid
         public const string PERSON_EQ_SCALES_UNDER_STRESS = "C3CB8FB5-34A2-48C8-B1FC-7CEBA670C1ED";
 
         /// <summary>
-        /// The person attribute for the Motivator Beliving
+        /// The person attribute for the Motivator Believing
         /// </summary>
         public const string PERSON_MOTIVATOR_BELIVING = "2045D752-2B7F-4314-A58D-AE77AE095CA8";
 
@@ -493,7 +493,7 @@ namespace Rock.SystemGuid
         public const string DEFINED_TYPE_CURRENCY_TYPE_ICONCSSCLASS = "CB1E9401-E1FD-4DBB-B15F-4E6994602723";
 
         /// <summary>
-        /// The Transaction Sourcee DefinedType > IconCssClass DefinedValue Attribute Guid
+        /// The Transaction Source DefinedType > IconCssClass DefinedValue Attribute Guid
         /// </summary>
         public const string DEFINED_TYPE_TRANSACTION_SOURCE_ICONCSSCLASS = "9617D1DC-6561-4314-83EB-7F0ACBA2E259";
 
@@ -846,10 +846,83 @@ namespace Rock.SystemGuid
 
         /// <summary>
         /// Last Classification Run Date Time - Date - sets the date time of then the giving unit was last classified.
-        /// Classification is updated after each new gift, but if they stop giving we’ll use this to occassionally update the classification. 
+        /// Classification is updated after each new gift, but if they stop giving we’ll use this to occasionally update the classification. 
         /// </summary>
         public const string PERSON_GIVING_LAST_CLASSIFICATION_DATE = "7220B230-03CE-4D1E-985B-26AA28BE06F8";
 
+        /// <summary>
+        /// Giving History JSON - Code - gets the JSON array of giving data by month objects.
+        /// [{ Year: 2020, Month: 1, AccountId: 1, Amount: 550.67 }, ...]
+        /// </summary>
+        public const string PERSON_GIVING_HISTORY_JSON = "3BF34F25-4D50-4417-B436-37FEA3FA5473";
+
+        /// <summary>
+        /// Giving Total past 12 months - Currency
+        /// </summary>
+        public const string PERSON_GIVING_12_MONTHS = "ADD9BE86-49CA-46C4-B4EA-547F2F277294";
+
+        /// <summary>
+        /// Giving Total past 90 days - Currency
+        /// </summary>
+        public const string PERSON_GIVING_90_DAYS = "0DE95B77-D26E-4513-9A71-92A7FD5C4B7C";
+
+        /// <summary>
+        /// Giving Total prior 90 days (90-180 days ago) - Currency
+        /// </summary>
+        public const string PERSON_GIVING_PRIOR_90_DAYS = "0170A267-942A-480A-A9CF-E4EA60CAA529";
+
+        /// <summary>
+        /// Gift count 12 month - Integer
+        /// </summary>
+        public const string PERSON_GIVING_12_MONTHS_COUNT = "23B6A7BD-BBBB-4F2D-9695-2B1E03B3013A";
+
+        /// <summary>
+        /// Gift count 90 days - Integer
+        /// </summary>
+        public const string PERSON_GIVING_90_DAYS_COUNT = "356B8F0B-AA54-4F44-8513-F8A5FF592F18";
+
         #endregion Giving Analytics
+
+        #region Language Defined Type
+        /// <summary>
+        /// Language in ISO639-1
+        /// </summary>
+        public const string ISO639_1 = "F5E8B6D2-6483-0F8D-4C20-07C51E7548AD";
+
+        /// <summary>
+        /// Language in ISO639
+        /// </summary>
+        public const string ISO639_2 = "09225D47-9A4D-D391-49E4-5A99A1DB47B8";
+
+        /// <summary>
+        /// The native language name
+        /// </summary>
+        public const string NativeLanguageName = "55256C99-DAC9-1AB4-4FD2-7CBFE3170245";
+        #endregion
+
+        /// <summary>
+        /// The currency code symbol
+        /// </summary>
+        public const string CURRENCY_CODE_SYMBOL = "1268AD58-5459-4C1C-A036-B7A6D948198F";
+
+        /// <summary>
+        /// The currency code position
+        /// </summary>
+        public const string CURRENCY_CODE_POSITION = "909B35DA-5B14-42FF-90E5-328033A07415";
+
+        /// <summary>
+        /// The currency code decimal places
+        /// </summary>
+        public const string CURRENCY_CODE_DECIMAL_PLACES = "98699FDB-DFD3-4015-AB25-ABCB91EE35EB";
+
+        /// <summary>
+        /// The organization currency code
+        /// </summary>
+        public const string ORGANIZATION_CURRENCY_CODE = "60B61A30-3FE8-4158-8848-D4D95DBC64CD";
+
+        /// <summary>
+        /// The person do not send giving statement
+        /// </summary>
+        public const string PERSON_DO_NOT_SEND_GIVING_STATEMENT = "B767F2CF-A4F0-45AA-A2E9-8270F31B307B";
     }
 }

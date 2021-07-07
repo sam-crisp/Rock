@@ -15,6 +15,7 @@
 // </copyright>
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Web;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -48,6 +49,18 @@ namespace Rock.Tests.Integration.Lava
 
                 Assert.That.AreEqual( "public, max-age=120", header );
             }
+        }
+
+        #endregion
+
+        #region TitleCase
+
+        [DataTestMethod]
+        [DataRow( @"{{ ""men's gathering/get-together"" | TitleCase }}", "Men's Gathering/get-together"  )]
+        [DataRow( @"{{ 'mATTHEw 24:29-41 - KJV' | TitleCase }}", "Matthew 24:29-41 - KJV" )]
+        public void TitleCase_TextWithPunctuation_PreservesPunctuation( string inputTemplate, string expectedOutput )
+        {
+            TestHelper.AssertTemplateOutput( expectedOutput, inputTemplate );
         }
 
         #endregion
@@ -104,9 +117,10 @@ namespace Rock.Tests.Integration.Lava
         }
 
         [TestMethod]
+        //[Ignore( "This test may fail for Fluid if run in series with other tests." )]
         public void Where_WithMultipleConditions_ReturnsOnlyMatchingItems()
         {
-            var mergeFields = new Dictionary<string, object> { { "CurrentPerson", GetWhereFilterTestPerson() } };
+            var mergeFields = new Dictionary<string, object> { { "CurrentPerson", GetWhereFilterTestPersonTedDecker() } };
 
             var templateInput = GetWhereFilterTestTemplatePersonAttributes( "'AttributeName == \"Employer\" || Value == \"Outreach Pastor\"'" );
 
@@ -119,9 +133,21 @@ Position: Outreach Pastor <br>
         }
 
         [TestMethod]
+        public void Where_WithMultipleConditionsHavingNoMatches_ReturnsEmptyString()
+        {
+            var mergeFields = new Dictionary<string, object> { { "CurrentPerson", GetWhereFilterTestPersonTedDecker() } };
+
+            var templateInput = GetWhereFilterTestTemplatePersonAttributes( "'AttributeName == \"Unmatched\" || Value == \"Unmatched\"'" );
+
+            var expectedOutput = @"";
+
+            TestHelper.AssertTemplateOutput( expectedOutput, templateInput, new LavaTestRenderOptions { MergeFields = mergeFields } );
+        }
+
+        [TestMethod]
         public void Where_WithSingleConditionEqualComparison_ReturnsOnlyEqualValues()
         {
-            var mergeFields = new Dictionary<string, object> { { "CurrentPerson", GetWhereFilterTestPerson() } };
+            var mergeFields = new Dictionary<string, object> { { "CurrentPerson", GetWhereFilterTestPersonTedDecker() } };
 
             var templateInput = GetWhereFilterTestTemplatePersonAttributes( "'AttributeName','Employer','equal'" );
 
@@ -133,9 +159,10 @@ Employer: Rock Solid Church <br>
         }
 
         [TestMethod]
+        //[Ignore( "This test may fail for Fluid if run in series with other tests." )]
         public void Where_WithSingleConditionNotEqual_ReturnsOnlyNotEqualValues()
         {
-            var mergeFields = new Dictionary<string, object> { { "CurrentPerson", GetWhereFilterTestPerson() } };
+            var mergeFields = new Dictionary<string, object> { { "CurrentPerson", GetWhereFilterTestPersonTedDecker() } };
 
             var templateInput = GetWhereFilterTestTemplatePersonAttributes( "'AttributeName','Employer','notequal'" );
 
@@ -146,10 +173,33 @@ Employer:
             TestHelper.AssertTemplateOutput( excludedOutput, templateInput, new LavaTestRenderOptions { MergeFields = mergeFields, OutputMatchType = LavaTestOutputMatchTypeSpecifier.DoesNotContain } );
         }
 
+        /// <summary>
+        /// Verify that the example used in the Lava documentation produces the expected outcome.
+        /// </summary>
+        [TestMethod]
+        public void Where_DocumentationExample_IsValid()
+        {
+            const int mobilePhoneNumberTypeValueId = 12;
+
+            var templateInput = @"
+{{ CurrentPerson.NickName }}'s other contact numbers are: {{ CurrentPerson.PhoneNumbers | Where:'NumberTypeValueId', 12, 'notequal' | Select:'NumberFormatted' | Join:', ' }}.'
+";
+
+            templateInput.Replace( "<mobilePhoneId>", mobilePhoneNumberTypeValueId.ToString() );
+
+            var expectedOutput = @"
+Ted's other contact numbers are: (623) 555-3322,(623) 555-2444.'
+";
+
+            var mergeFields = new Dictionary<string, object> { { "CurrentPerson", GetWhereFilterTestPersonTedDecker() } };
+
+            TestHelper.AssertTemplateOutput( expectedOutput, templateInput, new LavaTestRenderOptions { MergeFields = mergeFields } );
+        }
+
         [TestMethod]
         public void Where_WithSingleConditionDefaultComparison_ReturnsOnlyEqualValues()
         {
-            var mergeFields = new Dictionary<string, object> { { "CurrentPerson", GetWhereFilterTestPerson() } };
+            var mergeFields = new Dictionary<string, object> { { "CurrentPerson", GetWhereFilterTestPersonTedDecker() } };
 
             var templateInput = GetWhereFilterTestTemplatePersonAttributes( "'AttributeName','Employer'" );
 
@@ -161,14 +211,15 @@ Employer:RockSolidChurch<br>
         }
 
         [TestMethod]
+        //[Ignore( "This test may fail for Fluid if run in series with other tests." )]
         public void Where_WithSingleConditionOnNestedProperty_ReturnsOnlyEqualValues()
         {
-            var mergeFields = new Dictionary<string, object> { { "CurrentPerson", GetWhereFilterTestPerson() } };
+            var mergeFields = new Dictionary<string, object> { { "CurrentPerson", GetWhereFilterTestPersonTedDecker() } };
 
             var templateInput = @"
 {% assign personPhones = CurrentPerson.PhoneNumbers | Where:'NumberTypeValue.Value == ""Home""' %}
 {% for phone in personPhones %}
-    {{ phone.NumberTypeValue.Value }}: {{ phone.NumberFormatted }} <br>
+    {{ phone.NumberTypeValue.Value }}: {{ phone.NumberFormatted }}<br>
 {% endfor %}
 ";
 
@@ -177,6 +228,83 @@ Home: (623)555-3322 <br>
 ";
 
             TestHelper.AssertTemplateOutput( expectedOutput, templateInput, new LavaTestRenderOptions { MergeFields = mergeFields } );
+        }
+
+        [TestMethod]
+        //[Ignore( "This test may fail for Fluid if run in series with other tests." )]
+        public void Where_RepeatExecutions_ReturnsSameResult()
+        {
+            Debug.Write( "** Pass 1:" );
+
+            Where_WithSingleConditionOnNestedProperty_ReturnsOnlyEqualValues();
+
+            Debug.Write( "** Pass 2:" );
+
+            Where_WithSingleConditionNotEqual_ReturnsOnlyNotEqualValues();
+        }
+
+        [TestMethod]
+        public void Where_WithSingleConditionHavingNoMatches_ReturnsEmptyString()
+        {
+            var items = new List<Dictionary<string, object>>
+                {
+                   new Dictionary<string, object> { { "Id", "1" } },
+                   new Dictionary<string, object> { { "Id", "2" } }
+                };
+
+            var mergeFields = new Dictionary<string, object> { { "Items", items } };
+
+            var templateInput = @"
+{% assign matches = Items | Where:'Id','3' %}
+{% for match in matches %}
+    {{ match.Id }}<br>
+{% endfor %}
+";
+            var expectedOutput = @"";
+
+            TestHelper.AssertTemplateOutput( expectedOutput, templateInput, new LavaTestRenderOptions { MergeFields = mergeFields } );
+        }
+
+        [TestMethod]
+        public void Where_EmptyInputSetWithSingleCondition_ReturnsEmptyString()
+        {
+            var items = new List<TestWhereFilterCollectionItem>();
+
+            var mergeFields = new Dictionary<string, object> { { "Items", items } };
+
+            var templateInput = @"
+{% assign matches = Items | Where:'Id','1' %}
+{% for match in matches %}
+    {{ match.Id }}<br>
+{% endfor %}
+";
+            var expectedOutput = @"";
+
+            TestHelper.AssertTemplateOutput( expectedOutput, templateInput, new LavaTestRenderOptions { MergeFields = mergeFields } );
+        }
+
+        [TestMethod]
+        public void Where_EmptyInputSetWithMultipleConditions_ReturnsEmptyString()
+        {
+            var items = new List<TestWhereFilterCollectionItem>();
+
+            var mergeFields = new Dictionary<string, object> { { "Items", items } };
+
+            var templateInput = @"
+{% assign matches = Items | Where:'Id ==""1"" || Id == ""2""' %}
+{% for match in matches %}
+    {{ match.Id }}<br>
+{% endfor %}
+";
+            var expectedOutput = @"";
+
+            TestHelper.AssertTemplateOutput( expectedOutput, templateInput, new LavaTestRenderOptions { MergeFields = mergeFields } );
+        }
+
+        private class TestWhereFilterCollectionItem
+        {
+            public string Id { get; set; }
+            public string Name { get; set; }
         }
 
         private string GetWhereFilterTestTemplatePersonAttributes( string whereParameters )
@@ -192,7 +320,7 @@ Home: (623)555-3322 <br>
             return template;
         }
 
-        private Person GetWhereFilterTestPerson()
+        private Person GetWhereFilterTestPersonTedDecker()
         {
             var rockContext = new RockContext();
 

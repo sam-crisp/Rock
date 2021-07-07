@@ -19,17 +19,25 @@
                         <div class="col-md-12">
                             <Rock:RockCheckBox ID="cbEnableGivingAnalytics" runat="server" Label="Enable Giving Analytics" Checked="true" />
                         </div>
-                    </div>
-                    <div class="row">
                         <div class="col-md-12">
-                            <Rock:DaysOfWeekPicker ID="dwpDaysToUpdateAnalytics" runat="server" Label="Days to Update Analytics" RepeatDirection="Horizontal" />
+                            <Rock:DaysOfWeekPicker ID="dwpDaysToUpdateAnalytics" runat="server" Label="Days to Update Giving Group Classifications" RepeatDirection="Horizontal" />
+                        </div>
+                        <div class="col-md-12">
+                            <Rock:RockCheckBoxList ID="cblTransactionTypes" runat="server" Label="TransactionTypes" RepeatDirection="Horizontal" />
+                        </div>
+                        <div class="col-md-6">
+                            <Rock:RockRadioButtonList ID="rblAccountTypes" runat="server" Label="Accounts" RepeatDirection="Horizontal" AutoPostBack="true" OnSelectedIndexChanged="rblAccountTypes_SelectedIndexChanged" />
+                        </div>
+                        <div id="divAccounts" runat="server" class="col-md-6">
+                            <Rock:AccountPicker ID="apAccounts" runat="server" Label="Selected Accounts" AllowMultiSelect="true" />
+                            <Rock:RockCheckBox ID="cbIncludeChildAccounts" runat="server" DisplayInline="true" Label="Include children of selected accounts" />
                         </div>
                     </div>
                 </div>
 
                 <div class="well">
                     <h4>Alerts</h4>
-                    <span class="text-muted">The configuration below will be used to generate alerts. An alert will be triggered the first nmatching rule unless that rule is configured to continue matching other rules.</span>
+                    <span class="text-muted">The configuration below will be used to generate alerts. An alert will be triggered the first matching rule unless that rule is configured to continue matching other rules.</span>
                     <hr class="margin-t-sm">
                     <div class="row">
                         <div class="col-md-6">
@@ -73,7 +81,7 @@
                         <Rock:DataTextBox ID="tbName" runat="server" SourceTypeName="Rock.Model.FinancialTransactionAlertType, Rock" PropertyName="Name" Required="true" ValidationGroup="vgAlertDetails" />
                     </div>
                     <div class="col-md-6">
-                        <Rock:RockDropDownList ID="ddlCampus" runat="server" Label="Campus" ValidationGroup="vgAlertDetails" />
+                        <Rock:CampusPicker ID="cpCampus" runat="server" ValidationGroup="vgAlertDetails" />
                     </div>
                 </div>
                 <div class="row">
@@ -83,8 +91,9 @@
                     <div class="col-md-6">
                         <Rock:RockCheckBox ID="cbContinueIfMatched" runat="server" Label="Continue If Matched" ValidationGroup="vgAlertDetails" Help="Determines If additional rules should be considered if this rule is matched." />
                     </div>
-                </div>
-                <div class="row">
+                    <div class="col-md-6">
+                        <Rock:DaysOfWeekPicker ID="dwpDaysToRunAlertType" runat="server" Label="Days to Run" RepeatDirection="Horizontal" />
+                    </div>
                     <div class="col-md-6">
                         <Rock:NumberBox ID="nbRepeatPreventionDuration" runat="server" Label="Repeat Prevention Duration" AppendText="days" ValidationGroup="vgAlertDetails" Help="The number of days between triggering the same alert. Blank means that the same trigger can occur on each occrrence if not global settings exist." />
                     </div>
@@ -107,9 +116,12 @@
                             <p>
                                 Typical Values are shown below.
                                 <ul>
-                                    <li>2 - Aggressive - This would alert when a gift was within 2 times the interquatile range (IQR) from their median gift amount. For a bi-weekly giver with a median gift of $400 and an IQR of $65, this alert would be generated if a gift of $530 was recieved.</li>
-                                    <li>3 - Normal - This would alert when a gift was within 3 times the interquartile range (IQR) from their median gift amount. For a bi-weekly giver with a median gift of $400 and an IQR of $65, this alert would be generated if a gift of $595 was recieved.</li>
+                                    <li>2 (Aggressive) - This would alert when a gift was within 2 times the interquatile range (IQR) from their median gift amount. For a bi-weekly giver with a median gift of $400 and an IQR of $65, this alert would be generated if a gift of $530 was recieved.</li>
+                                    <li>3 (Normal) - This would alert when a gift was within 3 times the interquartile range (IQR) from their median gift amount. For a bi-weekly giver with a median gift of $400 and an IQR of $65, this alert would be generated if a gift of $595 was recieved.</li>
                                 </ul>
+                            </p>
+                            <p>
+                                In the event that there is a very consistent giver—every gift is the exact same amount—we use a fallback value.  The fallback amount sensitivity is calculated as 15% of the median gift amount.
                             </p>
                         </div>
                     </div>
@@ -127,9 +139,12 @@
                             <p>
                                 Typical Values are shown below.
                                 <ul>
-                                    <li>2 - Aggressive - This would alert when a gift was within 2 standard deviations from their mean. For a bi-weekly giver with a mean of 14 days and a standard deviation of 3.8, this alert would be generated if no gift was recieved within 22 days since their last gift.</li>
-                                    <li>3 - Normal - This would alert when a gift was within 3 standard deviations from their mean. For a bi-weekly giver with a mean of 14 days and a standard deviations of 3.8, this alert would be generated if no gift was recieved within 26 days since their last gift.</li>
+                                    <li>2 (Aggressive) - This would alert when a gift was within 2 standard deviations from their mean. For a bi-weekly giver with a mean of 14 days and a standard deviation of 3.8, this alert would be generated if no gift was recieved within 22 days since their last gift.</li>
+                                    <li>3 (Normal) - This would alert when a gift was within 3 standard deviations from their mean. For a bi-weekly giver with a mean of 14 days and a standard deviations of 3.8, this alert would be generated if no gift was recieved within 26 days since their last gift.</li>
                                 </ul>
+                            </p>
+                            <p>
+                                In the event that there is a very consistent giver—every gift is the same number of days apart—we use a fallback value.  The fallback frequency sensitivity is calculated as 15% of the average days between gifts.   If that value is less than a day, then we again fallback to 3 days.
                             </p>
                         </div>
                     </div>
@@ -137,22 +152,13 @@
                     <div class="row">
                         <div class="col-md-6">
                             <Rock:CurrencyBox ID="cbMinimumGiftAmount" runat="server" Label="Minimum Gift Amount" ValidationGroup="vgAlertDetails" Help="The minimum amount the specific gift must be to be considered a match." />
-                        </div>
-                        <div class="col-md-6">
-                            <Rock:CurrencyBox ID="cbMaximumGiftAmount" runat="server" Label="Maxmimum Gift Amount" ValidationGroup="vgAlertDetails" Help="The maximum amount the specific gift must be to be considered a match." />
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
                             <Rock:CurrencyBox ID="cbMinimumMedianGiftAmount" runat="server" Label="Minimum Median Gift Amount" ValidationGroup="vgAlertDetails" Help="The minimum median gift amount for the giver to be considered a match." />
-                        </div>
-                        <div class="col-md-6">
-                            <Rock:CurrencyBox ID="cbMaximumMedianGiftAmount" runat="server" Label="Maximum Median Gift Amount" ValidationGroup="vgAlertDetails" Help="The maximum median gift amount for the giver to be considered a match." />
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
+                            <Rock:NumberBox ID="nbMaxDaysSinceLastGift" runat="server" AppendText="days" Label="Maximum Days Since Last Gift" ValidationGroup="vgAlertDetails" Help="The maximum number of days since the last gift." />
                             <Rock:DataViewItemPicker ID="dvpPersonDataView" runat="server" Label="Person Data View" ValidationGroup="vgAlertDetails" Help="Data view to filter if any individual with the giving id of the gift is in the data is in." />
+                        </div>
+                        <div class="col-md-6">
+                            <Rock:CurrencyBox ID="cbMaximumGiftAmount" runat="server" Label="Maximum Gift Amount" ValidationGroup="vgAlertDetails" Help="The maximum amount the specific gift must be to be considered a match." />
+                            <Rock:CurrencyBox ID="cbMaximumMedianGiftAmount" runat="server" Label="Maximum Median Gift Amount" ValidationGroup="vgAlertDetails" Help="The maximum median gift amount for the giver to be considered a match." />
                         </div>
                     </div>
                 </div>
@@ -162,13 +168,11 @@
                     <span class="text-muted">If the criteria above is matched the following actions will be taken.</span>
                     <hr class="margin-t-sm">
                     <Rock:WorkflowTypePicker ID="wtpLaunchWorkflow" runat="server" Label="Launch Workflow of Type" ValidationGroup="vgAlertDetails" Help="If matched a workflow of the provided type will be launched setting the authorized person as the initiator and setting the attribute with the key of 'FinancialTransactionId' is it exists" />
-                    <hr class="margin-t-sm">
                     <Rock:RockDropDownList ID="ddlConnectionType" runat="server" Label="Connection Type" AutoPostBack="true" ValidationGroup="vgAlertDetails" OnSelectedIndexChanged="ddlConnectionType_SelectedIndexChanged" CssClass="input-width-xxl" />
                     <Rock:RockDropDownList ID="ddlConnectionOpportunity" runat="server" Label="Connection Opportunity" ValidationGroup="vgAlertDetails" CssClass="input-width-xxl" Help="If matched will create a new connection request with the authorized person as the requestor and setting the attribute with the key 'FinancialTransactionId' if it exists." />
-                    <hr class="margin-t-sm">
                     <Rock:RockDropDownList ID="ddlSystemCommunication" runat="server" Label="Send Communication From Template" Help="If matched a new communication will be sent to the person authorizing the gift using the provided communication template." ValidationGroup="vgAlertDetails" />
-                    <hr class="margin-t-sm">
                     <Rock:RockCheckBox ID="cbSendBusEvent" runat="server" Label="Send Bus Event" Help="If matched will send an event via the Event Bus to notify external systems." ValidationGroup="vgAlertDetails" />
+                    <Rock:GroupPicker ID="gpNotificationGroup" runat="server" Label="Alert Summary Notification Group" Help="This group will receive a summary email when an alert of this type is created." ValidationGroup="vgAlertDetails" />
                 </div>
             </Content>
         </Rock:ModalDialog>

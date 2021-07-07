@@ -15,8 +15,6 @@
 // </copyright>
 //
 using System;
-using System.Collections;
-using Rock.Common;
 
 namespace Rock.Lava.Filters
 {
@@ -37,7 +35,13 @@ namespace Rock.Lava.Filters
                 return null;
             }
 
-            return LavaEngine.CurrentEngine.RenderTemplate( input.ToString(), context );
+            // Perform a safety check to avoid an unrecoverable recursion.
+            // To minimize the resource impact of an unintentional infinite loop, this mechanism could be replaced with more specific recursion tracking in the Lava context.
+            System.Runtime.CompilerServices.RuntimeHelpers.EnsureSufficientExecutionStack();
+
+            var result = LavaService.RenderTemplate( input.ToString(), new LavaRenderParameters { Context = context } );
+
+            return result.Text;
         }
     }
 }

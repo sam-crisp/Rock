@@ -22,13 +22,16 @@
                 <asp:Panel ID="pnlAuthenicate" runat="server">
                     <div class="alert alert-info">
                         <strong>Which Password?</strong> Use the username and password below that you created
-                        on the <a href="http://www.rockrms.com">Rock RMS website</a>.
+                        on the <a href="https://www.rockrms.com">Rock RMS website</a>.
                     </div>
 
                     <Rock:RockTextBox ID="txtUsername" runat="server" Label="Rock RMS Username" />
                     <Rock:RockTextBox ID="txtPassword" TextMode="Password" runat="server" Label="Rock RMS Password" />
 
-                    <asp:Button ID="btnRetrieveOrganization" CssClass="btn btn-primary" runat="server" OnClick="btnRetrieveOrganization_Click" Text="Retrieve Organization" />
+                    <div class="actions">
+                        <asp:Button ID="btnRetrieveOrganization" CssClass="btn btn-primary" runat="server" OnClick="btnRetrieveOrganization_Click" Text="Retrieve Organization" />
+                    </div>
+
                 </asp:Panel>
 
                 <asp:Panel ID="pnlSelectOrganization" runat="server" Visible="false">

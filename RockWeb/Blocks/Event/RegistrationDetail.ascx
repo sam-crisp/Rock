@@ -164,11 +164,11 @@
                                                                 </div>
 
                                                                 <div runat="server" class="col-sm-3 fee-value" visible='<%# PercentageDiscountExists %>'>
-                                                                    <span class="visible-xs-inline">Discounted Amount:</span> <%# Rock.Web.Cache.GlobalAttributesCache.Value( "CurrencySymbol" )%> <%# string.Format("{0:N}", Eval("DiscountedCost")) %>
+                                                                    <span class="visible-xs-inline">Discounted Amount:</span> <%# Rock.ExtensionMethods.FormatAsCurrency((decimal)Eval("DiscountedCost")) %>
                                                                 </div>
 
                                                                 <div class="col-sm-3 fee-value">
-                                                                    <span class="visible-xs-inline">Amount:</span> <%# Rock.Web.Cache.GlobalAttributesCache.Value( "CurrencySymbol" )%> <%# string.Format("{0:N}", Eval("Cost")) %>
+                                                                    <span class="visible-xs-inline">Amount:</span> <%# Rock.ExtensionMethods.FormatAsCurrency((decimal)Eval("Cost")) %>
                                                                 </div>
 
                                                             </div>
@@ -267,7 +267,7 @@
                             <Rock:HiddenFieldWithClass ID="hfHasPayments" runat="server" CssClass="js-has-payments" />
                             <asp:LinkButton ID="btnDelete" runat="server" Text="Delete" CssClass="btn btn-link js-delete-registration" OnClick="btnDelete_Click" CausesValidation="false" />
 
-                            <asp:LinkButton ID="lbShowMoveRegistrationDialog" runat="server" CssClass="btn btn-default btn-sm pull-right margin-l-sm" ToolTip="Move Registration" CausesValidation="false" OnClick="lbShowMoveRegistrationDialog_Click"><i class="fa fa-external-link"></i></asp:LinkButton>
+                            <asp:LinkButton ID="lbShowMoveRegistrationDialog" runat="server" CssClass="btn btn-default btn-sm btn-square pull-right margin-l-sm" ToolTip="Move Registration" CausesValidation="false" OnClick="lbShowMoveRegistrationDialog_Click"><i class="fa fa-external-link"></i></asp:LinkButton>
                             <asp:LinkButton ID="lbHistory" runat="server" CssClass="btn btn-default pull-right btn-sm" CausesValidation="false" ToolTip="View Audit Log" OnClick="lbHistory_Click"><i class="fa fa-file-text-o"></i> Audit Log</asp:LinkButton>
                         </div>
 

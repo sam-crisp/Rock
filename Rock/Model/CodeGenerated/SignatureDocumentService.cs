@@ -23,7 +23,10 @@
 using System;
 using System.Linq;
 
+using Rock.Attribute;
 using Rock.Data;
+using Rock.ViewModel;
+using Rock.Web.Cache;
 
 namespace Rock.Model
 {
@@ -54,6 +57,53 @@ namespace Rock.Model
             return true;
         }
     }
+
+    /// <summary>
+    /// SignatureDocument View Model Helper
+    /// </summary>
+    public partial class SignatureDocumentViewModelHelper : ViewModelHelper<SignatureDocument, Rock.ViewModel.SignatureDocumentViewModel>
+    {
+        /// <summary>
+        /// Converts to viewmodel.
+        /// </summary>
+        /// <param name="model">The entity.</param>
+        /// <param name="currentPerson">The current person.</param>
+        /// <param name="loadAttributes">if set to <c>true</c> [load attributes].</param>
+        /// <returns></returns>
+        public override Rock.ViewModel.SignatureDocumentViewModel CreateViewModel( SignatureDocument model, Person currentPerson = null, bool loadAttributes = true )
+        {
+            if ( model == null )
+            {
+                return default;
+            }
+
+            var viewModel = new Rock.ViewModel.SignatureDocumentViewModel
+            {
+                Id = model.Id,
+                Guid = model.Guid,
+                AppliesToPersonAliasId = model.AppliesToPersonAliasId,
+                AssignedToPersonAliasId = model.AssignedToPersonAliasId,
+                BinaryFileId = model.BinaryFileId,
+                DocumentKey = model.DocumentKey,
+                InviteCount = model.InviteCount,
+                LastInviteDate = model.LastInviteDate,
+                LastStatusDate = model.LastStatusDate,
+                Name = model.Name,
+                SignatureDocumentTemplateId = model.SignatureDocumentTemplateId,
+                SignedByPersonAliasId = model.SignedByPersonAliasId,
+                Status = ( int ) model.Status,
+                CreatedDateTime = model.CreatedDateTime,
+                ModifiedDateTime = model.ModifiedDateTime,
+                CreatedByPersonAliasId = model.CreatedByPersonAliasId,
+                ModifiedByPersonAliasId = model.ModifiedByPersonAliasId,
+            };
+
+            AddAttributesToViewModel( model, viewModel, currentPerson, loadAttributes );
+            ApplyAdditionalPropertiesAndSecurityToViewModel( model, viewModel, currentPerson, loadAttributes );
+            return viewModel;
+        }
+    }
+
 
     /// <summary>
     /// Generated Extension Methods
@@ -114,15 +164,26 @@ namespace Rock.Model
             target.AppliesToPersonAliasId = source.AppliesToPersonAliasId;
             target.AssignedToPersonAliasId = source.AssignedToPersonAliasId;
             target.BinaryFileId = source.BinaryFileId;
+            target.CompletionEmailSentDateTime = source.CompletionEmailSentDateTime;
             target.DocumentKey = source.DocumentKey;
+            target.EntityId = source.EntityId;
+            target.EntityTypeId = source.EntityTypeId;
             target.ForeignGuid = source.ForeignGuid;
             target.ForeignKey = source.ForeignKey;
             target.InviteCount = source.InviteCount;
             target.LastInviteDate = source.LastInviteDate;
             target.LastStatusDate = source.LastStatusDate;
             target.Name = source.Name;
+            target.SignatureData = source.SignatureData;
             target.SignatureDocumentTemplateId = source.SignatureDocumentTemplateId;
+            target.SignatureVerficationHash = source.SignatureVerficationHash;
+            target.SignedByEmail = source.SignedByEmail;
             target.SignedByPersonAliasId = source.SignedByPersonAliasId;
+            target.SignedClientIp = source.SignedClientIp;
+            target.SignedClientUserAgent = source.SignedClientUserAgent;
+            target.SignedDateTime = source.SignedDateTime;
+            target.SignedDocumentText = source.SignedDocumentText;
+            target.SignedName = source.SignedName;
             target.Status = source.Status;
             target.CreatedDateTime = source.CreatedDateTime;
             target.ModifiedDateTime = source.ModifiedDateTime;
@@ -132,5 +193,20 @@ namespace Rock.Model
             target.ForeignId = source.ForeignId;
 
         }
+
+        /// <summary>
+        /// Creates a view model from this entity
+        /// </summary>
+        /// <param name="model">The entity.</param>
+        /// <param name="currentPerson" >The currentPerson.</param>
+        /// <param name="loadAttributes" >Load attributes?</param>
+        public static Rock.ViewModel.SignatureDocumentViewModel ToViewModel( this SignatureDocument model, Person currentPerson = null, bool loadAttributes = false )
+        {
+            var helper = new SignatureDocumentViewModelHelper();
+            var viewModel = helper.CreateViewModel( model, currentPerson, loadAttributes );
+            return viewModel;
+        }
+
     }
+
 }

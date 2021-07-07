@@ -19,11 +19,12 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.Entity;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Threading;
 using System.Text;
+using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using System.Xml.Linq;
@@ -31,15 +32,11 @@ using Microsoft.AspNet.SignalR;
 
 using Rock;
 using Rock.Attribute;
-using Rock.Constants;
 using Rock.Data;
 using Rock.Model;
+using Rock.Tasks;
 using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
-
-using System.Globalization;
-using System.Web;
-using Rock.Tasks;
 
 namespace RockWeb.Blocks.Examples
 {
@@ -56,14 +53,25 @@ namespace RockWeb.Blocks.Examples
     [BooleanField( "Fabricate Attendance", "If true, then fake attendance data will be fabricated (if the right parameters are in the XML)", true, "", 2 )]
     [BooleanField( "Enable Stopwatch", "If true, a stopwatch will be used to time each of the major operations.", false, "", 3 )]
     [BooleanField( "Enable Giving", "If true, the giving data will be loaded otherwise it will be skipped.", true, "", 4 )]
+    [IntegerField( "Random Number Seed", "If given, the randomizer used during the creation of attendance and financial transactions will be predictable. Use 0 to use a random seed.", false, 1, "", 5 )]
     public partial class SampleData : Rock.Web.UI.RockBlock
     {
         #region Fields
 
+        private IHubContext _hubContext = null;
+
         /// <summary>
         /// This holds the reference to the RockMessageHub SignalR Hub context.
         /// </summary>
-        private IHubContext _hubContext = GlobalHost.ConnectionManager.GetHubContext<RockMessageHub>();
+        private IHubContext GetHubContext()
+        {
+            if ( _hubContext == null )
+            {
+                _hubContext = GlobalHost.ConnectionManager.GetHubContext<RockMessageHub>();
+            }
+
+            return _hubContext;
+        }
 
         /// <summary>
         /// Stopwatch used to measure time during certain operations.
@@ -126,7 +134,7 @@ namespace RockWeb.Blocks.Examples
         private int summerPercentFactor = 30;
 
         /// <summary>
-        /// A random number generator for use when calculating random attendance data.
+        /// A random number generator for use when calculating random attendance data and financial giving frequency (skipping).
         /// </summary>
         private static Random _random = new Random( (int)DateTime.Now.Ticks );
 
@@ -318,6 +326,13 @@ namespace RockWeb.Blocks.Examples
         {
             string saveFile = Path.Combine( MapPath( "~" ), "sampledata1.xml" );
 
+            // Re-seed the randomizer with the given seed if it's non-0.
+            var randomizerSeed = GetAttributeValue( "RandomNumberSeed" ).AsInteger();
+            if ( randomizerSeed != 0 )
+            {
+                _random = new Random( randomizerSeed );
+            }
+
             try
             {
                 string xmlFileUrl = GetAttributeValue( "XMLDocumentURL" );
@@ -325,7 +340,7 @@ namespace RockWeb.Blocks.Examples
                 {
                     if ( GetAttributeValue( "EnableStopwatch" ).AsBoolean() )
                     {
-                        _hubContext.Clients.All.showLog( );
+                        GetHubContext().Clients.All.showLog( );
                     }
 
                     ProcessXml( saveFile );
@@ -345,7 +360,11 @@ namespace RockWeb.Blocks.Examples
             }
             catch ( Exception ex )
             {
-                _hubContext.Clients.All.showLog();
+                if ( GetAttributeValue( "EnableStopwatch" ).AsBoolean() )
+                {
+                    GetHubContext().Clients.All.showLog();
+                }
+
                 nbMessage.Visible = true;
                 nbMessage.Title = "Oops!";
                 nbMessage.NotificationBoxType = NotificationBoxType.Danger;
@@ -660,9 +679,12 @@ namespace RockWeb.Blocks.Examples
         /// <param name="args"></param>
         private void AppendFormat( string format, params Object[] args)
         {
-            var x = string.Format( format, args );
-            _sb.Append( x );
-            _hubContext.Clients.All.receiveNotification( "sampleDataImport", x );
+            if ( GetAttributeValue( "EnableStopwatch" ).AsBoolean() )
+            {
+                var x = string.Format( format, args );
+                _sb.Append( x );
+                GetHubContext().Clients.All.receiveNotification( "sampleDataImport", x );
+            }
         }
 
         /// <summary>

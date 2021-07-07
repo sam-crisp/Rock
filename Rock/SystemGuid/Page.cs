@@ -320,6 +320,11 @@ namespace Rock.SystemGuid
         public const string CHECK_IN_MANAGER_ROSTER = "BA04BF01-5244-4637-B12D-7A962D2A9E77";
 
         /// <summary>
+        /// The Check-in Manager En Route page
+        /// </summary>
+        public const string CHECK_IN_MANAGER_EN_ROUTE = "F6466964-6593-4B20-A49B-D2386D8A260C";
+
+        /// <summary>
         /// Gets the Check-in Type page guid
         /// ParentPage: 
         /// </summary>
@@ -1089,6 +1094,11 @@ namespace Rock.SystemGuid
         /// ParentPage: Give
         /// </summary>
         public const string GIVE_NOW = "1615E090-1889-42FF-AB18-5F7BE9F24498";
+
+        /// <summary>
+        /// The giving alerts
+        /// </summary>
+        public const string GIVING_ALERTS = "57650485-7727-4392-9C42-36DE50FBEEEA";
 
         /// <summary>
         /// Gets the Global Attributes page guid

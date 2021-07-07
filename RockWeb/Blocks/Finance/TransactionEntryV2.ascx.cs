@@ -28,10 +28,12 @@ using Rock.Data;
 using Rock.Financial;
 using Rock.Lava;
 using Rock.Model;
+using Rock.Utility;
 using Rock.Tasks;
 using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
+using Rock.Transactions;
 
 namespace RockWeb.Blocks.Finance
 {
@@ -1250,8 +1252,8 @@ mission. We are so grateful for your commitment.</p>
                 }
 
                 cbGiveNowCoverTheFee.Text = string.Format(
-                    "Optionally add {0}<span class='js-coverthefee-checkbox-fee-amount-text'></span> to cover processing fee.",
-                    GlobalAttributesCache.Value( "CurrencySymbol" ) );
+                    "Optionally add {0}<span class='js-coverthefee-checkbox-fee-amount-text' decimal-places='{1}'></span> to cover processing fee.",
+                    RockCurrencyCodeInfo.GetCurrencySymbol(), RockCurrencyCodeInfo.GetDecimalPlaces() );
             }
 
             pnlGiveNowCoverTheFee.Visible = true;
@@ -1669,9 +1671,9 @@ mission. We are so grateful for your commitment.</p>
             savedAccount.FinancialPaymentDetail.AccountNumberMasked = paymentDetail.AccountNumberMasked;
             savedAccount.FinancialPaymentDetail.CurrencyTypeValueId = paymentDetail.CurrencyTypeValueId;
             savedAccount.FinancialPaymentDetail.CreditCardTypeValueId = paymentDetail.CreditCardTypeValueId;
-            savedAccount.FinancialPaymentDetail.NameOnCardEncrypted = paymentDetail.NameOnCardEncrypted;
-            savedAccount.FinancialPaymentDetail.ExpirationMonthEncrypted = paymentDetail.ExpirationMonthEncrypted;
-            savedAccount.FinancialPaymentDetail.ExpirationYearEncrypted = paymentDetail.ExpirationYearEncrypted;
+            savedAccount.FinancialPaymentDetail.NameOnCard = paymentDetail.NameOnCard;
+            savedAccount.FinancialPaymentDetail.ExpirationMonth = paymentDetail.ExpirationMonth;
+            savedAccount.FinancialPaymentDetail.ExpirationYear = paymentDetail.ExpirationYear;
             savedAccount.FinancialPaymentDetail.BillingLocationId = paymentDetail.BillingLocationId;
 
             var savedAccountService = new FinancialPersonSavedAccountService( rockContext );
@@ -3239,12 +3241,9 @@ mission. We are so grateful for your commitment.</p>
             if ( receiptEmail.HasValue )
             {
                 // Queue a transaction to send receipts
-                var processSendPaymentReceiptEmailsMsg = new ProcessSendPaymentReceiptEmails.Message
-                {
-                    SystemEmailGuid = receiptEmail.Value,
-                    TransactionId = transactionId
-                };
-                processSendPaymentReceiptEmailsMsg.Send();
+                var transactionIds = new List<int> { transactionId };
+                var sendPaymentReceiptsTxn = new SendPaymentReceipts( receiptEmail.Value, transactionIds );
+                RockQueue.TransactionQueue.Enqueue( sendPaymentReceiptsTxn );
             }
         }
 

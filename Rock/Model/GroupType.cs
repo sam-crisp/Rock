@@ -191,7 +191,7 @@ namespace Rock.Model
         public bool ShowConnectionStatus { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether to show the Person's martial status as a column in the Group Member Grid
+        /// Gets or sets a value indicating whether to show the Person's marital status as a column in the Group Member Grid
         /// </summary>
         /// <value>
         /// <c>true</c> if [show marital status]; otherwise, <c>false</c>.
@@ -796,7 +796,7 @@ namespace Rock.Model
         private ICollection<Group> _groups;
 
         /// <summary>
-        /// Gets or sets the collection of GroupTypes that inherit from this GroupType.
+        /// Gets or sets the collection of <see cref="Rock.Model.GroupType">GroupTypes</see> that inherit from this GroupType.
         /// </summary>
         /// <value>
         /// A collection of the GroupTypes that inherit from this groupType.
@@ -1086,6 +1086,12 @@ namespace Rock.Model
                         this.ValidationResults.Add( new ValidationResult( "Lava template for group view is mandatory." ) );
                         return false;
                     }
+
+                    if ( this.IsSchedulingEnabled && !Enum.GetValues( typeof( ScheduleType ) ).Cast<ScheduleType>().Where( v => v!=ScheduleType.None && AllowedScheduleTypes.HasFlag( v ) ).Any() )
+                    {
+                        this.ValidationResults.Add( new ValidationResult( "Any Group Schedule Options must be selected if Scheduling is enabled." ) );
+                        return false;
+                    }
                 }
 
                 return result;
@@ -1143,7 +1149,7 @@ namespace Rock.Model
 
         /// <summary>
         /// Gets a list of GroupType Ids, including our own Id, that identifies the
-        /// inheritence tree.
+        /// inheritance tree.
         /// </summary>
         /// <param name="rockContext">The database context to operate in.</param>
         /// <returns>A list of GroupType Ids, including our own Id, that identifies the inheritance tree.</returns>
