@@ -206,32 +206,6 @@ namespace RockWeb.Blocks.Administration
                 nbMessage.Text = "You will need to reload this page to continue.";
             }
         }
-
-        protected void btnLoggingSave_Click( object sender, EventArgs e )
-        {
-            if ( !Page.IsValid )
-            {
-                return;
-            }
-
-            nbLoggingMessage.Visible = true;
-
-            var logConfig = new RockLogSystemSettings
-            {
-                LogLevel = rblVerbosityLevel.SelectedValue.ConvertToEnum<RockLogLevel>( RockLogLevel.Off ),
-                DomainsToLog = cblDomainsToLog.SelectedValues,
-                MaxFileSize = txtMaxFileSize.Text.AsInteger(),
-                NumberOfLogFiles = txtFilesToRetain.Text.AsInteger()
-            };
-
-            Rock.Web.SystemSettings.SetValue( SystemSetting.ROCK_LOGGING_SETTINGS, logConfig.ToJson() );
-
-            Rock.Logging.RockLogger.Log.ReloadConfiguration();
-
-            nbLoggingMessage.NotificationBoxType = NotificationBoxType.Success;
-            nbLoggingMessage.Title = string.Empty;
-            nbLoggingMessage.Text = "Setting saved successfully.";
-        }
         #endregion
 
         #region Methods
