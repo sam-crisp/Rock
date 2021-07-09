@@ -134,7 +134,7 @@ namespace RockWeb.Blocks.Groups
         Key = AttributeKey.MarkerZoomLevel,
         Category = "CustomSetting" )]
     [IntegerField( "Marker Zoom Amount",
-        DefaultIntegerValue = 2,
+        DefaultIntegerValue = 1,
         Key = AttributeKey.MarkerZoomAmount,
         Category = "CustomSetting" )]
     [TextField( "Location Precision Level",
@@ -1662,318 +1662,324 @@ namespace RockWeb.Blocks.Groups
             // write script to page
             string mapScriptFormat = @"
 
-        var locationData = {0};
-        var fenceData = {1};
-        var groupData = {2}; 
-        var markerScale = {11};
+                var locationData = {0};
+                var fenceData = {1};
+                var groupData = {2}; 
+                var markerScale = 1;
 
-        var allMarkers = [];
+                var allMarkers = [];
 
-        var map;
-        var bounds = new google.maps.LatLngBounds();
-        var infoWindow = new google.maps.InfoWindow();
+                var map;
+                var bounds = new google.maps.LatLngBounds();
+                var infoWindow = new google.maps.InfoWindow();
 
-        var mapStyle = {3};
+                var mapStyle = {3};
 
-        var polygonColorIndex = 0;
-        var polygonColors = [{5}];
+                var polygonColorIndex = 0;
+                var polygonColors = [{5}];
 
-        var min = .999999;
-        var max = 1.000001;
+                var min = .999999;
+                var max = 1.000001;
         
-        initializeMap();
+                initializeMap();
 
-        function initializeMap() {{
+                function initializeMap() {{
 
-            // Set default map options
-            var mapOptions = {{
-                 mapTypeId: 'roadmap'
-                ,styles: mapStyle
-                ,center: new google.maps.LatLng({7}, {8})
-                ,maxZoom: {12}
-                ,minZoom: {13}
-                ,zoom: {9}
-            }};
-
-            // Display a map on the page
-            map = new google.maps.Map(document.getElementById('map_canvas'), mapOptions);
-            google.maps.event.addDomListener(map, 'zoom_changed', function() {{
-                var zoomThreshold = {14};
-                var zoomAmount = {15};
-
-                var zoom = map.getZoom();
-
-                if(!zoomThreshold || !zoomAmount) {{
-                    return;
-                }}
-
-                var scale = markerScale;
-                if ( zoom >= zoomThreshold ) {{
-                    scale = markerScale * zoom * zoomAmount / 3;
-                }}
-
-                var markerCount = allMarkers.length;
-                var updatedMarkers = [];
-                for (var i = 0; i < markerCount; i++) {{
-                    var marker = allMarkers[i];
-
-                    var pinImage = {{
-                        path: marker.icon.path,
-                        fillColor: marker.icon.fillColor,
-                        fillOpacity: marker.icon.fillOpacity,
-                        strokeColor: marker.icon.strokeColor,
-                        strokeWeight: marker.icon.strokeWeight,
-                        scale: scale,
-                        labelOrigin: marker.icon.labelOrigin,
-                        anchor: marker.icon.anchor,
+                    // Set default map options
+                    var mapOptions = {{
+                         mapTypeId: 'roadmap'
+                        ,styles: mapStyle
+                        ,center: new google.maps.LatLng({7}, {8})
+                        ,maxZoom: {11}
+                        ,minZoom: {12}
+                        ,zoom: {9}
                     }};
 
-                    // Remove marker
-  			        marker.setMap(null);
+                    // Display a map on the page
+                    map = new google.maps.Map(document.getElementById('map_canvas'), mapOptions);
+                    google.maps.event.addDomListener(map, 'zoom_changed', function() {{
+                        var zoomThreshold = {13};
+                        var zoomAmount = {14};
 
-				    // Add marker back
-                    var updatedMarker = new google.maps.Marker({{
-                        position: marker.position,
-                        icon: pinImage,
-                        map: map,
-                        id: marker.id,
-                        title: marker.title,
-                        info_window: marker.info_window,
-                    }});
+                        var zoom = map.getZoom();
 
-                if ( updatedMarker.info_window != null ) {{ 
-                    google.maps.event.addListener(updatedMarker, 'click', (function (marker) {{
-                        return function () {{
-                            openInfoWindow(marker);
+                        if(!zoomThreshold || !zoomAmount) {{
+                            return;
                         }}
-                    }})(updatedMarker));
-                }}
 
-                if ( updatedMarker.id && updatedMarker.id > 0 ) {{ 
-                    google.maps.event.addListener(updatedMarker, 'mouseover', (function (marker) {{
-                        return function () {{
-                            $(""tr[datakey='"" + marker.id + ""']"").addClass('row-highlight');
+                        var scale = markerScale;
+                        if ( zoom >= zoomThreshold ) {{
+                            let zoomScale = [ 0, 1, 1.00025, 1.0005, 1.001, 1.002, 1.004, 1.008, 1.016, 1.032, 1.064, 1.128, 1.256, 1.512, 2.024, 3.048, 5.096, 9.192, 17.384, 33.769, 66.536]
+                            let zoomScaleLastIndex = zoomScale.length - 1;
+                            if(zoom > zoomScaleLastIndex)
+                            {{
+                                zoom = zoomScaleLastIndex;
+                            }}
+
+                            scale = (zoomScale[zoom] * zoomAmount );
                         }}
-                    }})(updatedMarker));
 
-                    google.maps.event.addListener(updatedMarker, 'mouseout', (function (marker) {{
-                        return function () {{
-                            $(""tr[datakey='"" + marker.id + ""']"").removeClass('row-highlight');
+                        var markerCount = allMarkers.length;
+                        var updatedMarkers = [];
+                        for (var i = 0; i < markerCount; i++) {{
+                            var marker = allMarkers[i];
+
+                            var pinImage = {{
+                                path: marker.icon.path,
+                                fillColor: marker.icon.fillColor,
+                                fillOpacity: marker.icon.fillOpacity,
+                                strokeColor: marker.icon.strokeColor,
+                                strokeWeight: marker.icon.strokeWeight,
+                                scale: scale,
+                                labelOrigin: marker.icon.labelOrigin,
+                                anchor: marker.icon.anchor,
+                            }};
+
+                            // Remove marker
+  			                marker.setMap(null);
+
+				            // Add marker back
+                            var updatedMarker = new google.maps.Marker({{
+                                position: marker.position,
+                                icon: pinImage,
+                                map: map,
+                                id: marker.id,
+                                title: marker.title,
+                                info_window: marker.info_window,
+                            }});
+
+                        if ( updatedMarker.info_window != null ) {{ 
+                            google.maps.event.addListener(updatedMarker, 'click', (function (marker) {{
+                                return function () {{
+                                    openInfoWindow(marker);
+                                }}
+                            }})(updatedMarker));
                         }}
-                    }})(updatedMarker));
 
-                }}
+                        if ( updatedMarker.id && updatedMarker.id > 0 ) {{ 
+                            google.maps.event.addListener(updatedMarker, 'mouseover', (function (marker) {{
+                                return function () {{
+                                    $(""tr[datakey='"" + marker.id + ""']"").addClass('row-highlight');
+                                }}
+                            }})(updatedMarker));
 
-                    updatedMarkers.push(updatedMarker);
-                }}
+                            google.maps.event.addListener(updatedMarker, 'mouseout', (function (marker) {{
+                                return function () {{
+                                    $(""tr[datakey='"" + marker.id + ""']"").removeClass('row-highlight');
+                                }}
+                            }})(updatedMarker));
 
-                allMarkers = [...updatedMarkers];
-	        }});
+                        }}
 
-            map.setTilt(45);
+                            updatedMarkers.push(updatedMarker);
+                        }}
 
-            if ( locationData != null )
-            {{
-                var items = addMapItem(0, locationData, '{4}');
-                for (var j = 0; j < items.length; j++) {{
-                    items[j].setMap(map);
-                }}
-            }}
+                        allMarkers = [...updatedMarkers];
+	                }});
 
-            if ( fenceData != null ) {{
-                for (var i = 0; i < fenceData.length; i++) {{
-                    var items = addMapItem(i, fenceData[i] );
-                    for (var j = 0; j < items.length; j++) {{
-                        items[j].setMap(map);
+                    map.setTilt(45);
+
+                    if ( locationData != null )
+                    {{
+                        var items = addMapItem(0, locationData, '{4}');
+                        for (var j = 0; j < items.length; j++) {{
+                            items[j].setMap(map);
+                        }}
                     }}
-                }}
-            }}
 
-            if ( groupData != null ) {{
-                for (var i = 0; i < groupData.length; i++) {{
-                    var items = addMapItem(i, groupData[i], groupData[i].Color ? groupData[i].Color : '{6}');
-                    for (var j = 0; j < items.length; j++) {{
-                        items[j].setMap(map);
+                    if ( fenceData != null ) {{
+                        for (var i = 0; i < fenceData.length; i++) {{
+                            var items = addMapItem(i, fenceData[i] );
+                            for (var j = 0; j < items.length; j++) {{
+                                items[j].setMap(map);
+                            }}
+                        }}
                     }}
-                }}
-            }}
 
-            // adjust any markers that may overlap
-            adjustOverlappedMarkers();
+                    if ( groupData != null ) {{
+                        for (var i = 0; i < groupData.length; i++) {{
+                            var items = addMapItem(i, groupData[i], groupData[i].Color ? groupData[i].Color : '{6}');
+                            for (var j = 0; j < items.length; j++) {{
+                                items[j].setMap(map);
+                            }}
+                        }}
+                    }}
 
-            if (!bounds.isEmpty()) {{
-                if(mapOptions.zoom || mapOptions.zoom === 0){{
-                    map.setCenter(bounds.getCenter());
-                }} else {{
-                    map.fitBounds(bounds);
-                }}
-            }}
+                    // adjust any markers that may overlap
+                    adjustOverlappedMarkers();
 
-        }}
+                    if (!bounds.isEmpty()) {{
+                        if(mapOptions.zoom || mapOptions.zoom === 0){{
+                            map.setCenter(bounds.getCenter());
+                        }} else {{
+                            map.fitBounds(bounds);
+                        }}
+                    }}
 
-        function openInfoWindowById(id) {{
-            marker = $.grep(allMarkers, function(m) {{ return m.id == id }})[0];
-            openInfoWindow(marker);
-        }}
-
-        function openInfoWindow(marker) {{
-            infoWindow.setContent( $('<div/>').html(marker.info_window).text() );
-            infoWindow.open(map, marker);
-        }}
-
-        function addMapItem( i, mapItem, color ) {{
-
-            var items = [];
-
-            if (mapItem.Point) {{ 
-
-                var position = new google.maps.LatLng(mapItem.Point.Latitude, mapItem.Point.Longitude);
-                bounds.extend(position);
-
-                if (!color) {{
-                    color = '#FE7569';
                 }}
 
-                if ( color.length > 0 && color.toLowerCase().indexOf('rgb') < 0 && color[0] != '#' )
-                {{
-                    color = '#' + color;
+                function openInfoWindowById(id) {{
+                    marker = $.grep(allMarkers, function(m) {{ return m.id == id }})[0];
+                    openInfoWindow(marker);
                 }}
 
-                var pinImage = {{
-                    path: '{10}',
-                    fillColor: color,
-                    fillOpacity: 1,
-                    strokeColor: '#000',
-                    strokeWeight: 1,
-                    scale: markerScale,
-                    labelOrigin: new google.maps.Point(0, 0),
-                    anchor: new google.maps.Point(0, 0),
-                }};
+                function openInfoWindow(marker) {{
+                    infoWindow.setContent( $('<div/>').html(marker.info_window).text() );
+                    infoWindow.open(map, marker);
+                }}
 
-                marker = new google.maps.Marker({{
-                    id: mapItem.EntityId,
-                    position: position,
-                    map: map,
-                    title: htmlDecode(mapItem.Name),
-                    icon: pinImage,
-                    info_window: mapItem.InfoWindow,
-                }});
+                function addMapItem( i, mapItem, color ) {{
+
+                    var items = [];
+
+                    if (mapItem.Point) {{ 
+
+                        var position = new google.maps.LatLng(mapItem.Point.Latitude, mapItem.Point.Longitude);
+                        bounds.extend(position);
+
+                        if (!color) {{
+                            color = '#FE7569';
+                        }}
+
+                        if ( color.length > 0 && color.toLowerCase().indexOf('rgb') < 0 && color[0] != '#' )
+                        {{
+                            color = '#' + color;
+                        }}
+
+                        var pinImage = {{
+                            path: '{10}',
+                            fillColor: color,
+                            fillOpacity: 1,
+                            strokeColor: '#000',
+                            strokeWeight: 0,
+                            scale: markerScale,
+                            labelOrigin: new google.maps.Point(0, 0),
+                            anchor: new google.maps.Point(0, 0),
+                        }};
+
+                        marker = new google.maps.Marker({{
+                            id: mapItem.EntityId,
+                            position: position,
+                            map: map,
+                            title: htmlDecode(mapItem.Name),
+                            icon: pinImage,
+                            info_window: mapItem.InfoWindow,
+                        }});
     
-                items.push(marker);
-                allMarkers.push(marker);
+                        items.push(marker);
+                        allMarkers.push(marker);
 
-                if ( mapItem.InfoWindow != null ) {{ 
-                    google.maps.event.addListener(marker, 'click', (function (marker, i) {{
-                        return function () {{
-                            openInfoWindow(marker);
+                        if ( mapItem.InfoWindow != null ) {{ 
+                            google.maps.event.addListener(marker, 'click', (function (marker, i) {{
+                                return function () {{
+                                    openInfoWindow(marker);
+                                }}
+                            }})(marker, i));
                         }}
-                    }})(marker, i));
-                }}
 
-                if ( mapItem.EntityId && mapItem.EntityId > 0 ) {{ 
-                    google.maps.event.addListener(marker, 'mouseover', (function (marker, i) {{
-                        return function () {{
-                            $(""tr[datakey='"" + mapItem.EntityId + ""']"").addClass('row-highlight');
+                        if ( mapItem.EntityId && mapItem.EntityId > 0 ) {{ 
+                            google.maps.event.addListener(marker, 'mouseover', (function (marker, i) {{
+                                return function () {{
+                                    $(""tr[datakey='"" + mapItem.EntityId + ""']"").addClass('row-highlight');
+                                }}
+                            }})(marker, i));
+
+                            google.maps.event.addListener(marker, 'mouseout', (function (marker, i) {{
+                                return function () {{
+                                    $(""tr[datakey='"" + mapItem.EntityId + ""']"").removeClass('row-highlight');
+                                }}
+                            }})(marker, i));
+
                         }}
-                    }})(marker, i));
 
-                    google.maps.event.addListener(marker, 'mouseout', (function (marker, i) {{
-                        return function () {{
-                            $(""tr[datakey='"" + mapItem.EntityId + ""']"").removeClass('row-highlight');
+                    }}
+
+                    if (typeof mapItem.PolygonPoints !== 'undefined' && mapItem.PolygonPoints.length > 0) {{
+
+                        var polygon;
+                        var polygonPoints = [];
+
+                        $.each(mapItem.PolygonPoints, function(j, point) {{
+                            var position = new google.maps.LatLng(point.Latitude, point.Longitude);
+                            bounds.extend(position);
+                            polygonPoints.push(position);
+                        }});
+
+                        var polygonColor = getNextPolygonColor();
+
+                        polygon = new google.maps.Polygon({{
+                            paths: polygonPoints,
+                            map: map,
+                            strokeColor: polygonColor,
+                            fillColor: polygonColor
+                        }});
+
+                        items.push(polygon);
+
+                        // Get Center
+                        var polyBounds = new google.maps.LatLngBounds();
+                        for ( j = 0; j < polygonPoints.length; j++) {{
+                            polyBounds.extend(polygonPoints[j]);
                         }}
-                    }})(marker, i));
 
-                }}
-
-            }}
-
-            if (typeof mapItem.PolygonPoints !== 'undefined' && mapItem.PolygonPoints.length > 0) {{
-
-                var polygon;
-                var polygonPoints = [];
-
-                $.each(mapItem.PolygonPoints, function(j, point) {{
-                    var position = new google.maps.LatLng(point.Latitude, point.Longitude);
-                    bounds.extend(position);
-                    polygonPoints.push(position);
-                }});
-
-                var polygonColor = getNextPolygonColor();
-
-                polygon = new google.maps.Polygon({{
-                    paths: polygonPoints,
-                    map: map,
-                    strokeColor: polygonColor,
-                    fillColor: polygonColor
-                }});
-
-                items.push(polygon);
-
-                // Get Center
-                var polyBounds = new google.maps.LatLngBounds();
-                for ( j = 0; j < polygonPoints.length; j++) {{
-                    polyBounds.extend(polygonPoints[j]);
-                }}
-
-                if ( mapItem.InfoWindow != null ) {{ 
-                    google.maps.event.addListener(polygon, 'click', (function (polygon, i) {{
-                        return function () {{
-                            infoWindow.setContent( $('<div/>').html(mapItem.InfoWindow).text() );
-                            infoWindow.setPosition(polyBounds.getCenter());
-                            infoWindow.open(map);
-                        }}
-                    }})(polygon, i));
-                }}
-            }}
-
-            return items;
-
-        }}
-        
-        function setAllMap(markers, map) {{
-            for (var i = 0; i < markers.length; i++) {{
-                markers[i].setMap(map);
-            }}
-        }}
-
-        function htmlDecode(input) {{
-            var e = document.createElement('div');
-            e.innerHTML = input;
-            return e.childNodes.length === 0 ? """" : e.childNodes[0].nodeValue;
-        }}
-
-        function getNextPolygonColor() {{
-            var color = 'FE7569';
-            if ( polygonColors.length > polygonColorIndex ) {{
-                color = polygonColors[polygonColorIndex];
-                polygonColorIndex++;
-            }} else {{
-                color = polygonColors[0];
-                polygonColorIndex = 1;
-            }}
-            return color;
-        }}
-
-        function adjustOverlappedMarkers() {{
-            
-            if (allMarkers.length > 1) {{
-                for(i=0; i < allMarkers.length-1; i++) {{
-                    var marker1 = allMarkers[i];
-                    var pos1 = marker1.getPosition();
-                    for(j=i+1; j < allMarkers.length; j++) {{
-                        var marker2 = allMarkers[j];
-                        var pos2 = marker2.getPosition();
-                        if (pos1.equals(pos2)) {{
-                            var newLat = pos1.lat() * (Math.random() * (max - min) + min);
-                            var newLng = pos1.lng() * (Math.random() * (max - min) + min);
-                            marker1.setPosition( new google.maps.LatLng(newLat,newLng) );
+                        if ( mapItem.InfoWindow != null ) {{ 
+                            google.maps.event.addListener(polygon, 'click', (function (polygon, i) {{
+                                return function () {{
+                                    infoWindow.setContent( $('<div/>').html(mapItem.InfoWindow).text() );
+                                    infoWindow.setPosition(polyBounds.getCenter());
+                                    infoWindow.open(map);
+                                }}
+                            }})(polygon, i));
                         }}
                     }}
-                }}
-            }}
 
-        }}
-";
+                    return items;
+
+                }}
+        
+                function setAllMap(markers, map) {{
+                    for (var i = 0; i < markers.length; i++) {{
+                        markers[i].setMap(map);
+                    }}
+                }}
+
+                function htmlDecode(input) {{
+                    var e = document.createElement('div');
+                    e.innerHTML = input;
+                    return e.childNodes.length === 0 ? """" : e.childNodes[0].nodeValue;
+                }}
+
+                function getNextPolygonColor() {{
+                    var color = 'FE7569';
+                    if ( polygonColors.length > polygonColorIndex ) {{
+                        color = polygonColors[polygonColorIndex];
+                        polygonColorIndex++;
+                    }} else {{
+                        color = polygonColors[0];
+                        polygonColorIndex = 1;
+                    }}
+                    return color;
+                }}
+
+                function adjustOverlappedMarkers() {{
+            
+                    if (allMarkers.length > 1) {{
+                        for(i=0; i < allMarkers.length-1; i++) {{
+                            var marker1 = allMarkers[i];
+                            var pos1 = marker1.getPosition();
+                            for(j=i+1; j < allMarkers.length; j++) {{
+                                var marker2 = allMarkers[j];
+                                var pos2 = marker2.getPosition();
+                                if (pos1.equals(pos2)) {{
+                                    var newLat = pos1.lat() * (Math.random() * (max - min) + min);
+                                    var newLng = pos1.lng() * (Math.random() * (max - min) + min);
+                                    marker1.setPosition( new google.maps.LatLng(newLat,newLng) );
+                                }}
+                            }}
+                        }}
+                    }}
+
+                }}";
 
             var locationJson = location != null ?
                 string.Format( "JSON.parse('{0}')", location.ToJson().Replace( Environment.NewLine, string.Empty ).Replace( "\\", "\\\\" ).EscapeQuotes().Replace( "\x0A", string.Empty ) ) : "null";
@@ -1986,12 +1992,10 @@ namespace RockWeb.Blocks.Groups
 
             var markerDefinedValueId = GetAttributeValue( AttributeKey.MapMarker ).AsIntegerOrNull();
             var marker = "M 0,0 C -2,-20 -10,-22 -10,-30 A 10,10 0 1,1 10,-30 C 10,-22 2,-20 0,0 z";
-            var scale = 1.0d;
 
             if ( markerDefinedValueId != null )
             {
                 marker = DefinedValueCache.Get( markerDefinedValueId.Value ).Description;
-                scale = .05d;
             }
 
             string mapScript = string.Format(
@@ -2007,11 +2011,10 @@ namespace RockWeb.Blocks.Groups
                 longitude,          // 8
                 zoom,               // 9
                 marker,             // 10
-                scale,              // 11
-                maxZoomLevel,       // 12
-                minZoomLevel,       // 13
-                zoomThreshold,      // 14
-                zoomAmount );       // 15
+                maxZoomLevel,       // 11
+                minZoomLevel,       // 12
+                zoomThreshold,      // 13
+                zoomAmount );       // 14
 
             ScriptManager.RegisterStartupScript( pnlMap, pnlMap.GetType(), "group-finder-map-script", mapScript, true );
         }
