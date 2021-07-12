@@ -5109,21 +5109,15 @@ namespace Rock.Lava
         /// <summary>
         /// Deletes the user preference.
         /// </summary>
-        /// <param name="context">The context.</param>
         /// <param name="input">The input.</param>
         /// <param name="typeName">The type name.</param>
         /// <param name="typeOrder">The type order.</param>
         /// <returns></returns>
-        public static void AddQuickReturn( DotLiquid.Context context, object input, string typeName, int typeOrder = 0 )
+        public static void AddQuickReturn( string input, string typeName, int typeOrder = 0 )
         {
             RockPage page = HttpContext.Current.Handler as RockPage;
 
-            if ( input == null )
-            {
-                return;
-            }
-
-            if ( input is string )
+            if ( input.IsNotNullOrWhiteSpace() )
             {
                 RockPage.AddScriptToHead( page, string.Format( @"$( document ).ready(function () {{ personalLinks.addQuickReturn( '{0}', {1}, '{2}' ) }});",
                 typeName,

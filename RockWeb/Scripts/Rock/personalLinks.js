@@ -24,7 +24,13 @@
         _returnItemArray.push(returnItem);
 
         _returnItemArray.sort(function (a, b) {
-            return new Date(b.createdDateTime) - new Date(a.createdDateTime);
+            // Sort by count
+            var dtypeOrder = a.typeOrder - b.typeOrder;
+            if (dtypeOrder) return dtypeOrder;
+
+            // If there is a tie, sort by year
+            var dCreatedDateTime = new Date(b.createdDateTime) - new Date(a.createdDateTime);
+            return dCreatedDateTime;
         });
 
         var arrLength = _returnItemArray.length;

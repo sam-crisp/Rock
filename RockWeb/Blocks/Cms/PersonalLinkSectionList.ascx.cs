@@ -46,6 +46,12 @@ namespace RockWeb.Blocks.Cms
         Key = AttributeKey.DetailPage,
         Order = 0 )]
 
+    [BooleanField(
+        "Shared Section",
+        Description = "When enabled, only shared sections will be displayed.",
+        Key = AttributeKey.SharedSection,
+        Order = 1 )]
+
     #endregion Block Attributes
     public partial class PersonalLinkSectionList : RockBlock, ICustomGridColumns
     {
@@ -54,6 +60,7 @@ namespace RockWeb.Blocks.Cms
         private static class AttributeKey
         {
             public const string DetailPage = "DetailPage";
+            public const string SharedSection = "SharedSection";
         }
 
         #endregion Attribute Keys
@@ -338,11 +345,21 @@ namespace RockWeb.Blocks.Cms
         {
             rockContext = rockContext ?? new RockContext();
             var personalLinkSections = new List<PersonalLinkSection>();
+            var isShared = GetAttributeValue( AttributeKey.SharedSection ).AsBoolean();
+
             var qry = new PersonalLinkSectionService( rockContext )
                 .Queryable()
                 .Include( a => a.PersonalLinks )
-                .AsNoTracking()
-                .Where( a => a.IsShared || a.PersonAliasId == CurrentPersonAliasId.Value );
+                .AsNoTracking();
+
+            if ( isShared )
+            {
+                qry = qry.Where( a => a.IsShared );
+            }
+            else
+            {
+                qry = qry.Where( a => !a.IsShared && a.PersonAliasId == CurrentPersonAliasId.Value );
+            }
 
             // Filter by: Name
             var name = gfFilter.GetUserPreference( UserPreferenceKey.Name ).ToStringSafe();

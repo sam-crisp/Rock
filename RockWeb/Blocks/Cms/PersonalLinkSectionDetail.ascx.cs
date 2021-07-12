@@ -41,7 +41,7 @@ namespace RockWeb.Blocks.Cms
 
     [BooleanField(
         "Shared Section",
-        Description = "When enabled, any section created will be shared and non-personal.",
+        Description = "When enabled, only shared sections will be displayed.",
         Key = AttributeKey.SharedSection,
         Order = 0)]
 
