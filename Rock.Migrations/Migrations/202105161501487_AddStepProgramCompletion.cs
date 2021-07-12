@@ -78,8 +78,8 @@ namespace Rock.Migrations
             Sql( $@"IF NOT EXISTS (
   SELECT[Id]
   FROM[ServiceJob]
-  WHERE[Class] = 'Rock.Jobs.PostV13Update'
-   AND[Guid] = '{SystemGuid.ServiceJob.POST_V13_UPDATE}'
+  WHERE[Class] = 'Rock.Jobs.PostV125DataMigrationsUpdateStepProgramCompletion'
+   AND[Guid] = '{SystemGuid.ServiceJob.DATA_MIGRATIONS_125_UPDATE_STEP_PROGRAM_COMPLETION}'
   )
 BEGIN
  INSERT INTO[ServiceJob](
@@ -95,12 +95,12 @@ BEGIN
  VALUES(
   0
   ,1
-  ,'Post v13 Update'
-  ,'Rock Update Helper v13.0.'
-  ,'Rock.Jobs.PostV13Update'
+  ,'Rock Update Helper v12.5 - Update Step Program Completion'
+  ,'Populates Step Program Completion records using existing Step data'
+  ,'Rock.Jobs.PostV125DataMigrationsUpdateStepProgramCompletion'
   ,'0 0 21 1/1 * ? *'
   ,1
-  ,'{SystemGuid.ServiceJob.POST_V13_UPDATE}'
+  ,'{SystemGuid.ServiceJob.DATA_MIGRATIONS_125_UPDATE_STEP_PROGRAM_COMPLETION}'
   );
         END" );
         }
