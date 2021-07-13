@@ -1,4 +1,4 @@
-﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="Bookmark.ascx.cs" Inherits="RockWeb.Blocks.Utility.Bookmark" %>
+﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="PersonalLinks.ascx.cs" Inherits="RockWeb.Blocks.Cms.PersonalLinks" %>
 
 <%@ Import Namespace="Rock" %>
 <style>

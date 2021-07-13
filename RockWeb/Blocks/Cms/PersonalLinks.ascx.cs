@@ -27,13 +27,13 @@ using Rock.Data;
 using Rock.Model;
 using Rock.Security;
 
-namespace RockWeb.Blocks.Utility
+namespace RockWeb.Blocks.Cms
 {
     /// <summary>
     /// Template block for developers to use to start a new block.
     /// </summary>
-    [DisplayName( "Bookmark" )]
-    [Category( "Utility" )]
+    [DisplayName( "Personal Links" )]
+    [Category( "CMS" )]
     [Description( "Template block for developers to use to start a new detail block." )]
 
     #region Block Attributes
@@ -45,7 +45,7 @@ namespace RockWeb.Blocks.Utility
         Key = AttributeKey.ManageLinkPage )]
 
     #endregion Block Attributes
-    public partial class Bookmark : Rock.Web.UI.RockBlock
+    public partial class PersonalLinks : Rock.Web.UI.RockBlock
     {
 
         #region Attribute Keys

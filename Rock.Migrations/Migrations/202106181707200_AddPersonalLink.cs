@@ -162,10 +162,16 @@ namespace Rock.Migrations
             RockMigrationHelper.AddBlockAttributeValue("E77F9A2B-C714-429A-B7C6-A364FEDC81CA","8CCA3F5B-A5AB-49E7-9A7E-E7B3302F0F93",@"True");
             RockMigrationHelper.AddBlockAttributeValue("E77F9A2B-C714-429A-B7C6-A364FEDC81CA","15F245C3-D64E-420C-84EB-204661F94126",@"b0866b52-290b-4623-a123-2ad913bb905c");
             RockMigrationHelper.AddBlockAttributeValue("E77F9A2B-C714-429A-B7C6-A364FEDC81CA","D836A274-AB49-4A65-8C11-5CE85C0FC6DB",@"False");
-            RockMigrationHelper.AddBlockAttributeValue("DAB97C12-D88B-4ACE-AC02-52C99B81C375","C153B361-D17D-4C84-B9AD-3E80CBC0D2D5",@"False");  
+            RockMigrationHelper.AddBlockAttributeValue("DAB97C12-D88B-4ACE-AC02-52C99B81C375","C153B361-D17D-4C84-B9AD-3E80CBC0D2D5",@"False");
 
+            // Add/Update BlockType Personal Links    
+            RockMigrationHelper.UpdateBlockType("Personal Links","Template block for developers to use to start a new detail block.","~/Blocks/Cms/PersonalLinks.ascx","CMS","4D42DF90-97A3-470B-A7D4-A6FD00673761");
+            // Add Block Personal Links to Layout: Right Sidebar, Site: Rock RMS      
+            RockMigrationHelper.AddBlock( true, null,"22D220B5-0D34-429A-B9E3-59D80AE423E7".AsGuid(),"C2D29296-6A87-47A9-A753-EE4E9159C4C4".AsGuid(),"4D42DF90-97A3-470B-A7D4-A6FD00673761".AsGuid(), "Personal Links","Header",@"",@"",0,"F407904E-F625-433C-800A-9B5A55B14A7A");
+            // Add Block Bookmark to Layout: Full Width, Site: Rock RMS           
+            RockMigrationHelper.AddBlock( true, null,"D65F783D-87A9-4CC9-8110-E83466A0EADB".AsGuid(),"C2D29296-6A87-47A9-A753-EE4E9159C4C4".AsGuid(),"4D42DF90-97A3-470B-A7D4-A6FD00673761".AsGuid(), "Bookmark","Header",@"",@"",0,"8190D6BF-D0CA-4B20-9EF6-A7695839E5A9");
         }
-        
+
         /// <summary>
         /// Operations to be performed during the downgrade process.
         /// </summary>
