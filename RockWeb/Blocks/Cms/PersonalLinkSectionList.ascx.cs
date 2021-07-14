@@ -358,7 +358,7 @@ namespace RockWeb.Blocks.Cms
             }
             else
             {
-                qry = qry.Where( a => !a.IsShared && a.PersonAliasId == CurrentPersonAliasId.Value );
+                qry = qry.Where( a => a.IsShared || a.PersonAliasId == CurrentPersonAliasId.Value );
             }
 
             // Filter by: Name

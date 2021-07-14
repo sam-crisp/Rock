@@ -204,7 +204,8 @@ namespace RockWeb.Blocks.Cms
                 Id = 0,
                 SectionId = ddlSection.SelectedValue.AsInteger(),
                 PersonAliasId = CurrentPersonAliasId.Value,
-                Name = tbLinkName.Text
+                Name = tbLinkName.Text,
+                Url = urlLink.Text
             };
 
             personalLinkService.Add( personalLink );
