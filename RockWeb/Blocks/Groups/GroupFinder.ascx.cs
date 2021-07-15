@@ -332,6 +332,11 @@ namespace RockWeb.Blocks.Groups
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void gtpGroupType_SelectedIndexChanged( object sender, EventArgs e )
         {
+            var eventTarget = ( Request.Form["__EVENTTARGET"] ?? string.Empty );
+            if ( eventTarget.IsNullOrWhiteSpace() || !eventTarget.EndsWith( "gtpGroupType" ) )
+            {
+                return;
+            }
             SetGroupTypeOptions();
         }
 
