@@ -57,12 +57,19 @@ namespace RockWeb.Blocks.Core
         Order = 1,
         Key = AttributeKey.DefaultInviteEmail )]
 
+    [BooleanField( "Show Legacy Signature Providers",
+        Description = "Enable this setting to see the configuration for legacy signature providers. Note that support for these providers will be removed in the next full release.",
+        DefaultBooleanValue = false,
+        Order = 2,
+        Key = AttributeKey.ShowLegacySignatureProviders )]
+
     public partial class SignatureDocumentTemplateDetail : RockBlock, IDetailBlock
     {
         public static class AttributeKey
         {
             public const string DefaultFileType = "DefaultFileType";
             public const string DefaultInviteEmail = "DefaultInviteEmail";
+            public const string ShowLegacySignatureProviders = "ShowLegacySignatureProviders";
         }
 
         #region Base Control Methods
@@ -161,10 +168,16 @@ namespace RockWeb.Blocks.Core
 
             signatureDocumentTemplate.Name = tbTypeName.Text;
             signatureDocumentTemplate.Description = tbTypeDescription.Text;
-            signatureDocumentTemplate.BinaryFileTypeId = bftpFileType.SelectedValueAsInt();
-            signatureDocumentTemplate.ProviderEntityTypeId = cpProvider.SelectedEntityTypeId;
-            signatureDocumentTemplate.ProviderTemplateKey = ddlTemplate.SelectedValue;
-            signatureDocumentTemplate.InviteSystemCommunicationId = ddlSystemEmail.SelectedValueAsInt();
+            signatureDocumentTemplate.IsActive = cbIsActive.Checked;
+            signatureDocumentTemplate.DocumentTerm = tbDocumentTerm.Text;
+            signatureDocumentTemplate.BinaryFileTypeId = bftpDocumentFileType.SelectedValueAsInt();
+            signatureDocumentTemplate.SignatureType = rrbSignatureInputType.SelectedValueAsEnum<SignatureType>();
+            signatureDocumentTemplate.LavaTemplate = ceLavaTemplate.Text;
+            if ( GetAttributeValue( AttributeKey.ShowLegacySignatureProviders ).AsBoolean() )
+            {
+                signatureDocumentTemplate.ProviderEntityTypeId = cpProvider.SelectedEntityTypeId;
+                signatureDocumentTemplate.ProviderTemplateKey = ddlTemplate.SelectedValue;
+            }
 
             if ( !signatureDocumentTemplate.IsValid )
             {
@@ -247,13 +260,23 @@ namespace RockWeb.Blocks.Core
 
             lTitle.Text = signatureDocumentTemplate.Name.FormatAsHtmlTitle();
             lDescription.Text = signatureDocumentTemplate.Description;
+            hlInactive.Visible = !signatureDocumentTemplate.IsActive;
+
+            var descriptionList = new DescriptionList();
 
             if ( signatureDocumentTemplate.BinaryFileType != null )
             {
-                lLeftDetails.Text = new DescriptionList()
-                    .Add( "File Type", signatureDocumentTemplate.BinaryFileType.Name )
-                    .Html;
+                descriptionList.Add( "File Type", signatureDocumentTemplate.BinaryFileType.Name );
             }
+
+            if ( signatureDocumentTemplate.DocumentTerm.IsNotNullOrWhiteSpace() )
+            {
+                descriptionList.Add( "Document Term", signatureDocumentTemplate.DocumentTerm );
+            }
+
+            descriptionList.Add( "Signature Type", signatureDocumentTemplate.SignatureType.ConvertToString() );
+
+            lLeftDetails.Text = descriptionList.Html;
         }
 
         /// <summary>
@@ -271,15 +294,23 @@ namespace RockWeb.Blocks.Core
                 lTitle.Text = ActionTitle.Add( SignatureDocumentTemplate.FriendlyTypeName ).FormatAsHtmlTitle();
             }
 
+            hlInactive.Visible = !signatureDocumentTemplate.IsActive;
             SetEditMode( true );
 
             tbTypeName.Text = signatureDocumentTemplate.Name;
+            cbIsActive.Checked = signatureDocumentTemplate.IsActive;
             tbTypeDescription.Text = signatureDocumentTemplate.Description;
-            bftpFileType.SetValue( signatureDocumentTemplate.BinaryFileTypeId );
-            cpProvider.SetValue( signatureDocumentTemplate.ProviderEntityType != null ? signatureDocumentTemplate.ProviderEntityType.Guid.ToString().ToUpper() : string.Empty );
-            SetTemplates();
-            ddlTemplate.SetValue( signatureDocumentTemplate.ProviderTemplateKey );
-            ddlSystemEmail.SetValue( signatureDocumentTemplate.InviteSystemCommunicationId );
+            tbDocumentTerm.Text = signatureDocumentTemplate.DocumentTerm;
+            bftpDocumentFileType.SetValue( signatureDocumentTemplate.BinaryFileTypeId );
+            rrbSignatureInputType.SetValue( signatureDocumentTemplate.SignatureType.ConvertToInt() );
+            ceLavaTemplate.Text = signatureDocumentTemplate.LavaTemplate;
+
+            if ( GetAttributeValue( AttributeKey.ShowLegacySignatureProviders ).AsBoolean() )
+            {
+                cpProvider.SetValue( signatureDocumentTemplate.ProviderEntityType != null ? signatureDocumentTemplate.ProviderEntityType.Guid.ToString().ToUpper() : string.Empty );
+                SetTemplates();
+                ddlTemplate.SetValue( signatureDocumentTemplate.ProviderTemplateKey );
+            }
         }
 
         /// <summary>
@@ -300,23 +331,9 @@ namespace RockWeb.Blocks.Core
         /// </summary>
         private void LoadDropDowns()
         {
-            ddlSystemEmail.Items.Clear();
-            using ( var rockContext = new RockContext() )
-            {
-                foreach ( var systemEmail in new SystemCommunicationService( rockContext )
-                    .Queryable().AsNoTracking()
-                    .OrderBy( e => e.Title )
-                    .Select( e => new
-                    {
-                        e.Id,
-                        e.Title
-                    } ) )
-                {
-                    ddlSystemEmail.Items.Add( new ListItem( systemEmail.Title, systemEmail.Id.ToString() ) );
-                }
-            }
-        }
-
+            pnlLegacySetting.Visible = GetAttributeValue( AttributeKey.ShowLegacySignatureProviders ).AsBoolean();
+            rrbSignatureInputType.BindToEnum<SignatureType>();
+        } 
         /// <summary>
         /// Sets the templates.
         /// </summary>
