@@ -89,6 +89,22 @@ namespace Rock.Web.UI.Controls
         }
 
         /// <summary>
+        /// Gets or sets a value indicating whether [limit to checkin groups].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [limit to checkin groups]; otherwise, <c>false</c>.
+        /// </value>
+        public bool LimitToCheckinGroups
+        {
+            get => ViewState["LimitToCheckinGroups"] as bool? ?? false;
+            set
+            {
+                ViewState["LimitToCheckinGroups"] = value;
+                SetExtraRestParams();
+            }
+        }
+
+        /// <summary>
         /// Gets or sets a value indicating whether [limit to scheduling enabled groups].
         /// </summary>
         /// <value>
@@ -375,6 +391,12 @@ namespace Rock.Web.UI.Controls
             {
                 extraParams.Append( $"&limitToRSVPEnabled={LimitToRSVPEnabledGroups.ToTrueFalse()}" );
             }
+
+            if ( LimitToCheckinGroups )
+            {
+                extraParams.Append( $"&limitToCheckinGroups={LimitToCheckinGroups.ToTrueFalse()}" );
+            }
+
 
             ItemRestUrlExtraParams = extraParams.ToString();
         }

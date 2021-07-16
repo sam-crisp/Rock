@@ -69,7 +69,8 @@ namespace Rock.Rest.Controllers
             bool includeNoCampus = false,
             bool limitToPublic = false,
             bool limitToSchedulingEnabled = false,
-            bool limitToRSVPEnabled = false )
+            bool limitToRSVPEnabled = false,
+            bool limitToCheckinGroups = false )
         {
             // Enable proxy creation since security is being checked and need to navigate parent authorities
             SetProxyCreation( true );
@@ -81,6 +82,10 @@ namespace Rock.Rest.Controllers
 
             // if specific group types are specified, show the groups regardless of ShowInNavigation
             bool limitToShowInNavigation = !includedGroupTypeIdList.Any();
+            if ( limitToCheckinGroups )
+            {
+                limitToShowInNavigation = false;
+            }
 
             var qry = groupService
                 .GetChildren( id, rootGroupId, limitToSecurityRoleGroups, includedGroupTypeIdList, excludedGroupTypeIdList, includeInactiveGroups, limitToShowInNavigation, campusId, includeNoCampus, limitToPublic )
@@ -101,6 +106,7 @@ namespace Rock.Rest.Controllers
 
             List<int> groupIdsWithSchedulingEnabledWithAncestors = null;
             List<int> groupIdsWithRSVPEnabledWithAncestors = null;
+            List<int> groupIdsWithCheckinGroupsWithAncestors = null;
 
             var listOfChildGroups = qry.ToList().OrderBy( g => g.Order ).ThenBy( g => g.Name ).ToList();
             if ( listOfChildGroups.Any() )
@@ -113,6 +119,11 @@ namespace Rock.Rest.Controllers
                 if ( limitToRSVPEnabled )
                 {
                     groupIdsWithRSVPEnabledWithAncestors = groupService.GetGroupIdsWithRSVPEnabledWithAncestors();
+                }
+
+                if ( limitToCheckinGroups )
+                {
+                    groupIdsWithCheckinGroupsWithAncestors = groupService.GetGroupIdsWithCheckinEnableWithAncestors();
                 }
             }
 
@@ -207,6 +218,32 @@ namespace Rock.Rest.Controllers
                     }
                 }
 
+                if ( limitToCheckinGroups )
+                {
+                    var includeGroup = false;
+                    if ( groupType?.GetCheckInConfigurationType() != null )
+                    {
+                        // if this group's group type is part of Checkin, include it. Otherwise, we'll see if it has child groups that are checkin group
+                        includeGroup = true;
+                    }
+                    else
+                    {
+                        if ( groupIdsWithCheckinGroupsWithAncestors != null )
+                        {
+                            bool hasChildCheckinGroups = groupIdsWithCheckinGroupsWithAncestors.Contains( group.Id );
+                            if ( hasChildCheckinGroups )
+                            {
+                                includeGroup = true;
+                            }
+                        }
+                    }
+
+                    if ( !includeGroup )
+                    {
+                        continue;
+                    }
+                }
+
                 bool groupIsAuthorized = group.IsAuthorized( Rock.Security.Authorization.VIEW, person );
                 if ( !groupIsAuthorized )
                 {
@@ -222,20 +259,20 @@ namespace Rock.Rest.Controllers
                 // if there a IconCssClass is assigned, use that as the Icon.
                 treeViewItem.IconCssClass = groupType?.IconCssClass;
 
-                        if ( countsType == TreeViewItem.GetCountsType.GroupMembers )
-                        {
-                            int groupMemberCount = new GroupMemberService( this.Service.Context as RockContext ).Queryable().Where( a => a.GroupId == group.Id && a.GroupMemberStatus == GroupMemberStatus.Active ).Count();
-                            treeViewItem.CountInfo = groupMemberCount;
-                        }
-                        else if ( countsType == TreeViewItem.GetCountsType.ChildGroups )
-                        {
-                            treeViewItem.CountInfo = groupService
-                                .Queryable()
-                                .Where( a => a.ParentGroupId.HasValue &&
-                                    a.ParentGroupId == group.Id &&
-                                    ( a.IsActive || includeInactiveGroups ) )
-                                .Count();
-                        }
+                if ( countsType == TreeViewItem.GetCountsType.GroupMembers )
+                {
+                    int groupMemberCount = new GroupMemberService( this.Service.Context as RockContext ).Queryable().Where( a => a.GroupId == group.Id && a.GroupMemberStatus == GroupMemberStatus.Active ).Count();
+                    treeViewItem.CountInfo = groupMemberCount;
+                }
+                else if ( countsType == TreeViewItem.GetCountsType.ChildGroups )
+                {
+                    treeViewItem.CountInfo = groupService
+                        .Queryable()
+                        .Where( a => a.ParentGroupId.HasValue &&
+                            a.ParentGroupId == group.Id &&
+                            ( a.IsActive || includeInactiveGroups ) )
+                        .Count();
+                }
 
                 groupNameList.Add( treeViewItem );
             }

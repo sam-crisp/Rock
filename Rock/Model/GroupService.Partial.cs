@@ -625,6 +625,31 @@ namespace Rock.Model
             return groupsWithSchedulingEnabled;
         }
 
+        public List<int> GetGroupIdsWithCheckinEnableWithAncestors()
+        {
+            var checkinGroupTypeIds = new GroupTypeService( new RockContext() ).GetAllCheckinAreaPaths().Select( a => a.GroupTypeId ).ToList();
+
+            if ( !checkinGroupTypeIds.Any() )
+            {
+                return new List<int>();
+            }
+
+            var sql = $@" ;with CTE as (
+                select g1.*
+                    from [Group] g1
+                    where g1.GroupTypeId in ({checkinGroupTypeIds.AsDelimited( "," )})
+                    and g1.[IsArchived] = 0
+                union all
+                select [a].* from [Group] [a]
+                inner join CTE pcte on pcte.ParentGroupId = [a].[Id]  and a.[IsArchived] = 0
+                )
+                select distinct Id from CTE";
+
+            var groupsForCheckin = this.Context.Database.SqlQuery<int>( sql ).ToList();
+
+            return groupsForCheckin;
+        }
+
         /// <summary>
         /// Groups the name of the ancestor path.
         /// </summary>

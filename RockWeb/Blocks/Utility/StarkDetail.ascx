@@ -18,6 +18,13 @@
             <Rock:PanelDrawer ID="pdAuditDetails" runat="server"></Rock:PanelDrawer>
             <div class="panel-body">
 
+
+                <Rock:GroupPicker ID="gpNormal" runat="server" Label="Default" LimitToRSVPEnabledGroups="false" LimitToSchedulingEnabledGroups="false" />
+                <Rock:GroupPicker ID="gpGroupsWIthScheduling" runat="server" Label="Scheduling Groups" LimitToRSVPEnabledGroups="false" LimitToSchedulingEnabledGroups="true" />
+                <Rock:GroupPicker ID="gpGroupsWithRSVP" runat="server" Label="RSVP Groups" LimitToRSVPEnabledGroups="true" LimitToSchedulingEnabledGroups="false" />
+
+                <Rock:GroupPicker ID="gpCheckinGroups" runat="server" Label="Checkin Groups" LimitToRSVPEnabledGroups="false" LimitToSchedulingEnabledGroups="false" LimitToCheckinGroups="true" />
+
                 <div class="alert alert-info">
                     <h4>Stark Template Block</h4>
                     <p>This block serves as a starting point for creating new blocks. After copy/pasting it and renaming the resulting file be sure to make the following changes:</p>
