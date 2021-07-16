@@ -31,6 +31,8 @@ using Rock.Web.UI.Controls;
 using Rock.Security;
 using System.Data.Entity;
 using System.Web.UI.WebControls;
+using System.Text;
+using System.Web.UI;
 
 namespace RockWeb.Blocks.Core
 {
@@ -43,6 +45,22 @@ namespace RockWeb.Blocks.Core
 
     public partial class SignatureDocumentDetail : RockBlock, IDetailBlock
     {
+        /// <summary>
+        /// The ua parser
+        /// </summary>
+        private static UAParser.Parser uaParser = UAParser.Parser.GetDefault();
+
+        #region PageParameterKeys
+
+        private static class PageParameterKey
+        {
+            public const string SignatureDocumentTemplateId = "SignatureDocumentTemplateId";
+            public const string SignatureDocumentId = "SignatureDocumentId";
+            public const string PersonId = "personId";
+        }
+
+        #endregion PageParameterKey
+
         #region Base Control Methods
 
         /// <summary>
@@ -52,6 +70,9 @@ namespace RockWeb.Blocks.Core
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
+
+
+            RockPage.AddScriptLink( "~/Scripts/pdfobject.min.js" );
 
             // this event gets fired after block settings are updated. it's nice to repaint the screen if these settings would alter it
             this.BlockUpdated += Block_BlockUpdated;
@@ -90,11 +111,29 @@ namespace RockWeb.Blocks.Core
             {
                 ShowDetail( PageParameter( "SignatureDocumentId" ).AsInteger() );
             }
+            else
+            {
+                RouteAction();
+            }
         }
+
+
+
 
         #endregion
 
         #region Events
+
+        /// <summary>
+        /// Handles the Click event of the btnEdit control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs" /> instance containing the event data.</param>
+        protected void btnEdit_Click( object sender, EventArgs e )
+        {
+            var signatureDocument = new SignatureDocumentService( new RockContext() ).Get( hfSignatureDocumentId.Value.AsInteger() );
+            ShowEditDetails( signatureDocument, false );
+        }
 
         /// <summary>
         /// Handles the BlockUpdated event of the control.
@@ -140,7 +179,7 @@ namespace RockWeb.Blocks.Core
             }
 
             if ( signatureDocument == null )
-            { 
+            {
                 signatureDocument = new SignatureDocument();
                 service.Add( signatureDocument );
             }
@@ -202,7 +241,10 @@ namespace RockWeb.Blocks.Core
                 }
             }
 
-            ReturnToParent();
+            NavigateToCurrentPageReference( new Dictionary<string, string>
+            {
+                { PageParameterKey.SignatureDocumentId, signatureDocument.Id.ToString() }
+            } );
         }
 
         /// <summary>
@@ -212,46 +254,40 @@ namespace RockWeb.Blocks.Core
         /// <param name="e">The <see cref="EventArgs" /> instance containing the event data.</param>
         protected void btnCancel_Click( object sender, EventArgs e )
         {
-            ReturnToParent();
+            if ( hfSignatureDocumentId.Value.Equals( "0" ) )
+            {
+                // Cancelling on Add
+                Dictionary<string, string> qryString = new Dictionary<string, string>();
+                qryString[PageParameterKey.SignatureDocumentTemplateId] = hfSignatureTemplateId.Value;
+                NavigateToParentPage( qryString );
+            }
+            else
+            {
+                // Cancelling on Edit
+                var signatureDocument = new SignatureDocumentService( new RockContext() ).Get( int.Parse( hfSignatureDocumentId.Value ) );
+                ShowReadonlyDetails( signatureDocument );
+            }
         }
 
         /// <summary>
-        /// Handles the Click event of the btnSend control.
+        /// Registers the startup script.
         /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-        protected void btnSend_Click( object sender, EventArgs e )
+        private void RegisterScript( string fileUrl )
         {
-            int? signatureDocumentId = hfSignatureDocumentId.Value.AsIntegerOrNull();
-            if ( signatureDocumentId.HasValue && signatureDocumentId.Value > 0 )
-            {
-                using ( var rockContext = new RockContext() )
-                {
-                    var signatureDocument = new SignatureDocumentService( rockContext ).Get( signatureDocumentId.Value );
-                    if ( signatureDocument != null ) 
-                    {
-                        var errorMessages = new List<string>();
-                        if ( new SignatureDocumentTemplateService( rockContext ).SendDocument( signatureDocument, string.Empty, out errorMessages ) )
-                        {
-                            rockContext.SaveChanges();
+            string scriptFormat = @"
+    Sys.Application.add_load(function () {{
+       var options = {{
+            height: '400px'
+      }};
+        PDFObject.embed('{0}', '#divPDF', options);
+    }});
+";
+            string script = string.Format(
+                scriptFormat,
+                fileUrl      // {0}
+            );
 
-                            ShowEditDetails( signatureDocument, true );
-
-                            nbErrorMessage.Title = string.Empty;
-                            nbErrorMessage.Text = "Signature Invite Was Successfully Sent";
-                            nbErrorMessage.NotificationBoxType = NotificationBoxType.Success;
-                            nbErrorMessage.Visible = true;
-                        }
-                        else
-                        {
-                            nbErrorMessage.Title = "Error Sending Signature Invite";
-                            nbErrorMessage.Text = string.Format( "<ul><li>{0}</li></ul>", errorMessages.AsDelimited( "</li><li>" ) );
-                            nbErrorMessage.NotificationBoxType = NotificationBoxType.Danger;
-                            nbErrorMessage.Visible = true;
-                        }
-                    }
-                }
-            }
+            ScriptManager.RegisterStartupScript( upnlSettings, this.GetType(), "pdf-document", script, true );
         }
 
         /// <summary>
@@ -264,42 +300,86 @@ namespace RockWeb.Blocks.Core
 
             hfSignatureDocumentId.SetValue( signatureDocument.Id );
 
-            lTitle.Text = signatureDocument.Name.FormatAsHtmlTitle();
+            lTitle.Text = string.Format( "{0} for {1}", signatureDocument.Name, signatureDocument.AppliesToPersonAlias.Person.FullName ).FormatAsHtmlTitle();
 
             var lDetails = new DescriptionList();
             var rDetails = new DescriptionList();
+            string rockUrlRoot = ResolveRockUrl( "/" );
 
-            if ( signatureDocument.BinaryFile != null )
+            if ( signatureDocument.SignedByPersonAlias != null && signatureDocument.SignedByPersonAlias.Person != null )
             {
-                var getFileUrl = string.Format( "{0}GetFile.ashx?guid={1}", System.Web.VirtualPathUtility.ToAbsolute( "~" ), signatureDocument.BinaryFile.Guid );
-                lDetails.Add( "Document", string.Format( "<a href='{0}'>View</a>", getFileUrl ) );
+                lDetails.Add( "Signed By", signatureDocument.SignedByPersonAlias.Person.GetAnchorTag( rockUrlRoot ) );
             }
 
-            lDetails.Add( "Document Key", signatureDocument.DocumentKey );
-
-            if ( signatureDocument.LastInviteDate.HasValue )
+            if ( signatureDocument.AssignedToPersonAlias != null && signatureDocument.AssignedToPersonAlias.Person != null && signatureDocument.AssignedToPersonAlias.Person.Email.IsNotNullOrWhiteSpace() )
             {
-                lDetails.Add( "Last Request Date", string.Format( "<span title='{0}'>{1}</span>", signatureDocument.LastInviteDate.Value.ToString(), signatureDocument.LastInviteDate.Value.ToElapsedString() ) );
+                var str = new StringBuilder();
+                str.Append( signatureDocument.AssignedToPersonAlias.Person.Email );
+                str.AppendLine( "<br/>" );
+                if ( signatureDocument.CompletionEmailSentDateTime.HasValue )
+                {
+                    str.AppendLine( "Last Sent On: " + signatureDocument.CompletionEmailSentDateTime.Value.ToShortDateTimeString() );
+                }
+
+                var lavaStr = @"<a class='btn-sm btn btn-default' onclick=""{{ SignatureDocument.Id | Postback:'Send' }}"">{{ LinkText }}</a>";
+                var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, this.CurrentPerson );
+                mergeFields.Add( "SignatureDocument", signatureDocument );
+                mergeFields.Add( "LinkText", signatureDocument.Status == SignatureDocumentStatus.Sent ? "Resend" : "Send Invite" );
+                str.Append( lavaStr.ResolveMergeFields( mergeFields ) );
+                lDetails.Add( "Confirmation Email", str.ToString() );
             }
 
             if ( signatureDocument.AppliesToPersonAlias != null && signatureDocument.AppliesToPersonAlias.Person != null )
             {
-                rDetails.Add( "Applies To", signatureDocument.AppliesToPersonAlias.Person.FullName );
+                lDetails.Add( "Applies To", signatureDocument.AppliesToPersonAlias.Person.FullName );
             }
 
-            if ( signatureDocument.AssignedToPersonAlias != null && signatureDocument.AssignedToPersonAlias.Person != null )
+            if ( signatureDocument.BinaryFile != null )
             {
-                rDetails.Add( "Assigned To", signatureDocument.AssignedToPersonAlias.Person.FullName );
+                var getFileUrl = string.Format( "{0}GetFile.ashx?guid={1}", System.Web.VirtualPathUtility.ToAbsolute( "~" ), signatureDocument.BinaryFile.Guid );
+                RegisterScript( getFileUrl );
             }
 
-            if ( signatureDocument.SignedByPersonAlias != null && signatureDocument.SignedByPersonAlias.Person != null )
+            var signedOnDetails = new List<string>();
+            if ( signatureDocument.SignedDateTime.HasValue )
             {
-                rDetails.Add( "Signed By", signatureDocument.SignedByPersonAlias.Person.FullName );
+                signedOnDetails.Add( signatureDocument.SignedDateTime.Value.ToShortDateTimeString() );
             }
 
-            if ( signatureDocument.SignatureDocumentTemplate != null )
+            if ( signatureDocument.SignedClientUserAgent.IsNotNullOrWhiteSpace() )
             {
-                lDetails.Add( "Signature Document Type", signatureDocument.SignatureDocumentTemplate.Name );
+                var deviceApplication = uaParser.ParseUserAgent( signatureDocument.SignedClientUserAgent ).ToString();
+                var deviceOs = uaParser.ParseOS( signatureDocument.SignedClientUserAgent ).ToString();
+                var deviceClientType = InteractionDeviceType.GetClientType( signatureDocument.SignedClientUserAgent );
+                if ( deviceApplication.IsNotNullOrWhiteSpace() )
+                {
+                    signedOnDetails.Add( deviceApplication );
+                }
+
+                if ( deviceOs.IsNotNullOrWhiteSpace() )
+                {
+                    signedOnDetails.Add( deviceOs );
+                }
+
+                if ( deviceClientType.IsNotNullOrWhiteSpace() )
+                {
+                    signedOnDetails.Add( deviceClientType );
+                }
+            }
+
+            if ( signatureDocument.SignedClientIp.IsNotNullOrWhiteSpace() )
+            {
+                signedOnDetails.Add( signatureDocument.SignedClientIp );
+            }
+
+            if ( signedOnDetails.Any() )
+            {
+                rDetails.Add( "Signed On", signedOnDetails.AsDelimited( "<br/>" ) );
+            }
+
+            if ( signatureDocument.EntityTypeId.HasValue && signatureDocument.EntityId.HasValue )
+            {
+                rDetails.Add( "Related Entity", string.Format( "<span title='{0}'>{1}</span>", signatureDocument.LastInviteDate.Value.ToString(), signatureDocument.LastInviteDate.Value.ToElapsedString() ) );
             }
 
             lLeftDetails.Text = lDetails.Html;
@@ -324,9 +404,6 @@ namespace RockWeb.Blocks.Core
                 {
                     lTitle.Text = ActionTitle.Add( titleName ).FormatAsHtmlTitle();
                 }
-
-                btnSend.Visible = signatureDocument.Id > 0 && signatureDocument.Status != SignatureDocumentStatus.Signed;
-                btnSend.Text = signatureDocument.Status == SignatureDocumentStatus.Sent ? "Resend Invite" : "Send Invite";
 
                 SetEditMode( true );
 
@@ -394,7 +471,7 @@ namespace RockWeb.Blocks.Core
                 {
                     signatureDocument = new SignatureDocument { Id = 0 };
 
-                    int? personId = PageParameter( "personId" ).AsIntegerOrNull();
+                    int? personId = PageParameter( PageParameterKey.PersonId ).AsIntegerOrNull();
                     if ( personId.HasValue )
                     {
                         var person = new PersonService( rockContext ).Get( personId.Value );
@@ -411,7 +488,7 @@ namespace RockWeb.Blocks.Core
                         }
                     }
 
-                    int? documentTypeId = PageParameter( "SignatureDocumentTemplateId" ).AsIntegerOrNull();
+                    int? documentTypeId = PageParameter( PageParameterKey.SignatureDocumentTemplateId ).AsIntegerOrNull();
                     if ( documentTypeId.HasValue )
                     {
                         var documentType = new SignatureDocumentTemplateService( rockContext ).Get( documentTypeId.Value );
@@ -424,13 +501,16 @@ namespace RockWeb.Blocks.Core
                 }
 
                 hfSignatureDocumentId.SetValue( signatureDocument.Id );
-
-                // render UI based on Authorized and IsSystem
+                hfSignatureTemplateId.SetValue( signatureDocument.SignatureDocumentTemplateId );
                 bool readOnly = false;
-
                 nbEditModeMessage.Text = string.Empty;
                 bool canEdit = UserCanEdit || signatureDocument.IsAuthorized( Authorization.EDIT, CurrentPerson );
                 bool canView = canEdit || signatureDocument.IsAuthorized( Authorization.VIEW, CurrentPerson );
+                if ( !canEdit )
+                {
+                    readOnly = true;
+                    nbEditModeMessage.Text = EditModeMessage.ReadOnlyEditActionNotAllowed( MediaAccount.FriendlyTypeName );
+                }
 
                 if ( !canView )
                 {
@@ -439,20 +519,28 @@ namespace RockWeb.Blocks.Core
                 else
                 {
                     pnlDetails.Visible = true;
-
-                    if ( !canEdit )
-                    {
-                        readOnly = true;
-                        nbEditModeMessage.Text = EditModeMessage.ReadOnlyEditActionNotAllowed( SignatureDocument.FriendlyTypeName );
-                    }
-
                     if ( readOnly )
                     {
+                        btnEdit.Visible = false;
                         ShowReadonlyDetails( signatureDocument );
                     }
                     else
                     {
-                        ShowEditDetails( signatureDocument, false );
+                        btnEdit.Visible = false;
+                        if ( signatureDocument.Id > 0 )
+                        {
+                            if ( signatureDocument.SignatureDocumentTemplate.ProviderEntityTypeId.HasValue
+                                || signatureDocument.SignatureDocumentTemplate.ProviderTemplateKey.IsNotNullOrWhiteSpace() )
+                            {
+                                btnEdit.Visible = true;
+                            }
+
+                            ShowReadonlyDetails( signatureDocument );
+                        }
+                        else
+                        {
+                            ShowEditDetails( signatureDocument, false );
+                        }
                     }
                 }
             }
@@ -475,6 +563,70 @@ namespace RockWeb.Blocks.Core
             }
 
             NavigateToParentPage( qryParams );
+        }
+
+        /// <summary>
+        /// Routes any actions
+        /// </summary>
+        private void RouteAction()
+        {
+            if ( this.Page.Request.Form["__EVENTARGUMENT"] != null )
+            {
+                string[] eventArgs = this.Page.Request.Form["__EVENTARGUMENT"].Split( '^' );
+
+                if ( eventArgs.Length == 2 )
+                {
+                    string action = eventArgs[0];
+                    string parameters = eventArgs[1];
+                    int? signatureDocumentId;
+
+                    switch ( action )
+                    {
+                        case "Send":
+                            signatureDocumentId = parameters.AsIntegerOrNull();
+                            if ( signatureDocumentId.HasValue )
+                            {
+                                SendInvite( signatureDocumentId.Value );
+                            }
+
+                            break;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Send an Invite
+        /// </summary>
+        private void SendInvite( int? signatureDocumentId )
+        {
+            if ( signatureDocumentId.HasValue && signatureDocumentId.Value > 0 )
+            {
+                using ( var rockContext = new RockContext() )
+                {
+                    var signatureDocument = new SignatureDocumentService( rockContext ).Get( signatureDocumentId.Value );
+                    if ( signatureDocument != null )
+                    {
+                        var errorMessages = new List<string>();
+                        if ( new SignatureDocumentTemplateService( rockContext ).SendDocument( signatureDocument, string.Empty, out errorMessages ) )
+                        {
+                            rockContext.SaveChanges();
+
+                            nbErrorMessage.Title = string.Empty;
+                            nbErrorMessage.Text = "Signature Invite Was Successfully Sent";
+                            nbErrorMessage.NotificationBoxType = NotificationBoxType.Success;
+                            nbErrorMessage.Visible = true;
+                        }
+                        else
+                        {
+                            nbErrorMessage.Title = "Error Sending Signature Invite";
+                            nbErrorMessage.Text = string.Format( "<ul><li>{0}</li></ul>", errorMessages.AsDelimited( "</li><li>" ) );
+                            nbErrorMessage.NotificationBoxType = NotificationBoxType.Danger;
+                            nbErrorMessage.Visible = true;
+                        }
+                    }
+                }
+            }
         }
 
         #endregion
