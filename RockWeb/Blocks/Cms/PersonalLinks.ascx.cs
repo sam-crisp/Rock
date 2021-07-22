@@ -39,10 +39,10 @@ namespace RockWeb.Blocks.Cms
     #region Block Attributes
 
     [LinkedPage(
-        "Manage Link Page",
-        Description = "Link to the manage link page",
+        "Manage Links Page",
+        Description = "The page where a person can manage their sections and personal links.",
         Order = 0,
-        Key = AttributeKey.ManageLinkPage )]
+        Key = AttributeKey.ManageLinksPage )]
 
     #endregion Block Attributes
     public partial class PersonalLinks : Rock.Web.UI.RockBlock
@@ -52,7 +52,7 @@ namespace RockWeb.Blocks.Cms
 
         private static class AttributeKey
         {
-            public const string ManageLinkPage = "ManageLinkPage";
+            public const string ManageLinksPage = "ManageLinksPage";
         }
 
         #endregion Attribute Keys
@@ -143,7 +143,7 @@ namespace RockWeb.Blocks.Cms
         /// </summary>
         protected void lbManageLinks_Click( object sender, EventArgs e )
         {
-            NavigateToLinkedPage( AttributeKey.ManageLinkPage );
+            NavigateToLinkedPage( AttributeKey.ManageLinksPage );
         }
 
         /// <summary>
