@@ -350,7 +350,7 @@ Because the contents of this setting will be rendered inside a &lt;ul&gt; elemen
                     return;
                 }
 
-                string quckReturnLava = "{{ Person.FullName | AddQuickReturn:'Person', 10 }}";
+                string quckReturnLava = "{{ Person.FullName | AddQuickReturn:'People', 10 }}";
                 var quckReturnMergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, this.CurrentPerson, new Rock.Lava.CommonMergeFieldsOptions { GetLegacyGlobalMergeFields = false } );
                 quckReturnMergeFields.Add( "Person", Person );
                 quckReturnLava.ResolveMergeFields( quckReturnMergeFields );

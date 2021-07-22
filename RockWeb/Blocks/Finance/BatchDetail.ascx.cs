@@ -406,7 +406,7 @@ namespace RockWeb.Blocks.Finance
             }
             else
             {
-                string quckReturnLava = "{{ Batch.Name | AddQuickReturn:'Batch', 50 }}";
+                string quckReturnLava = "{{ Batch.Name | AddQuickReturn:'Batches', 50 }}";
                 var quckReturnMergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, this.CurrentPerson, new Rock.Lava.CommonMergeFieldsOptions { GetLegacyGlobalMergeFields = false } );
                 quckReturnMergeFields.Add( "Batch", batch );
                 quckReturnLava.ResolveMergeFields( quckReturnMergeFields );

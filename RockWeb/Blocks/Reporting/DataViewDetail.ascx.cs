@@ -588,7 +588,7 @@ $(document).ready(function() {
             }
             else
             {
-                string quckReturnLava = "{{ Dataview.Name | AddQuickReturn:'Dataview', 20 }}";
+                string quckReturnLava = "{{ Dataview.Name | AddQuickReturn:'Data Views', 30 }}";
                 var quckReturnMergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, this.CurrentPerson, new Rock.Lava.CommonMergeFieldsOptions { GetLegacyGlobalMergeFields = false } );
                 quckReturnMergeFields.Add( "Dataview", dataView );
                 quckReturnLava.ResolveMergeFields( quckReturnMergeFields );

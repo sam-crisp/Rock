@@ -1041,7 +1041,7 @@ namespace RockWeb.Blocks.Reporting
             }
             else
             {
-                string quckReturnLava = "{{ Report.Name | AddQuickReturn:'Report', 30 }}";
+                string quckReturnLava = "{{ Report.Name | AddQuickReturn:'Reports', 40 }}";
                 var quckReturnMergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, this.CurrentPerson, new Rock.Lava.CommonMergeFieldsOptions { GetLegacyGlobalMergeFields = false } );
                 quckReturnMergeFields.Add( "Report", report );
                 quckReturnLava.ResolveMergeFields( quckReturnMergeFields );
