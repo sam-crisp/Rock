@@ -29,12 +29,9 @@ using Rock.Security;
 
 namespace RockWeb.Blocks.Cms
 {
-    /// <summary>
-    /// Template block for developers to use to start a new block.
-    /// </summary>
     [DisplayName( "Personal Links" )]
     [Category( "CMS" )]
-    [Description( "Template block for developers to use to start a new detail block." )]
+    [Description( "This block is used to show both personal and shared bookmarks as well as 'Quick Return' links." )]
 
     #region Block Attributes
 

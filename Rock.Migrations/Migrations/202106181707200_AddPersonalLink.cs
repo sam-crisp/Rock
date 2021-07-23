@@ -114,11 +114,11 @@ namespace Rock.Migrations
                 .Index(t => t.ModifiedByPersonAliasId)
                 .Index(t => t.Guid, unique: true);
 
-            // Add Page Personal Links to Site:Rock RMS           
-            RockMigrationHelper.AddPage( true, "B4A24AB7-9369-4055-883F-4F4892C39AE3","D65F783D-87A9-4CC9-8110-E83466A0EADB","Personal Links","","C206A96E-6926-4EB9-A30F-E5FCE559D180","fa fa-bookmark");
+            // Add Page Shared Links to Site:Rock RMS (Under Admin Tools > CMS Configuration)
+            RockMigrationHelper.AddPage( true, "B4A24AB7-9369-4055-883F-4F4892C39AE3","D65F783D-87A9-4CC9-8110-E83466A0EADB","Shared Links","","C206A96E-6926-4EB9-A30F-E5FCE559D180","fa fa-bookmark");
             // Add Page Section Detail to Site:Rock RMS           
             RockMigrationHelper.AddPage( true, "C206A96E-6926-4EB9-A30F-E5FCE559D180","D65F783D-87A9-4CC9-8110-E83466A0EADB","Section Detail","","776704B9-17F8-467E-AABC-B4E19FF28960","");
-            // Add Page Personal Links to Site:Rock RMS           
+            // Add Page Personal Links to Site:Rock RMS (Under My Settings)
             RockMigrationHelper.AddPage( true, "CF54E680-2E02-4F16-B54B-A2F2D29CD932","D65F783D-87A9-4CC9-8110-E83466A0EADB","Personal Links","","ED1B85B7-C76A-4624-B644-ABC1CD4BDEAE","fa fa-bookmark");
             // Add Page Section Detail to Site:Rock RMS          
             RockMigrationHelper.AddPage( true, "ED1B85B7-C76A-4624-B644-ABC1CD4BDEAE","D65F783D-87A9-4CC9-8110-E83466A0EADB","Section Detail","","B0866B52-290B-4623-A123-2AD913BB905C","");
@@ -130,7 +130,7 @@ namespace Rock.Migrations
             RockMigrationHelper.UpdateBlockType("Personal Link Section Detail","Edit details of a Personal Link Section","~/Blocks/Cms/PersonalLinkSectionDetail.ascx","CMS","CFE5C556-9E46-4A51-849D-FF5F4A899930");
             // Add/Update BlockType Personal Link Section List    
             RockMigrationHelper.UpdateBlockType("Personal Link Section List","Lists personal link section in the system.","~/Blocks/Cms/PersonalLinkSectionList.ascx","CMS","0BFD74A8-1888-4407-9102-D3FCEABF3095");
-            // Add Block Personal Link Section List to Page: Personal Links, Site: Rock RMS         
+            // Add Block Personal Link Section List to Page: Shared Links, Site: Rock RMS         
             RockMigrationHelper.AddBlock( true, "C206A96E-6926-4EB9-A30F-E5FCE559D180".AsGuid(),null,"C2D29296-6A87-47A9-A753-EE4E9159C4C4".AsGuid(),"0BFD74A8-1888-4407-9102-D3FCEABF3095".AsGuid(), "Personal Link Section List","Main",@"",@"",0,"047459F6-27BE-484C-9192-F711593F2525");
             // Add Block Personal Link Section Detail to Page: Section Detail, Site: Rock RMS      
             RockMigrationHelper.AddBlock( true, "776704B9-17F8-467E-AABC-B4E19FF28960".AsGuid(),null,"C2D29296-6A87-47A9-A753-EE4E9159C4C4".AsGuid(),"CFE5C556-9E46-4A51-849D-FF5F4A899930".AsGuid(), "Personal Link Section Detail","Main",@"",@"",0,"29F0A3E8-1953-443F-98DA-2E38646F15C6");
@@ -168,7 +168,7 @@ namespace Rock.Migrations
             RockMigrationHelper.AddBlockAttributeValue( "047459F6-27BE-484C-9192-F711593F2525", "CCCAB143-FF4E-4751-9A8B-01BE3E058099", @"True" );
 
             // Add/Update BlockType Personal Links    
-            RockMigrationHelper.UpdateBlockType("Personal Links","Template block for developers to use to start a new detail block.","~/Blocks/Cms/PersonalLinks.ascx","CMS","4D42DF90-97A3-470B-A7D4-A6FD00673761");
+            RockMigrationHelper.UpdateBlockType("Personal Links", "This block is used to show both personal and shared bookmarks as well as 'Quick Return' links.", "~/Blocks/Cms/PersonalLinks.ascx","CMS","4D42DF90-97A3-470B-A7D4-A6FD00673761");
             // Add Block Personal Links to  Site: Rock RMS        
             RockMigrationHelper.AddBlock( true, null,null,"C2D29296-6A87-47A9-A753-EE4E9159C4C4".AsGuid(),"4D42DF90-97A3-470B-A7D4-A6FD00673761".AsGuid(), "Personal Links","Header",@"",@"",0,"6AD476B5-77BB-4DAF-B55D-AD2CF599F8B2");
             // Attribute for BlockType: Personal Links:Manage Link Page   
@@ -217,8 +217,8 @@ namespace Rock.Migrations
             RockMigrationHelper.DeletePage("ED1B85B7-C76A-4624-B644-ABC1CD4BDEAE"); //  Page: Personal Links, Layout: Full Width, Site: Rock RMS  
             // Delete Page Section Detail from Site:Rock RMS         
             RockMigrationHelper.DeletePage("776704B9-17F8-467E-AABC-B4E19FF28960"); //  Page: Section Detail, Layout: Full Width, Site: Rock RMS  
-            // Delete Page Personal Links from Site:Rock RMS            
-            RockMigrationHelper.DeletePage("C206A96E-6926-4EB9-A30F-E5FCE559D180"); //  Page: Personal Links, Layout: Full Width, Site: Rock RMS  
+            // Delete Page Shared Links from Site:Rock RMS            
+            RockMigrationHelper.DeletePage("C206A96E-6926-4EB9-A30F-E5FCE559D180"); //  Page: Shared Links, Layout: Full Width, Site: Rock RMS  
 
             DropForeignKey( "dbo.PersonalLink", "SectionId", "dbo.PersonalLinkSection");
             DropForeignKey("dbo.PersonalLinkSectionOrder", "SectionId", "dbo.PersonalLinkSection");

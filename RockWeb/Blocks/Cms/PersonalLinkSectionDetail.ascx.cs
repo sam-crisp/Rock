@@ -68,6 +68,13 @@ namespace RockWeb.Blocks.Cms
 
         #endregion PageParameterKey
 
+        #region Constants
+
+        // This has a leading space on purpose.
+        private const string PANEL_NAME = " Link Section";
+
+        #endregion
+
         #region Base Control Methods
 
         /// <summary>
@@ -330,7 +337,7 @@ namespace RockWeb.Blocks.Cms
                 return;
             }
 
-            lActionTitle.Text = personalLinkSection.Name.FormatAsHtmlTitle() + " Link Section";
+            lActionTitle.Text = personalLinkSection.Name.FormatAsHtmlTitle() + PANEL_NAME;
 
             var descriptionList = new DescriptionList();
             descriptionList.Add( "Name", personalLinkSection.Name );
@@ -346,12 +353,12 @@ namespace RockWeb.Blocks.Cms
         {
             if ( personalLinkSection.Id == 0 )
             {
-                lActionTitle.Text = ActionTitle.Add( PersonalLinkSection.FriendlyTypeName ).FormatAsHtmlTitle();
+                lActionTitle.Text = ActionTitle.Add( PANEL_NAME );
                 hlShared.Visible = GetAttributeValue( AttributeKey.SharedSection ).AsBoolean();
             }
             else
             {
-                lActionTitle.Text = personalLinkSection.Name.FormatAsHtmlTitle() + " Link Section";
+                lActionTitle.Text = personalLinkSection.Name.FormatAsHtmlTitle() + PANEL_NAME;
                 hlShared.Visible = personalLinkSection.IsShared;
             }
 
