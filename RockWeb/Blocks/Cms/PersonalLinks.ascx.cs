@@ -155,6 +155,7 @@ namespace RockWeb.Blocks.Cms
             pnlAddSection.Visible = true;
             pnlAddLink.Visible = false;
             quickreturns.AddCssClass( "d-none" );
+            tbSectionName.Text = string.Empty;
         }
 
         /// <summary>
@@ -166,6 +167,8 @@ namespace RockWeb.Blocks.Cms
             pnlAddSection.Visible = false;
             pnlAddLink.Visible = true;
             quickreturns.AddCssClass( "d-none" );
+            tbLinkName.Text = Page.Title;
+            urlLink.Text = Page.Request.Url.ToString();
             BindSectionDropdown();
         }
 
