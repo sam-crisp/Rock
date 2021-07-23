@@ -153,6 +153,8 @@ namespace Rock.Migrations
             Sql( @"UPDATE [Block] SET [Order] = 0 WHERE [Guid] = 'DAB97C12-D88B-4ACE-AC02-52C99B81C375'"  );
             // Attribute for BlockType: Personal Link Section Detail:Shared Section            
             RockMigrationHelper.AddOrUpdateBlockTypeAttribute( "CFE5C556-9E46-4A51-849D-FF5F4A899930", "1EDAFDED-DFE6-4334-B019-6EECBA89E05A", "Shared Section", "SharedSection", "Shared Section", @"When enabled, any section created will be shared and non-personal.", 0, @"False", "C153B361-D17D-4C84-B9AD-3E80CBC0D2D5" );
+            // Attribute for BlockType: Personal Link Section List:Shared Section       
+            RockMigrationHelper.AddOrUpdateBlockTypeAttribute( "0BFD74A8-1888-4407-9102-D3FCEABF3095", "1EDAFDED-DFE6-4334-B019-6EECBA89E05A", "Shared Section", "SharedSection", "Shared Section", @"When enabled, only shared sections will be displayed.", 1, @"False", "CCCAB143-FF4E-4751-9A8B-01BE3E058099" );  
             // Attribute for BlockType: Personal Link Section List:Detail Page          
             RockMigrationHelper.AddOrUpdateBlockTypeAttribute( "0BFD74A8-1888-4407-9102-D3FCEABF3095", "BD53F9C9-EBA9-4D3F-82EA-DE5DD34A8108", "Detail Page", "DetailPage", "Detail Page", @"", 0, @"", "15F245C3-D64E-420C-84EB-204661F94126" );
             RockMigrationHelper.AddBlockAttributeValue("047459F6-27BE-484C-9192-F711593F2525","15F245C3-D64E-420C-84EB-204661F94126",@"776704b9-17f8-467e-aabc-b4e19ff28960");
@@ -163,13 +165,15 @@ namespace Rock.Migrations
             RockMigrationHelper.AddBlockAttributeValue("E77F9A2B-C714-429A-B7C6-A364FEDC81CA","15F245C3-D64E-420C-84EB-204661F94126",@"b0866b52-290b-4623-a123-2ad913bb905c");
             RockMigrationHelper.AddBlockAttributeValue("E77F9A2B-C714-429A-B7C6-A364FEDC81CA","D836A274-AB49-4A65-8C11-5CE85C0FC6DB",@"False");
             RockMigrationHelper.AddBlockAttributeValue("DAB97C12-D88B-4ACE-AC02-52C99B81C375","C153B361-D17D-4C84-B9AD-3E80CBC0D2D5",@"False");
+            RockMigrationHelper.AddBlockAttributeValue( "047459F6-27BE-484C-9192-F711593F2525", "CCCAB143-FF4E-4751-9A8B-01BE3E058099", @"True" );
 
             // Add/Update BlockType Personal Links    
             RockMigrationHelper.UpdateBlockType("Personal Links","Template block for developers to use to start a new detail block.","~/Blocks/Cms/PersonalLinks.ascx","CMS","4D42DF90-97A3-470B-A7D4-A6FD00673761");
-            // Add Block Personal Links to Layout: Right Sidebar, Site: Rock RMS      
-            RockMigrationHelper.AddBlock( true, null,"22D220B5-0D34-429A-B9E3-59D80AE423E7".AsGuid(),"C2D29296-6A87-47A9-A753-EE4E9159C4C4".AsGuid(),"4D42DF90-97A3-470B-A7D4-A6FD00673761".AsGuid(), "Personal Links","Header",@"",@"",0,"F407904E-F625-433C-800A-9B5A55B14A7A");
-            // Add Block Bookmark to Layout: Full Width, Site: Rock RMS           
-            RockMigrationHelper.AddBlock( true, null,"D65F783D-87A9-4CC9-8110-E83466A0EADB".AsGuid(),"C2D29296-6A87-47A9-A753-EE4E9159C4C4".AsGuid(),"4D42DF90-97A3-470B-A7D4-A6FD00673761".AsGuid(), "Bookmark","Header",@"",@"",0,"8190D6BF-D0CA-4B20-9EF6-A7695839E5A9");
+            // Add Block Personal Links to  Site: Rock RMS        
+            RockMigrationHelper.AddBlock( true, null,null,"C2D29296-6A87-47A9-A753-EE4E9159C4C4".AsGuid(),"4D42DF90-97A3-470B-A7D4-A6FD00673761".AsGuid(), "Personal Links","Header",@"",@"",0,"6AD476B5-77BB-4DAF-B55D-AD2CF599F8B2");
+            // Attribute for BlockType: Personal Links:Manage Link Page   
+            RockMigrationHelper.AddOrUpdateBlockTypeAttribute( "4D42DF90-97A3-470B-A7D4-A6FD00673761", "BD53F9C9-EBA9-4D3F-82EA-DE5DD34A8108", "Manage Link Page", "ManageLinksPage", "Manage Link Page", @"Link to the manage link page", 0, @"", "43C43878-DDA8-4517-9630-84F16291E5CE" );
+            RockMigrationHelper.AddBlockAttributeValue( "6AD476B5-77BB-4DAF-B55D-AD2CF599F8B2", "43C43878-DDA8-4517-9630-84F16291E5CE", @"ed1b85b7-c76a-4624-b644-abc1cd4bdeae" );
         }
 
         /// <summary>
