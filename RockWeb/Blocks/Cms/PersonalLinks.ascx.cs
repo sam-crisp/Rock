@@ -301,7 +301,7 @@ namespace RockWeb.Blocks.Cms
 
             foreach ( var personalLinkSection in qry.ToList() )
             {
-                var isViewable = !personalLinkSection.IsShared || ( personalLinkSection.IsShared && personalLinkSection.IsAuthorized( Authorization.VIEW, CurrentPerson ) );
+                var isViewable = !personalLinkSection.IsShared || ( personalLinkSection.IsShared && personalLinkSection.IsAuthorized( Authorization.EDIT, CurrentPerson ) );
                 if ( isViewable )
                 {
                     personalLinkSections.Add( personalLinkSection );
