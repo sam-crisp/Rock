@@ -228,7 +228,7 @@
                             <fieldset>
                                 <Rock:DataTextBox ID="tbLinkName" runat="server" SourceTypeName="Rock.Model.PersonalLink, Rock" PropertyName="Name" ValidationGroup="vgAddLink" />
                                 <Rock:UrlLinkBox ID="urlLink" runat="server" Label="Link Url" ValidationGroup="vgAddLink" Required="true" />
-                                <Rock:RockDropDownList ID="ddlSection" runat="server" ValidationGroup="vgAddLink" Required="true" Label="Section" />
+                                <Rock:RockDropDownList ID="ddlSection" runat="server" ValidationGroup="vgAddLink" Label="Section" />
                             </fieldset>
 
                             <div class="actions">

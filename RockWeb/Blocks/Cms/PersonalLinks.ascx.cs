@@ -174,20 +174,7 @@ namespace RockWeb.Blocks.Cms
         /// </summary>
         protected void btnSectionSave_Click( object sender, EventArgs e )
         {
-            var rockContext = new RockContext();
-            var personalLinkSectionService = new PersonalLinkSectionService( rockContext );
-            var personalLinkSection = new PersonalLinkSection()
-            {
-                Id = 0,
-                IsShared = false,
-                PersonAliasId = CurrentPersonAliasId.Value,
-                Name = tbSectionName.Text
-            };
-
-            personalLinkSectionService.Add( personalLinkSection );
-            rockContext.SaveChanges();
-            personalLinkSection.MakePrivate( Authorization.EDIT, CurrentPerson, rockContext );
-            personalLinkSection.MakePrivate( Authorization.ADMINISTRATE, CurrentPerson, rockContext );
+            SaveSection( tbSectionName.Text );
             BindView();
             pnlView.Visible = true;
         }
@@ -199,19 +186,28 @@ namespace RockWeb.Blocks.Cms
         {
             var rockContext = new RockContext();
             var personalLinkService = new PersonalLinkService( rockContext );
-            var personalLink = new PersonalLink()
+            var sectionId = ddlSection.SelectedValueAsId();
+            if ( !sectionId.HasValue )
             {
-                Id = 0,
-                SectionId = ddlSection.SelectedValue.AsInteger(),
-                PersonAliasId = CurrentPersonAliasId.Value,
-                Name = tbLinkName.Text,
-                Url = urlLink.Text
-            };
+                sectionId = SaveSection( "Links" );
+            }
 
-            personalLinkService.Add( personalLink );
-            rockContext.SaveChanges();
-            BindView();
-            pnlView.Visible = true;
+            if ( sectionId.HasValue )
+            {
+                var personalLink = new PersonalLink()
+                {
+                    Id = 0,
+                    SectionId = sectionId.Value,
+                    PersonAliasId = CurrentPersonAliasId.Value,
+                    Name = tbLinkName.Text,
+                    Url = urlLink.Text
+                };
+
+                personalLinkService.Add( personalLink );
+                rockContext.SaveChanges();
+                BindView();
+                pnlView.Visible = true;
+            }
         }
 
         /// <summary>
@@ -244,6 +240,28 @@ namespace RockWeb.Blocks.Cms
         }
 
         /// <summary>
+        /// Save the section.
+        /// </summary>
+        private int SaveSection( string sectionName )
+        {
+            var rockContext = new RockContext();
+            var personalLinkSectionService = new PersonalLinkSectionService( rockContext );
+            var personalLinkSection = new PersonalLinkSection()
+            {
+                Id = 0,
+                IsShared = false,
+                PersonAliasId = CurrentPersonAliasId.Value,
+                Name = sectionName
+            };
+
+            personalLinkSectionService.Add( personalLinkSection );
+            rockContext.SaveChanges();
+            personalLinkSection.MakePrivate( Authorization.EDIT, CurrentPerson, rockContext );
+            personalLinkSection.MakePrivate( Authorization.ADMINISTRATE, CurrentPerson, rockContext );
+            return personalLinkSection.Id;
+        }
+
+        /// <summary>
         /// Binds the connection types repeater.
         /// </summary>
         private void BindSectionDropdown()
@@ -254,7 +272,16 @@ namespace RockWeb.Blocks.Cms
             ddlSection.DataTextField = "Name";
             ddlSection.DataValueField = "Id";
             ddlSection.DataBind();
-            ddlSection.Items.Insert( 0, new ListItem() );
+            if ( personalLinkSections.Any() )
+            {
+                ddlSection.Items.Insert( 0, new ListItem() );
+                ddlSection.Required = true;
+            }
+            else
+            {
+                ddlSection.Items.Insert( 0, new ListItem( "Links" ) );
+                ddlSection.Required = false;
+            }
         }
 
         /// <summary>
