@@ -256,6 +256,7 @@ namespace RockWeb.Blocks.Cms
 
             personalLinkSectionService.Add( personalLinkSection );
             rockContext.SaveChanges();
+            personalLinkSection.MakePrivate( Authorization.VIEW, CurrentPerson, rockContext );
             personalLinkSection.MakePrivate( Authorization.EDIT, CurrentPerson, rockContext );
             personalLinkSection.MakePrivate( Authorization.ADMINISTRATE, CurrentPerson, rockContext );
             return personalLinkSection.Id;

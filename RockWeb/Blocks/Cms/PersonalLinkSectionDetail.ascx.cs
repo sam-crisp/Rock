@@ -210,6 +210,7 @@ namespace RockWeb.Blocks.Cms
             personalLinkSection = personalLinkSectionService.Get( personalLinkSection.Id );
             if ( personalLinkSection != null )
             {
+                personalLinkSection.MakePrivate( Authorization.VIEW, CurrentPerson );
                 personalLinkSection.MakePrivate( Authorization.EDIT, CurrentPerson, rockContext );
                 personalLinkSection.MakePrivate( Authorization.ADMINISTRATE, CurrentPerson, rockContext );
 
@@ -321,6 +322,7 @@ namespace RockWeb.Blocks.Cms
                 nbEditModeMessage.Text = EditModeMessage.NotAuthorizedToView( ContentChannel.FriendlyTypeName );
                 pnlEditDetails.Visible = false;
                 pnlViewDetails.Visible = false;
+                this.HideSecondaryBlocks( true );
             }
         }
 
