@@ -164,7 +164,7 @@ namespace RockWeb.Blocks.Cms
             pnlAddSection.Visible = false;
             pnlAddLink.Visible = true;
             quickreturns.AddCssClass( "d-none" );
-            tbLinkName.Text = Page.Title;
+            tbLinkName.Text = RockPage.Title;
             urlLink.Text = Page.Request.Url.ToString();
             BindSectionDropdown();
         }
