@@ -33,6 +33,7 @@ using System.Data.Entity;
 using System.Web.UI.WebControls;
 using System.Text;
 using System.Web.UI;
+using Rock.Web.Cache;
 
 namespace RockWeb.Blocks.Core
 {
@@ -301,6 +302,7 @@ namespace RockWeb.Blocks.Core
             hfSignatureDocumentId.SetValue( signatureDocument.Id );
 
             lTitle.Text = string.Format( "{0} for {1}", signatureDocument.Name, signatureDocument.AppliesToPersonAlias.Person.FullName ).FormatAsHtmlTitle();
+            hlTemplate.Text = signatureDocument.SignatureDocumentTemplate.Name;
 
             var lDetails = new DescriptionList();
             var rDetails = new DescriptionList();
@@ -379,7 +381,26 @@ namespace RockWeb.Blocks.Core
 
             if ( signatureDocument.EntityTypeId.HasValue && signatureDocument.EntityId.HasValue )
             {
-                rDetails.Add( "Related Entity", string.Format( "<span title='{0}'>{1}</span>", signatureDocument.LastInviteDate.Value.ToString(), signatureDocument.LastInviteDate.Value.ToElapsedString() ) );
+                var entityType = EntityTypeCache.Get( signatureDocument.EntityTypeId.Value );
+                if ( entityType != null )
+                {
+                    var entity = Reflection.GetIEntityForEntityType( entityType.GetEntityType(), signatureDocument.EntityId.Value );
+                    if ( entity != null )
+                    {
+                        string txt = string.Empty;
+                        if ( entityType.LinkUrlLavaTemplate.IsNotNullOrWhiteSpace() )
+                        {
+                            var url = entityType.LinkUrlLavaTemplate.ResolveMergeFields( new Dictionary<string, object> { { "Entity", entity } } );
+                            txt = string.Format( "<a href='{0}'>{1}</a>", ResolveRockUrl( url ), entity.ToString() );
+                        }
+                        else
+                        {
+                            txt = entity.ToString();
+                        }
+                        
+                        rDetails.Add( "Related Entity", txt );
+                    }
+                }
             }
 
             lLeftDetails.Text = lDetails.Html;

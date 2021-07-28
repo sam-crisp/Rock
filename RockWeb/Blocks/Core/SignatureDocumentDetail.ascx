@@ -11,6 +11,7 @@
                 <h1 class="panel-title"><i class="fa fa-file-contract"></i> <asp:Literal ID="lTitle" runat="server" /></h1>
 
                 <div class="panel-labels">
+                    <Rock:HighlightLabel ID="hlTemplate" runat="server" LabelType="Info" />
                     <Rock:HighlightLabel ID="hlStatusLastUpdated" runat="server" LabelType="Info" />
                 </div>
             </div>
