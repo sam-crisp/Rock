@@ -210,10 +210,6 @@ namespace RockWeb.Blocks.Cms
             personalLinkSection = personalLinkSectionService.Get( personalLinkSection.Id );
             if ( personalLinkSection != null )
             {
-                personalLinkSection.MakePrivate( Authorization.VIEW, CurrentPerson );
-                personalLinkSection.MakePrivate( Authorization.EDIT, CurrentPerson, rockContext );
-                personalLinkSection.MakePrivate( Authorization.ADMINISTRATE, CurrentPerson, rockContext );
-
                 if ( personalLinkSection.IsShared )
                 {
                     var groupService = new GroupService( rockContext );
@@ -223,6 +219,12 @@ namespace RockWeb.Blocks.Cms
                         personalLinkSection.AllowSecurityRole( Authorization.EDIT, rockAdministrators, rockContext );
                         personalLinkSection.AllowSecurityRole( Authorization.ADMINISTRATE, rockAdministrators, rockContext );
                     }
+                }
+                else
+                {
+                    personalLinkSection.MakePrivate( Authorization.VIEW, CurrentPerson );
+                    personalLinkSection.MakePrivate( Authorization.EDIT, CurrentPerson, rockContext );
+                    personalLinkSection.MakePrivate( Authorization.ADMINISTRATE, CurrentPerson, rockContext );
                 }
             }
 

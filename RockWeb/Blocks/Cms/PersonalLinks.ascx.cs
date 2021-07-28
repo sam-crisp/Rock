@@ -131,7 +131,7 @@ namespace RockWeb.Blocks.Cms
 
             var rptLinks = e.Item.FindControl( "rptLinks" ) as Repeater;
             var section = e.Item.DataItem as PersonalLinkSection;
-            rptLinks.DataSource = section.PersonalLinks;
+            rptLinks.DataSource = section.PersonalLinks.OrderBy( a => a.Order );
             rptLinks.DataBind();
         }
 
@@ -233,7 +233,7 @@ namespace RockWeb.Blocks.Cms
             pnlAddSection.Visible = false;
             pnlAddLink.Visible = false;
             var rockContext = new RockContext();
-            var personalLinkSections = GetPersonalLinkSections( rockContext );
+            var personalLinkSections = GetPersonalLinkSections( rockContext, true );
             var personalLinkSectionOrders = GetPersonalLinkSectionOrders( rockContext );
             rptPersonalLinkSection.DataSource = GetOrderedPersonalLinkSection( personalLinkSections, personalLinkSectionOrders );
             rptPersonalLinkSection.DataBind();
@@ -268,8 +268,11 @@ namespace RockWeb.Blocks.Cms
         private void BindSectionDropdown()
         {
             var rockContext = new RockContext();
-            var personalLinkSections = GetPersonalLinkSections( rockContext );
-            ddlSection.DataSource = personalLinkSections;
+            var personalLinkSections = GetPersonalLinkSections( rockContext, false );
+            var personalLinkSectionOrders = GetPersonalLinkSectionOrders( rockContext );
+            var orderedPersonalLinkSection = GetOrderedPersonalLinkSection( personalLinkSections, personalLinkSectionOrders );
+
+            ddlSection.DataSource = orderedPersonalLinkSection;
             ddlSection.DataTextField = "Name";
             ddlSection.DataValueField = "Id";
             ddlSection.DataBind();
@@ -289,7 +292,7 @@ namespace RockWeb.Blocks.Cms
         /// Gets the personal link sections.
         /// </summary>
         /// <returns></returns>
-        private List<PersonalLinkSection> GetPersonalLinkSections( RockContext rockContext )
+        private List<PersonalLinkSection> GetPersonalLinkSections( RockContext rockContext, bool isView )
         {
             rockContext = rockContext ?? new RockContext();
             var personalLinkSections = new List<PersonalLinkSection>();
@@ -302,7 +305,16 @@ namespace RockWeb.Blocks.Cms
 
             foreach ( var personalLinkSection in qry.ToList() )
             {
-                var isViewable = !personalLinkSection.IsShared || ( personalLinkSection.IsShared && personalLinkSection.IsAuthorized( Authorization.EDIT, CurrentPerson ) );
+                bool isViewable = false;
+                if ( isView )
+                {
+                    isViewable = !personalLinkSection.IsShared || ( personalLinkSection.IsShared && personalLinkSection.IsAuthorized( Authorization.VIEW, CurrentPerson ) );
+                }
+                else
+                {
+                    isViewable = !personalLinkSection.IsShared || ( personalLinkSection.IsShared && personalLinkSection.IsAuthorized( Authorization.EDIT, CurrentPerson ) );
+                }
+
                 if ( isViewable )
                 {
                     personalLinkSections.Add( personalLinkSection );
@@ -330,15 +342,16 @@ namespace RockWeb.Blocks.Cms
 
         private IEnumerable<PersonalLinkSection> GetOrderedPersonalLinkSection( List<PersonalLinkSection> personalLinkSections, List<PersonalLinkSectionOrder> personalLinkSectionOrders )
         {
-            var orderedSectionIds = personalLinkSectionOrders
-                .OrderBy( a => a.Order )
-                .Select( a => a.SectionId )
-                .ToList();
-
             return personalLinkSections
                 .Where( a => a.PersonalLinks.Any() )
-                .OrderBy( a => orderedSectionIds.IndexOf( a.Id ) )
-                .ThenBy( a => a.Name )
+                .Select( a => new
+                {
+                    PersonalLinkSection = a,
+                    Order = personalLinkSectionOrders.Where( b => b.SectionId == a.Id ).Select( b => b.Order ).DefaultIfEmpty().FirstOrDefault()
+                } )
+                .OrderBy( a => a.Order )
+                .ThenBy( a => a.PersonalLinkSection.Name )
+                .Select( a => a.PersonalLinkSection )
                 .ToList();
         }
 
