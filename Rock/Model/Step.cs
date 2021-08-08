@@ -27,6 +27,7 @@ using Rock.Data;
 using Rock.Tasks;
 using System.Linq;
 using System.Data.Entity;
+using Rock.Web.Cache;
 
 namespace Rock.Model
 {
@@ -245,6 +246,25 @@ namespace Rock.Model
         /// </value>
         [DataMember]
         public virtual AnalyticsSourceDate CompletedSourceDate { get; set; }
+
+        /// <summary>
+        /// Gets or sets the history change list.
+        /// </summary>
+        /// <value>
+        /// The history change list.
+        /// </value>
+        [NotMapped]
+        public virtual History.HistoryChangeList PersonHistoryChangeList { get; set; }
+
+        /// <summary>
+        /// Gets or sets the caption.
+        /// </summary>
+        /// <value>
+        /// The caption.
+        /// </value>
+        [NotMapped]
+        public virtual string Caption { get; set; }
+
         #endregion Virtual Properties
 
         #region Overrides
@@ -344,6 +364,85 @@ namespace Rock.Model
                 PreviousStepStatusId = previousStepStatusId
             }.Send();
 
+            PersonHistoryChangeList = new History.HistoryChangeList();
+            var rockContext = ( RockContext ) dbContext;
+            if ( Caption.IsNullOrWhiteSpace() )
+            {
+                Caption = new StepTypeService( rockContext ).Get( this.StepTypeId ).Name;
+            }
+
+            switch ( entry.State )
+            {
+                case EntityState.Added:
+                    {
+                        var historyChange = PersonHistoryChangeList.AddChange( History.HistoryVerb.StepAdded, History.HistoryChangeType.Record, Caption );
+                        var campusName = string.Empty;
+                        if ( Campus != null )
+                        {
+                            campusName = Campus.Name;
+                        }
+
+                        if ( this.CampusId.HasValue && campusName.IsNullOrWhiteSpace() )
+                        {
+                            var campus = CampusCache.Get( this.CampusId.Value );
+                            campusName = campus.Name;
+                        }
+
+                        if ( campusName.IsNotNullOrWhiteSpace() )
+                        {
+                            historyChange.SetRelatedData( campusName, null, null );
+                        }
+                        break;
+                    }
+
+                case EntityState.Modified:
+                    {
+                        var originalStepStatusId = entry.OriginalValues["StepStatusId"].ToStringSafe().AsIntegerOrNull();
+                        var stepStatusId = StepStatus != null ? StepStatus.Id : StepStatusId;
+                        if ( !originalStepStatusId.Equals( stepStatusId ) )
+                        {
+                            string origStepStatus = History.GetValue<StepStatus>( null, originalStepStatusId, rockContext );
+                            string stepStatus = History.GetValue<StepStatus>( StepStatus, stepStatusId, rockContext );
+                            PersonHistoryChangeList.AddChange( History.HistoryVerb.Modify, History.HistoryChangeType.Record, "Step Status", origStepStatus, stepStatus );
+                        }
+
+                        var originalCampusId = entry.OriginalValues["CampusId"].ToStringSafe().AsIntegerOrNull();
+                        var campusId = StepStatus != null ? Campus.Id : CampusId;
+                        if ( !originalCampusId.Equals( campusId ) )
+                        {
+                            string origCampus = History.GetValue<Campus>( null, originalCampusId, rockContext );
+                            string campus = History.GetValue<Campus>( Campus, campusId, rockContext );
+                            PersonHistoryChangeList.AddChange( History.HistoryVerb.Modify, History.HistoryChangeType.Record, "Campus", origCampus, campus );
+                        }
+
+                        var originalStartDateTime = entry.OriginalValues["StartDateTime"].ToStringSafe().AsDateTime();
+                        if ( StartDateTime != originalStartDateTime )
+                        {
+                            PersonHistoryChangeList.AddChange( History.HistoryVerb.Modify, History.HistoryChangeType.Record, "Step Start", originalStartDateTime.ToShortDateString(), StartDateTime.ToShortDateString() );
+                        }
+
+                        var originalEndDateTime = entry.OriginalValues["EndDateTime"].ToStringSafe().AsDateTime();
+                        if ( EndDateTime != originalEndDateTime )
+                        {
+                            PersonHistoryChangeList.AddChange( History.HistoryVerb.Modify, History.HistoryChangeType.Record, "Step End", originalEndDateTime.ToShortDateString(), EndDateTime.ToShortDateString() );
+                        }
+
+                        var originalCompletedDateTime = entry.OriginalValues["CompletedDateTime"].ToStringSafe().AsDateTime();
+                        if ( CompletedDateTime != originalCompletedDateTime )
+                        {
+                            PersonHistoryChangeList.AddChange( History.HistoryVerb.Modify, History.HistoryChangeType.Record, "Completed", originalCompletedDateTime.ToShortDateString(), CompletedDateTime.ToShortDateString() );
+                        }
+
+                        break;
+                    }
+
+                case EntityState.Deleted:
+                    {
+                        PersonHistoryChangeList.AddChange( History.HistoryVerb.Delete, History.HistoryChangeType.Record, "Step Type" ).SetOldValue( Caption );
+                        break;
+                    }
+            }
+
             base.PreSaveChanges( dbContext, entry );
         }
 
@@ -353,6 +452,23 @@ namespace Rock.Model
         /// <param name="dbContext">The database context.</param>
         public override void PostSaveChanges( Data.DbContext dbContext )
         {
+            if ( PersonHistoryChangeList?.Any() == true )
+            {
+                var personAlias = PersonAlias ?? new PersonAliasService( ( RockContext ) dbContext ).Get( PersonAliasId );
+                HistoryService.SaveChanges(
+                            ( RockContext ) dbContext,
+                            typeof( Person ),
+                            Rock.SystemGuid.Category.HISTORY_PERSON_STEP.AsGuid(),
+                            personAlias.PersonId,
+                            PersonHistoryChangeList,
+                            Caption,
+                            typeof( Step ),
+                            this.Id,
+                            true,
+                            this.ModifiedByPersonAliasId,
+                            ( ( RockContext ) dbContext ).SourceOfChange );
+            }
+
             base.PostSaveChanges( dbContext );
 
             UpdateStepProgramCompletion( dbContext as RockContext );

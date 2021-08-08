@@ -558,6 +558,23 @@ namespace Rock.Model
                                     var connectionRequestSummary = strBuilder.ToString();
                                     return connectionRequestSummary;
                                 }
+
+                            case HistoryVerb.StepAdded:
+                                {
+                                    var strBuilder = new StringBuilder();
+                                    strBuilder.Append( "Added" );
+
+                                    strBuilder.Append( $" {this.ValueName} on {this.CreatedDateTime }" );
+
+                                    // if RelatedData is not NULL is is most likely message.FromName. NOTE: if it is string.Empty, still append the field-value span so that it renders like pre-v8
+                                    if ( this.RelatedData != null )
+                                    {
+                                        strBuilder.Append( $" at {this.RelatedData}." );
+                                    }
+
+                                    var stepSummary = strBuilder.ToString();
+                                    return stepSummary;
+                                }
                         }
                     }
 
@@ -691,6 +708,21 @@ namespace Rock.Model
             /// Connection Request was Deleted.
             /// </summary>
             ConnectionRequestDelete,
+
+            /// <summary>
+            /// Step was Deleted.
+            /// </summary>
+            StepAdded,
+
+            /// <summary>
+            ///  The Status of Step is modified.
+            /// </summary>
+            StepStatusModify,
+
+            /// <summary>
+            /// The Campus of Step is modified.
+            /// </summary>
+            StepCampusModify
         }
 
         /// <summary>
