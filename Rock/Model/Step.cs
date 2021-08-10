@@ -403,34 +403,44 @@ namespace Rock.Model
                         {
                             string origStepStatus = History.GetValue<StepStatus>( null, originalStepStatusId, rockContext );
                             string stepStatus = History.GetValue<StepStatus>( StepStatus, stepStatusId, rockContext );
-                            PersonHistoryChangeList.AddChange( History.HistoryVerb.Modify, History.HistoryChangeType.Record, "Step Status", origStepStatus, stepStatus );
+                            PersonHistoryChangeList.AddChange( History.HistoryVerb.Modify, History.HistoryChangeType.Record, "Step Status" )
+                                .SetOldValue( origStepStatus )
+                                .SetNewValue( stepStatus );
                         }
 
                         var originalCampusId = entry.OriginalValues["CampusId"].ToStringSafe().AsIntegerOrNull();
-                        var campusId = StepStatus != null ? Campus.Id : CampusId;
+                        var campusId = Campus != null ? Campus.Id : CampusId;
                         if ( !originalCampusId.Equals( campusId ) )
                         {
                             string origCampus = History.GetValue<Campus>( null, originalCampusId, rockContext );
                             string campus = History.GetValue<Campus>( Campus, campusId, rockContext );
-                            PersonHistoryChangeList.AddChange( History.HistoryVerb.Modify, History.HistoryChangeType.Record, "Campus", origCampus, campus );
+                            PersonHistoryChangeList.AddChange( History.HistoryVerb.Modify, History.HistoryChangeType.Record, "Campus" )
+                                .SetOldValue( origCampus )
+                                .SetNewValue( campus );
                         }
 
                         var originalStartDateTime = entry.OriginalValues["StartDateTime"].ToStringSafe().AsDateTime();
                         if ( StartDateTime != originalStartDateTime )
                         {
-                            PersonHistoryChangeList.AddChange( History.HistoryVerb.Modify, History.HistoryChangeType.Record, "Step Start", originalStartDateTime.ToShortDateString(), StartDateTime.ToShortDateString() );
+                            PersonHistoryChangeList.AddChange( History.HistoryVerb.Modify, History.HistoryChangeType.Record, "Step Start" )
+                                .SetOldValue( originalStartDateTime.ToShortDateString() )
+                                .SetNewValue( StartDateTime.ToShortDateString() );
                         }
 
                         var originalEndDateTime = entry.OriginalValues["EndDateTime"].ToStringSafe().AsDateTime();
                         if ( EndDateTime != originalEndDateTime )
                         {
-                            PersonHistoryChangeList.AddChange( History.HistoryVerb.Modify, History.HistoryChangeType.Record, "Step End", originalEndDateTime.ToShortDateString(), EndDateTime.ToShortDateString() );
+                            PersonHistoryChangeList.AddChange( History.HistoryVerb.Modify, History.HistoryChangeType.Record, "Step End" )
+                                .SetOldValue( originalEndDateTime.ToShortDateString() )
+                                .SetNewValue( EndDateTime.ToShortDateString() );
                         }
 
                         var originalCompletedDateTime = entry.OriginalValues["CompletedDateTime"].ToStringSafe().AsDateTime();
                         if ( CompletedDateTime != originalCompletedDateTime )
                         {
-                            PersonHistoryChangeList.AddChange( History.HistoryVerb.Modify, History.HistoryChangeType.Record, "Completed", originalCompletedDateTime.ToShortDateString(), CompletedDateTime.ToShortDateString() );
+                            PersonHistoryChangeList.AddChange( History.HistoryVerb.Modify, History.HistoryChangeType.Record, "Completed")
+                                 .SetOldValue( originalCompletedDateTime.ToShortDateString() )
+                                 .SetNewValue( CompletedDateTime.ToShortDateString() );
                         }
 
                         break;
