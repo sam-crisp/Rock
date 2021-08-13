@@ -42,6 +42,12 @@ namespace Rock.Utility.Settings.GivingAnalytics
         public GivingAnalytics GivingAnalytics { get; set; }
 
         /// <summary>
+        /// Gets or sets the giving journey settings.
+        /// </summary>
+        /// <value>The giving journey settings.</value>
+        public GivingJourneySettings GivingJourneySettings { get; set; }
+
+        /// <summary>
         /// Gets or sets the alerting.
         /// </summary>
         /// <value>
@@ -114,6 +120,78 @@ namespace Rock.Utility.Settings.GivingAnalytics
     }
 
     /// <summary>
+    /// Giving Journey Settings
+    /// </summary>
+    public class GivingJourneySettings
+    {
+        /// <summary>
+        /// Gets or sets the days to update giving journeys.
+        /// </summary>
+        /// <value>The days to update giving journeys.</value>
+        public List<DayOfWeek> DaysToUpdateGivingJourneys { get; set; } = new List<DayOfWeek> { DayOfWeek.Tuesday };
+
+        /// <summary>
+        /// Gets or sets the former giver no contribution in the last days.
+        /// </summary>
+        /// <value>The former giver no contribution in the last days.</value>
+        public int? FormerGiverNoContributionInTheLastDays { get; set; } = 375;
+
+        /// <summary>
+        /// Gets or sets the former giver median frequency less than days.
+        /// </summary>
+        /// <value>The former giver median frequency less than days.</value>
+        public int? FormerGiverMedianFrequencyLessThanDays { get; set; } = 320;
+
+        /// <summary>
+        /// Gets or sets the lapsed giver no contribution in the last days.
+        /// </summary>
+        /// <value>The lapsed giver no contribution in the last days.</value>
+        public int? LapsedGiverNoContributionInTheLastDays { get; set; } = 150;
+
+        /// <summary>
+        /// Gets or sets the lapsed giver median frequency less than days.
+        /// </summary>
+        /// <value>The lapsed giver median frequency less than days.</value>
+        public int? LapsedGiverMedianFrequencyLessThanDays { get; set; } = 100;
+
+        /// <summary>
+        /// Gets or sets the first time giver contribution count between minimum.
+        /// </summary>
+        /// <value>The first time giver contribution count between minimum.</value>
+        public int? NewGiverContributionCountBetweenMinimum { get; set; } = 1;
+
+        /// <summary>
+        /// Gets or sets the first time giver contribution count between maximum.
+        /// </summary>
+        /// <value>The first time giver contribution count between maximum.</value>
+        public int? NewGiverContributionCountBetweenMaximum { get; set; } = 5;
+
+        /// <summary>
+        /// Gets or sets the first time giver first gift in the last days.
+        /// </summary>
+        /// <value>The first time giver first gift in the last days.</value>
+        public int? NewGiverFirstGiftInTheLastDays { get; set; } = 150;
+
+        /// <summary>
+        /// Gets or sets the occasional giver median frequency days minimum.
+        /// </summary>
+        /// <value>The occasional giver median frequency days minimum.</value>
+        public int? OccasionalGiverMedianFrequencyDaysMinimum { get; set; } = 33;
+
+        /// <summary>
+        /// Gets or sets the occasional giver median frequency days maximum.
+        /// </summary>
+        /// <value>The occasional giver median frequency days maximum.</value>
+        public int? OccasionalGiverMedianFrequencyDaysMaximum { get; set; } = 94;
+
+        /// <summary>
+        /// Gets or sets the consistent giver median less than days.
+        /// </summary>
+        /// <value>The consistent giver median less than days.</value>
+        public int? ConsistentGiverMedianLessThanDays { get; set; } = 32;
+    }
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="Alerting"/> class.
     /// </summary>
     public class Alerting
@@ -146,7 +224,8 @@ namespace Rock.Utility.Settings.GivingAnalytics
     /// <summary>
     /// Information About the Giver Bin
     /// </summary>
-    public class GiverBin {
+    public class GiverBin
+    {
         /// <summary>
         /// Gets or sets the lower range.
         /// </summary>

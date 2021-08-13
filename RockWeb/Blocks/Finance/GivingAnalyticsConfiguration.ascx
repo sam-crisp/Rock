@@ -11,6 +11,7 @@
                 <asp:HiddenField ID="hfCampaignConnectionGuid" runat="server" />
                 <asp:ValidationSummary ID="valSummary" runat="server" HeaderText="Please correct the following:" CssClass="alert alert-validation" />
 
+                <%-- General Settings --%>
                 <div class="well">
                     <h4>General Setting</h4>
                     <span class="text-muted">The settings below help to configure the giving analytics features within Rock.</span>
@@ -35,6 +36,112 @@
                     </div>
                 </div>
 
+                <%-- Giving Journey Settings --%>
+                <div class="well">
+                    <h4>Giving Journey Settings</h4>
+                    <span class="text-muted">Settings to define the journey stage for an individual. The classification process works by looking at the critieria for each stage and selecting the first one that matches.</span>
+                    <hr class="margin-t-sm">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <Rock:DaysOfWeekPicker ID="dwpDaysToUpdateGivingJourneys" runat="server" Label="Days to Update Giving Group Classifications" RepeatDirection="Horizontal" />
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="row">
+                        <div class="col-md-1">
+                            Former Giver
+                        </div>
+                        <div class="col-md-3">
+                            <Rock:NumberBox ID="nbFormerGiverNoContributionInTheLastDays" runat="server" Label="No Contribution in the Last" AppendText="days" Required="true" />
+                        </div>
+                        <div class="col-md-1">
+                            and
+                        </div>
+                        <div class="col-md-3">
+                            <Rock:NumberBox ID="nbFormerGiverMedianFrequencyLessThanDays" runat="server" Label="Median Frequency Less Than" AppendText="days" />
+                        </div>
+                        <div class="col-md-4">
+                            Former Givers are defined as not having a contribution since the number of days provided and having a median frequency less than the number of days provided. Providing no value for Median Frequency would have the effect of not having it be considered.
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="row">
+                        <div class="col-md-1">
+                            Lapsed Giver
+                        </div>
+                        <div class="col-md-3">
+                            <Rock:NumberBox ID="nbLapsedGiverNoContributionInTheLastDays" runat="server" Label="No Contribution in the Last" AppendText="days" Required="true" />
+                        </div>
+                        <div class="col-md-1">
+                            and
+                        </div>
+                        <div class="col-md-3">
+                            <Rock:NumberBox ID="nbLapsedGiverMedianFrequencyLessThanDays" runat="server" Label="Median Frequency Less Than" AppendText="days" />
+                        </div>
+                        <div class="col-md-4">
+                            Lapsed Givers are defined as not having contributed since the number of days provided and having a median frequency less than the number of days provided. Providing no value for Median Frequency would have the effect of not having it be considered.
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="row">
+                        <div class="col-md-1">
+                            New Giver
+                        </div>
+                        <div class="col-md-3">
+                            <Rock:NumberRangeEditor ID="nreNewGiverContributionCountBetween" runat="server" CssClass="input-width-sm" Label="Contribution Count Between" Required="true" />
+                        </div>
+                        <div class="col-md-1">
+                            and
+                        </div>
+                        <div class="col-md-3">
+                            <Rock:NumberBox ID="nbNewGiverFirstGiftInLastDays" runat="server" Label="First Gift in the Last" AppendText="days" />
+                        </div>
+                        <div class="col-md-4">
+                            New Givers are defined as having a total contribution count between the values provided. Their first contribution must also be within the number of days contigured.
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="row">
+                        <div class="col-md-1">
+                            Occasional Giver
+                        </div>
+                        <div class="col-md-3">
+                            <Rock:NumberRangeEditor ID="nreOccasionalGiverMedianFrequencyDays" runat="server" CssClass="input-width-sm" Label="Median Frequency Days" Required="true" />
+                        </div>
+                        <div class="col-md-4">
+                        </div>
+                        <div class="col-md-4">
+                            Occasional Givers are defined as having a median frequency between the days provided. They must also have at least one gift in that timeframe.
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="row">
+                        <div class="col-md-1">
+                            Consistent Giver
+                        </div>
+                        <div class="col-md-3">
+                            <Rock:NumberBox ID="nbConsistentGiverMedianLessThanDays" runat="server" Label="Median Less Than" AppendText="days" Required="true" />
+                        </div>
+                        <div class="col-md-4">
+                        </div>
+                        <div class="col-md-4">
+                            Consistent Givers are defined as having a median frequency less than the days provided. They must also have at least one gift in that timeframe.
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="row">
+                        <div class="col-md-1">
+                            Non-Giver
+                        </div>
+                        <div class="col-md-7">
+                        </div>
+                        <div class="col-md-4">
+                            Non-Givers are defined as having never given.
+                        </div>
+                    </div>
+                </div>
+
+                <%-- Alerts Settings --%>
                 <div class="well">
                     <h4>Alerts</h4>
                     <span class="text-muted">The configuration below will be used to generate alerts. An alert will be triggered the first matching rule unless that rule is configured to continue matching other rules.</span>
