@@ -234,4 +234,40 @@ namespace Rock.Utility.Settings.GivingAnalytics
         /// </value>
         public decimal? LowerLimit { get; set; }
     }
+
+    /// <summary>
+    /// Enum GivingJourneyStage
+    /// </summary>
+    public enum GivingJourneyStage
+    {
+        /// <summary>
+        /// Non-Giver
+        /// </summary>
+        NonGiver = 0,
+
+        /// <summary>
+        /// New giver.
+        /// </summary>
+        NewGiver = 1,
+
+        /// <summary>
+        /// Occasional giver
+        /// </summary>
+        OccasionalGiver = 2,
+
+        /// <summary>
+        /// Consistent giver
+        /// </summary>
+        ConsistentGiver = 3,
+
+        /// <summary>
+        /// Lapsed giver
+        /// </summary>
+        LapsedGiver = 4,
+
+        /// <summary>
+        /// Former giver
+        /// </summary>
+        FormerGiver = 5
+    }
 }
