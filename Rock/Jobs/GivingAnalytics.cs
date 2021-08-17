@@ -267,14 +267,9 @@ Created {context.AlertsCreated} {"alert".PluralizeIf( context.AlertsCreated != 1
         /// <returns></returns>
         private static string GetAttributeKey( GivingAnalyticsContext context, string guidString )
         {
-            var guid = guidString.AsGuidOrNull();
-            string key = null;
-            if ( guid.HasValue )
-            {
-                key = AttributeCache.Get( guid.Value )?.Key;
-            }
+            var key = AttributeCache.Get( guidString )?.Key;
 
-            if ( !guid.HasValue || key.IsNullOrWhiteSpace() )
+            if ( key.IsNullOrWhiteSpace() )
             {
                 context.Errors.Add( $"An attribute was expected using the guid '{guidString}', but failed to resolve" );
             }
@@ -466,7 +461,7 @@ Created {context.AlertsCreated} {"alert".PluralizeIf( context.AlertsCreated != 1
         /// <value>
         /// The global repeat prevention days.
         /// </value>
-        private static int? GratitudeRepeatPreventionDays
+        private static int? GratitiudeRepeatPreventionDays
         {
             get
             {
@@ -811,11 +806,11 @@ Created {context.AlertsCreated} {"alert".PluralizeIf( context.AlertsCreated != 1
 
             var lastGratitudeAlertDate = recentAlerts.LastOrDefault( a => a.AlertType == AlertType.Gratitude )?.AlertDateTime;
 
-            if ( GratitudeRepeatPreventionDays.HasValue && lastGratitudeAlertDate.HasValue )
+            if ( GratitiudeRepeatPreventionDays.HasValue && lastGratitudeAlertDate.HasValue )
             {
                 var daysSinceLastGratitiudeAlert = ( context.Now - lastGratitudeAlertDate.Value ).TotalDays;
 
-                if ( daysSinceLastGratitiudeAlert <= GratitudeRepeatPreventionDays.Value )
+                if ( daysSinceLastGratitiudeAlert <= GratitiudeRepeatPreventionDays.Value )
                 {
                     // This group has gratitude alerts within the repeat duration. Don't create any new gratitude alerts.
                     return false;
@@ -1743,95 +1738,6 @@ Created {context.AlertsCreated} {"alert".PluralizeIf( context.AlertsCreated != 1
             // Update the next expected gift date
             var nextExpectedGiftDate = lastTransactionDate.HasValue ? lastTransactionDate.Value.AddDays( meanFrequencyDays ) : ( DateTime? ) null;
             SetGivingUnitAttributeValue( context, people, SystemGuid.Attribute.PERSON_GIVING_NEXT_EXPECTED_GIFT_DATE, nextExpectedGiftDate );
-
-
-            return true;
-        }
-
-
-        /// <summary>
-        /// Updates the journey classification.
-        /// </summary>
-        /// <param name="givingId">The giving identifier.</param>
-        /// <param name="people">The people.</param>
-        /// <param name="context">The context.</param>
-        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise.</returns>
-        public static bool UpdateJourneyClassificationForGivingUnit(
-            string givingId,
-            List<Person> people,
-            GivingAnalyticsContext context )
-        {
-            /* Giving Unit Journey Stage */
-            // TODO
-
-            GivingJourneySettings givingJourneySettings = GetGivingAnalyticsSettings()?.GivingJourneySettings;
-            if ( givingJourneySettings == null )
-            {
-                return false;
-            }
-
-            var daysToRun = givingJourneySettings.DaysToUpdateGivingJourneys ?? new List<DayOfWeek>();
-
-            if ( !daysToRun.Contains( context.Now.DayOfWeek ) )
-            {
-                return false;
-            }
-
-            var givingFrequencyMeanDays = GetGivingUnitAttributeValue( context, people, Rock.SystemGuid.Attribute.PERSON_GIVING_FREQUENCY_MEAN_DAYS ).AsDecimal();
-            var lastGiftDate = GetGivingUnitAttributeValue( context, people, Rock.SystemGuid.Attribute.PERSON_ERA_LAST_GAVE ).AsDateTime();
-            var originalJournalStageValue = GetGivingUnitAttributeValue( context, people, Rock.SystemGuid.Attribute.PERSON_GIVING_CURRENT_GIVING_JOURNEY_STAGE ).AsIntegerOrNull();
-            GivingJourneyStage? originalJournalStage = originalJournalStageValue.HasValue ? ( GivingJourneyStage ) originalJournalStageValue.Value : ( GivingJourneyStage? ) null;
-            GivingJourneyStage? currentGivingJourneyStage = null;
-
-            var formerGiverNoContributionInTheLastDays = givingJourneySettings.FormerGiverNoContributionInTheLastDays;
-            if ( formerGiverNoContributionInTheLastDays.HasValue && lastGiftDate.HasValue )
-            {
-                var daysSinceLastContribution = ( context.Now - lastGiftDate.Value ).TotalDays;
-                if ( daysSinceLastContribution > formerGiverNoContributionInTheLastDays )
-                {
-                    var formerGiverMedianFrequencyLessThanDays = givingJourneySettings.FormerGiverMedianFrequencyLessThanDays;
-                    if ( formerGiverMedianFrequencyLessThanDays.HasValue )
-                    {
-                        if ( givingFrequencyMeanDays < formerGiverMedianFrequencyLessThanDays.Value )
-                        {
-                            currentGivingJourneyStage = GivingJourneyStage.FormerGiver;
-                        }
-                    }
-                    else
-                    {
-                        currentGivingJourneyStage = GivingJourneyStage.FormerGiver;
-                    }
-                }
-            }
-
-            if ( !currentGivingJourneyStage.HasValue )
-            {
-                var lapsedGiverNoContributionInTheLastDays = givingJourneySettings.LapsedGiverNoContributionInTheLastDays;
-
-                if ( lapsedGiverNoContributionInTheLastDays.HasValue && lastGiftDate.HasValue )
-                {
-                    var lapsedGiverMedianFrequencyLessThanDays = givingJourneySettings.LapsedGiverMedianFrequencyLessThanDays;
-
-                    var daysSinceLastContribution = ( context.Now - lastGiftDate.Value ).TotalDays;
-                    if ( daysSinceLastContribution > formerGiverNoContributionInTheLastDays )
-                    {
-                        if ( lapsedGiverMedianFrequencyLessThanDays.HasValue )
-                        {
-                            currentGivingJourneyStage = GivingJourneyStage.FormerGiver;
-                        }
-                        else
-                        {
-                            currentGivingJourneyStage = GivingJourneyStage.FormerGiver;
-                        }
-                    }
-                }
-            }
-
-            GivingJourneyStage previousGivingJourneyStage = GivingJourneyStage.NonGiver;
-            DateTime? givingJourneyStateChangeDate = RockDateTime.Now;
-            SetGivingUnitAttributeValue( context, people, SystemGuid.Attribute.PERSON_GIVING_CURRENT_GIVING_JOURNEY_STAGE, ( int ) currentGivingJourneyStage );
-            SetGivingUnitAttributeValue( context, people, SystemGuid.Attribute.PERSON_GIVING_PREVIOUS_GIVING_JOURNEY_STAGE, ( int ) previousGivingJourneyStage );
-            SetGivingUnitAttributeValue( context, people, SystemGuid.Attribute.PERSON_GIVING_GIVING_JOURNEY_STAGE_CHANGE_DATE, givingJourneyStateChangeDate );
 
             return true;
         }
