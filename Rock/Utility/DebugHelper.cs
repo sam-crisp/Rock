@@ -76,6 +76,10 @@ namespace Rock
         {
             public int CallNumber { get; set; }
             public Stopwatch Stopwatch { get; set; }
+            public double CommandExecutedStopwatchMS { get; internal set; }
+            public double CommandExecutedSqlExecutionTimeMS { get; internal set; }
+            public double StatementCompletedStopwatchMS { get; internal set; }
+            public double StatementCompletedSqlExecutionTimeMS { get; internal set; }
         }
 
         /// <summary>
@@ -215,10 +219,16 @@ namespace Rock
 
                 StackTrace st = new StackTrace( 2, true );
                 var frames = st.GetFrames().Where( a => a.GetFileName() != null );
+                var stackTraceMessage = frames.ToList().AsDelimited( "" );
 
-                sbDebug.AppendLine( string.Format( "/* Call# {0}*/", incrementedCallCount ) );
+                sbDebug.Append( $@"
+/*
+Call# {incrementedCallCount}
+StackTrace:
+{stackTraceMessage}
+*/");
 
-                sbDebug.AppendLine( string.Format( "/*\n{0}*/", frames.ToList().AsDelimited( "" ) ) );
+                sbDebug.AppendLine( string.Format( "\n{0}*/",  ) );
 
                 sbDebug.AppendLine( "BEGIN\n" );
 
@@ -294,19 +304,48 @@ namespace Rock
                 var debugHelperUserState = userState as DebugHelperUserState;
                 if ( debugHelperUserState != null )
                 {
+                    //( command as System.Data.SqlClient.SqlCommand ).StatementCompleted -= DebugLoggingDbCommandInterceptor_StatementCompleted;
+                    ( command as System.Data.SqlClient.SqlCommand ).StatementCompleted += ( object sender, System.Data.StatementCompletedEventArgs e ) =>
+                    {
+
+                        debugHelperUserState.Stopwatch.Stop();
+                        var eventCommand = sender as System.Data.SqlClient.SqlCommand;
+                        var sameCommand = eventCommand == command;
+                        var eventSqlConnection = command.Connection as System.Data.SqlClient.SqlConnection;
+                        var eventStats = eventSqlConnection.RetrieveStatistics();
+                        var eventCallNumber = debugHelperUserState.CallNumber;
+
+                        var eventCommandExecutionTimeInMs = ( long ) eventStats["ExecutionTime"];
+                        debugHelperUserState.StatementCompletedStopwatchMS = debugHelperUserState.Stopwatch.Elapsed.TotalMilliseconds;
+                        debugHelperUserState.StatementCompletedSqlExecutionTimeMS = eventCommandExecutionTimeInMs;
+                        eventSqlConnection.StatisticsEnabled = false;
+
+                        if ( !SummaryOnly )
+                        {
+                            System.Diagnostics.Debug.Write( $@"
+/*
+Call# {debugHelperUserState.CallNumber}:
+  - ElapsedTime   (CommandExecuted)    [{debugHelperUserState.CommandExecutedStopwatchMS,10:#.##}ms]
+  - ExecutionTime (CommandExecuted)    [{debugHelperUserState.CommandExecutedSqlExecutionTimeMS,10:#.##}ms]
+  - ElapsedTime   (StatementCompleted) [{debugHelperUserState.StatementCompletedStopwatchMS,10:#.##}ms]
+  - ExecutionTime (StatementCompleted) [{debugHelperUserState.StatementCompletedSqlExecutionTimeMS,10:#.##}ms]
+*/
+" );
+                        }
+                    };
+
                     debugHelperUserState.Stopwatch.Stop();
 
-                    if ( !SummaryOnly )
-                    {
-                        var sqlConnection = command.Connection as System.Data.SqlClient.SqlConnection;
-                        var stats = sqlConnection.RetrieveStatistics();
-                        sqlConnection.StatisticsEnabled = false;
-                        var commandExecutionTimeInMs = ( long ) stats["ExecutionTime"];
-                        System.Diagnostics.Debug.Write( $"\n/* Call# {debugHelperUserState.CallNumber}: ElapsedTime [{debugHelperUserState.Stopwatch.Elapsed.TotalMilliseconds}ms], SQLConnection.Statistics['ExecutionTime'] = [{commandExecutionTimeInMs}ms] */\n" );
-                    }
+                    var sqlConnection = command.Connection as System.Data.SqlClient.SqlConnection;
+                    var stats = sqlConnection.RetrieveStatistics();
 
+                    var commandExecutionTimeInMs = ( long ) stats["ExecutionTime"];
+                    debugHelperUserState.CommandExecutedStopwatchMS = debugHelperUserState.Stopwatch.Elapsed.TotalMilliseconds;
+                    debugHelperUserState.CommandExecutedSqlExecutionTimeMS = commandExecutionTimeInMs;
                     var totalMicroSeconds = ( long ) Math.Round( debugHelperUserState.Stopwatch.Elapsed.TotalMilliseconds * 1000 );
                     Interlocked.Add( ref _callMicrosecondsTotal, totalMicroSeconds );
+
+                    debugHelperUserState.Stopwatch.Start();
                 }
             }
         }
