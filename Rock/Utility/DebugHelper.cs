@@ -228,8 +228,6 @@ StackTrace:
 {stackTraceMessage}
 */");
 
-                sbDebug.AppendLine( string.Format( "\n{0}*/",  ) );
-
                 sbDebug.AppendLine( "BEGIN\n" );
 
                 var declares = command.Parameters.OfType<System.Data.SqlClient.SqlParameter>()
@@ -301,6 +299,9 @@ StackTrace:
             /// <param name="userState">State of the user.</param>
             public void CommandExecuted( System.Data.Common.DbCommand command, DbCommandInterceptionContext interceptionContext, object userState )
             {
+                var sqlReaderContext = interceptionContext as System.Data.Entity.Infrastructure.Interception.DbCommandInterceptionContext<System.Data.Common.DbDataReader>;
+                //System.Data.SqlClient.SqlDataReader sqlDataReader = ( (  ) interceptionContext ).Result as System.Data.SqlClient.SqlDataReader;
+
                 var debugHelperUserState = userState as DebugHelperUserState;
                 if ( debugHelperUserState != null )
                 {
@@ -324,11 +325,11 @@ StackTrace:
                         {
                             System.Diagnostics.Debug.Write( $@"
 /*
-Call# {debugHelperUserState.CallNumber}:
-  - ElapsedTime   (CommandExecuted)    [{debugHelperUserState.CommandExecutedStopwatchMS,10:#.##}ms]
-  - ExecutionTime (CommandExecuted)    [{debugHelperUserState.CommandExecutedSqlExecutionTimeMS,10:#.##}ms]
-  - ElapsedTime   (StatementCompleted) [{debugHelperUserState.StatementCompletedStopwatchMS,10:#.##}ms]
-  - ExecutionTime (StatementCompleted) [{debugHelperUserState.StatementCompletedSqlExecutionTimeMS,10:#.##}ms]
+Call# {debugHelperUserState.CallNumber} Timings:
+  [{debugHelperUserState.CommandExecutedSqlExecutionTimeMS,10:#.00} ms] ExecutionTime (CommandExecuted)    
+  [{debugHelperUserState.CommandExecutedStopwatchMS,10:#.00} ms] ElapsedTime   (CommandExecuted)    
+  [{debugHelperUserState.StatementCompletedSqlExecutionTimeMS,10:#.00} ms] ExecutionTime (StatementCompleted)
+  [{debugHelperUserState.StatementCompletedStopwatchMS,10:#.00} ms] ElapsedTime   (StatementCompleted) 
 */
 " );
                         }
