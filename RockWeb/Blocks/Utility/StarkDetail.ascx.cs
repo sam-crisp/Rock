@@ -15,10 +15,23 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data.Entity;
+using System.Data.SqlClient;
+using System.Data.SqlTypes;
+using System.Diagnostics;
+using System.Linq;
+using System.Text;
 using System.Web.UI;
+
+using Rock;
 using Rock.Attribute;
+using Rock.Data;
 using Rock.Model;
+using Rock.SystemKey;
+using Rock.Utility.Settings.GivingAnalytics;
+using Rock.Web.Cache;
 
 namespace RockWeb.Blocks.Utility
 {
@@ -108,11 +121,98 @@ namespace RockWeb.Blocks.Utility
 
             if ( !Page.IsPostBack )
             {
-                // Added for your convenience.
-
-                // To show the created/modified by date time details in the PanelDrawer do something like this:
-                // pdAuditDetails.SetEntity( <YOUROBJECT>, ResolveRockUrl( "~" ) );
+                //ShowPluginDllsReport();
+                ProcessGivingJourneys();
             }
+        }
+
+        /// <summary>
+        /// Processes the giving journeys.
+        /// </summary>
+        private void ProcessGivingJourneys()
+        {
+
+            var givingAnalyticsSetting = GetGivingAnalyticsSettings();
+            var transctionType = givingAnalyticsSetting.TransactionTypeGuids.Select( a => DefinedValueCache.Get( a ) );
+
+            var rockContext = new RockContext();
+            var personService = new PersonService( rockContext );
+
+            // TODO Include Businesses?
+            var personQuery = personService.Queryable();
+
+            var personAliasService = new PersonAliasService( rockContext );
+            var personAliasQuery = personAliasService.Queryable();
+            var financialTransactionService = new FinancialTransactionService( rockContext );
+            var financialTransactionGivingAnalyticsQuery = financialTransactionService.GetGivingAnalyticsSourceTransactionQuery();
+
+            rockContext.SqlLogging( true );
+
+            /* Get Non-Giver GivingIds */
+            var nonGiverGivingIdsQuery = personQuery.Where( p => financialTransactionGivingAnalyticsQuery.Any( ft => !personAliasQuery.Any( pa => pa.Id == ft.AuthorizedPersonAliasId && pa.PersonId == p.Id ) ) );
+            var nonGiverGivingIdsList = nonGiverGivingIdsQuery.Select( a => a.GivingId ).ToList().Distinct().ToList();
+
+            /* Get TransactionDateList for each GivingId in the system */
+            var transactionDateTimes = financialTransactionGivingAnalyticsQuery.Select( a => new
+            {
+                GivingId = personAliasQuery.Where( pa => pa.Id == a.AuthorizedPersonAliasId ).Select( pa => pa.Person.GivingId ).FirstOrDefault(),
+                a.TransactionDateTime
+            } ).ToList();
+
+            var transactionDateTimesByGivingId = transactionDateTimes
+                    .GroupBy( g => g.GivingId )
+                    .Select( s => new
+                    {
+                        GivingId = s.Key,
+                        TransactionDateTimeList = s.Select( x => x.TransactionDateTime ).ToList()
+                    } ).ToDictionary( k => k.GivingId, v => v.TransactionDateTimeList );
+
+
+            // TODO...
+        }
+
+        
+
+        /// <summary>
+        /// Gets the giving analytics settings.
+        /// </summary>
+        /// <returns></returns>
+        private static GivingAnalyticsSetting GetGivingAnalyticsSettings()
+        {
+            return Rock.Web.SystemSettings
+                .GetValue( SystemSetting.GIVING_ANALYTICS_CONFIGURATION )
+                .FromJsonOrNull<GivingAnalyticsSetting>() ?? new GivingAnalyticsSetting();
+        }
+
+        private void ShowPluginDllsReport()
+        {
+            var pluginDlls = Reflection.GetPluginAssemblies().Where( a => !a.GetName().Name.StartsWith( "Rock." ) && !a.GetName().Name.StartsWith( "App_Code")  );
+            var stringBuilderPluginReport = new StringBuilder();
+            foreach ( var pluginDll in pluginDlls.OrderBy( a => a.FullName ) )
+            {
+                var rockReference = pluginDll.GetReferencedAssemblies().Where( a => a.Name == "Rock"  ).FirstOrDefault();
+                stringBuilderPluginReport.AppendLine( $@"
+<div class='row'>
+    <div class='col-md-6'>
+        <span>{pluginDll.GetName().Name}</span>
+    </div>
+    <div class='col-md-6'>
+        Rock.Version: {rockReference?.Version}
+    </div>
+</div>" );
+            }
+
+            stringBuilderPluginReport.AppendLine( $@"
+<div class='row'>
+    <div class='col-md-6'>
+        <span class='label label-warning'>bad.knownbadpluginname.dll</span>
+    </div>
+    <div class='col-md-6'>
+        Rock.Version: 1.4.0.1
+    </div>
+</div>" );
+
+            lPluginDllsReport.Text = $"{stringBuilderPluginReport.ToString()}";
         }
 
         #endregion
