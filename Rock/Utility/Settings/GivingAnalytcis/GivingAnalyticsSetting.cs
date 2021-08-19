@@ -34,7 +34,7 @@ namespace Rock.Utility.Settings.GivingAnalytics
          */
 
         /// <summary>
-        /// Gets or sets the giving analytics.
+        /// This is the Settings for the <see cref="Rock.Jobs.GivingAnalytics"/> Job.
         /// </summary>
         /// <value>
         /// The giving analytics.
@@ -82,7 +82,8 @@ namespace Rock.Utility.Settings.GivingAnalytics
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="GivingAnalyticsSetting"/> class.
+    /// This is the Settings for the <see cref="Rock.Jobs.GivingAnalytics">Rock.Jobs.GivingAnalytics</see> Job.
+    /// NOTE: Make sure to fully qualify this class as <c>Rock.Utility.Settings.GivingAnalytics.GivingAnalytics</c> to avoid namespace collisions.
     /// </summary>
     public class GivingAnalytics
     {

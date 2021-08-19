@@ -641,6 +641,7 @@
     <Compile Include="Financial\FinancialStatementGeneratorRecipientRequest.cs" />
     <Compile Include="Financial\FinancialStatementGeneratorUploadGivingStatementData.cs" />
     <Compile Include="Financial\FinancialStatementGeneratorUploadGivingStatementResult.cs" />
+    <Compile Include="Financial\GivingJourneyHelper.cs" />
     <Compile Include="Financial\IFeeCoverageGatewayComponent.cs" />
     <Compile Include="Financial\IHostedGatewayPaymentControlCurrencyTypeEvent.cs" />
     <Compile Include="Financial\FinancialStatementGeneratorPledgeSummary.cs" />

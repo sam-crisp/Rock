@@ -2,9 +2,10 @@ set nocount on
 
 /* Change these settings to your liking*/
 declare
-    @yearsBack int = 1,
-    @maxPersonCount INT = 40000, /* limit to first X persons in the database (Handy for testing Statement Generator) */ 
-    @maxTransactionCount int = 100000, 
+    @yearsBack int = 15,
+    @randomizePersonList bit = 0,  /* set to false to use a consistent set of X people (ordered by Person.Id) instead of using a randomized set */
+    @maxPersonCount INT = 40000, /* limit to a count of X persons in the database (Handy for testing Statement Generator) */
+    @maxTransactionCount int = 500000, 
     @maxBatchNumber INT = 1000
 
 declare
@@ -79,7 +80,10 @@ BEGIN
 END
 
 -- put all personIds in randomly ordered cursor to speed up getting a random personAliasId for each attendance
-declare personAliasIdCursor cursor LOCAL FAST_FORWARD for select top( @maxPersonCount ) Id from PersonAlias order by newid();
+declare personAliasIdCursor cursor LOCAL FAST_FORWARD for select top( @maxPersonCount ) Id from PersonAlias 
+    order by 
+    case when @randomizePersonList = 1 then CHECKSUM(NEWID()) else PersonId end
+
 open personAliasIdCursor;
 
 IF CURSOR_STATUS('global','batchIdCursor')>=-1

@@ -57,7 +57,7 @@ namespace RockWeb.Blocks.Finance
 
         #region Fields
 
-        private GivingAnalyticsSetting _givingAnalyticsSetting = new GivingAnalyticsSetting();
+        private Rock.Utility.Settings.GivingAnalytics.GivingAnalyticsSetting _givingAnalyticsSetting = new Rock.Utility.Settings.GivingAnalytics.GivingAnalyticsSetting();
 
         #endregion
 
@@ -340,7 +340,16 @@ namespace RockWeb.Blocks.Finance
 
             var isCustomAccounts = rblAccountTypes.SelectedValue == AccountTypes_Custom;
 
-            _givingAnalyticsSetting.GivingAnalytics = _givingAnalyticsSetting.GivingAnalytics ?? new GivingAnalytics();
+            /* 08-18-2021 MDP
+             
+             * Make sure to fully qualify Rock.Utility.Settings.GivingAnalytics.GivingAnalytics since there is also RockWeb.Blocks.Finance.GivingAnalytics block.
+             * You'll only get an error with doing a full build of RockWeb (which builds in batch).
+             
+             */
+
+            _givingAnalyticsSetting.GivingAnalytics = _givingAnalyticsSetting.GivingAnalytics ?? new Rock.Utility.Settings.GivingAnalytics.GivingAnalytics();
+
+
             _givingAnalyticsSetting.GivingJourneySettings = _givingAnalyticsSetting.GivingJourneySettings ?? new GivingJourneySettings();
             _givingAnalyticsSetting.Alerting = _givingAnalyticsSetting.Alerting ?? new Alerting();
             _givingAnalyticsSetting.FinancialAccountGuids = isCustomAccounts ? accountGuids : null;
@@ -404,8 +413,15 @@ namespace RockWeb.Blocks.Finance
             // Load values from the system settings
             _givingAnalyticsSetting = Rock.Web.SystemSettings.GetValue( SystemSetting.GIVING_ANALYTICS_CONFIGURATION ).FromJsonOrNull<GivingAnalyticsSetting>() ?? new GivingAnalyticsSetting();
 
+            /* 08-18-2021 MDP
+             
+             * Make sure to fully qualify Rock.Utility.Settings.GivingAnalytics.GivingAnalytics since there is also RockWeb.Blocks.Finance.GivingAnalytics block.
+             * You'll only get an error with doing a full build of RockWeb (which builds in batch).
+             
+             */
+
             // make sure properties are initialized
-            _givingAnalyticsSetting.GivingAnalytics = _givingAnalyticsSetting.GivingAnalytics ?? new GivingAnalytics();
+            _givingAnalyticsSetting.GivingAnalytics = _givingAnalyticsSetting.GivingAnalytics ?? new Rock.Utility.Settings.GivingAnalytics.GivingAnalytics();
             _givingAnalyticsSetting.Alerting = _givingAnalyticsSetting.Alerting ?? new Alerting();
             _givingAnalyticsSetting.GivingJourneySettings = _givingAnalyticsSetting.GivingJourneySettings ?? new GivingJourneySettings();
 

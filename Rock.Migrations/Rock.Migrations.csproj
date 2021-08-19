@@ -65,6 +65,14 @@
     <Compile Include="Migrations\202108171910402_CodeGenerated_0817.Designer.cs">
       <DependentUpon>202108171910402_CodeGenerated_0817.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202108182207581_GivingAnalytics01.cs" />
+    <Compile Include="Migrations\202108182207581_GivingAnalytics01.Designer.cs">
+      <DependentUpon>202108182207581_GivingAnalytics01.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202108182210077_GivingAnalytics02.cs" />
+    <Compile Include="Migrations\202108182210077_GivingAnalytics02.Designer.cs">
+      <DependentUpon>202108182210077_GivingAnalytics02.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\RockMigrationSQL.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -1893,6 +1901,12 @@
   <ItemGroup>
     <EmbeddedResource Include="Migrations\202108171910402_CodeGenerated_0817.resx">
       <DependentUpon>202108171910402_CodeGenerated_0817.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202108182207581_GivingAnalytics01.resx">
+      <DependentUpon>202108182207581_GivingAnalytics01.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202108182210077_GivingAnalytics02.resx">
+      <DependentUpon>202108182210077_GivingAnalytics02.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\Version 12.0\Version 1.12.5\202106042044568_StatementGeneratorDefaultTemplateUpdate.resx">
       <DependentUpon>202106042044568_StatementGeneratorDefaultTemplateUpdate.cs</DependentUpon>

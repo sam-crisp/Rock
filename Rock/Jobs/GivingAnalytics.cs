@@ -30,6 +30,7 @@ using Quartz;
 using Rock.Attribute;
 using Rock.Bus.Message;
 using Rock.Data;
+using Rock.Financial;
 using Rock.Model;
 using Rock.SystemKey;
 using Rock.Tasks;
@@ -178,6 +179,8 @@ namespace Rock.Jobs
 
             // Create alerts for "late" gifts
             ProcessLateAlerts( context );
+
+            GivingJourneyHelper.ProcessGivingJourneys();
 
             // Store the last run date
             LastRunDateTime = context.Now;
