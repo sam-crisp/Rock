@@ -564,9 +564,9 @@ namespace Rock.Model
                                     var strBuilder = new StringBuilder();
                                     strBuilder.Append( "Added" );
 
-                                    strBuilder.Append( $" {this.ValueName} on {this.CreatedDateTime }" );
+                                    strBuilder.Append( $" {this.ValueName} on {this.CreatedDateTime.ToShortDateString() }" );
 
-                                    // if RelatedData is not NULL is is most likely message.FromName. NOTE: if it is string.Empty, still append the field-value span so that it renders like pre-v8
+                                    // If RelatedData is not NULL it is most likely message.FromName. NOTE: If it is string.Empty, still append the field-value span so that it renders like pre-v8.
                                     if ( this.RelatedData != null )
                                     {
                                         strBuilder.Append( $" at {this.RelatedData}." );
