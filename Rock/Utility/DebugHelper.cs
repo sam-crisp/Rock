@@ -55,7 +55,7 @@ namespace Rock
         /// Limits Debug Output to the current asp.net SessionId
         /// </summary>
         /// <param name="enable">if set to <c>true</c> [enable].</param>
-        public static void LimitToSessionId( bool enable = true)
+        public static void LimitToSessionId( bool enable = true )
         {
             if ( enable )
             {
@@ -226,7 +226,7 @@ namespace Rock
 Call# {incrementedCallCount}
 StackTrace:
 {stackTraceMessage}
-*/");
+*/" );
 
                 sbDebug.AppendLine( "BEGIN\n" );
 
@@ -308,7 +308,6 @@ StackTrace:
                     //( command as System.Data.SqlClient.SqlCommand ).StatementCompleted -= DebugLoggingDbCommandInterceptor_StatementCompleted;
                     ( command as System.Data.SqlClient.SqlCommand ).StatementCompleted += ( object sender, System.Data.StatementCompletedEventArgs e ) =>
                     {
-
                         debugHelperUserState.Stopwatch.Stop();
                         var eventCommand = sender as System.Data.SqlClient.SqlCommand;
                         var sameCommand = eventCommand == command;
@@ -321,15 +320,31 @@ StackTrace:
                         debugHelperUserState.StatementCompletedSqlExecutionTimeMS = eventCommandExecutionTimeInMs;
                         eventSqlConnection.StatisticsEnabled = false;
 
+                        string commandExecutionTimeText = $"{debugHelperUserState.CommandExecutedSqlExecutionTimeMS,6:0}     ms";
+                        string statementExecutionTimeText = $"{debugHelperUserState.StatementCompletedSqlExecutionTimeMS,6:0}     ms";
+
+                        // SQL server rounds to the nearest millisecond, which means it'll be meaningless compared to our ElapsedTime if it is less than 2ms
+                        if ( debugHelperUserState.CommandExecutedSqlExecutionTimeMS < 2 )
+                        {
+                            commandExecutionTimeText = "-   ".PadLeft( 13 );
+                        }
+                        if ( debugHelperUserState.StatementCompletedSqlExecutionTimeMS < 2 )
+                        {
+                            statementExecutionTimeText = "-   ".PadLeft( 13 );
+                        }
+                        var commandExecutedElaspedTimeMS = debugHelperUserState.CommandExecutedStopwatchMS;
+                        var statementCompletedElapsedTimeMS = debugHelperUserState.StatementCompletedStopwatchMS - debugHelperUserState.CommandExecutedStopwatchMS;
+
                         if ( !SummaryOnly )
                         {
                             System.Diagnostics.Debug.Write( $@"
 /*
 Call# {debugHelperUserState.CallNumber} Timings:
-  [{debugHelperUserState.CommandExecutedSqlExecutionTimeMS,10:#.00} ms] ExecutionTime (CommandExecuted)    
-  [{debugHelperUserState.CommandExecutedStopwatchMS,10:#.00} ms] ElapsedTime   (CommandExecuted)    
-  [{debugHelperUserState.StatementCompletedSqlExecutionTimeMS,10:#.00} ms] ExecutionTime (StatementCompleted)
-  [{debugHelperUserState.StatementCompletedStopwatchMS,10:#.00} ms] ElapsedTime   (StatementCompleted) 
+  [{commandExecutionTimeText}] ExecutionTime (CommandExecuted)    
+  [{commandExecutedElaspedTimeMS,10:0.000} ms] ElapsedTime   (CommandExecuted)    
+  [{statementExecutionTimeText}] ExecutionTime (StatementCompleted)
+  [{statementCompletedElapsedTimeMS,10:0.000} ms] ElapsedTime   (StatementCompleted)
+  [{debugHelperUserState.StatementCompletedStopwatchMS,10:0.000} ms] Total
 */
 " );
                         }
