@@ -16,7 +16,11 @@
 //
 using System;
 using System.ComponentModel;
+using System.Linq;
+using System.Text;
 using System.Web.UI;
+
+using Rock;
 using Rock.Attribute;
 using Rock.Model;
 
@@ -135,8 +139,47 @@ namespace RockWeb.Blocks.Utility
 
         #region Methods
 
-        // helper functional methods (like BindGrid(), etc.)
+        private string GetPluginDllsReport()
+        {
+            var pluginDlls = Reflection.GetPluginAssemblies().Where( a => !a.GetName().Name.StartsWith( "Rock." ) && !a.GetName().Name.StartsWith( "App_Code" ) );
+            var stringBuilderPluginReport = new StringBuilder();
+            if (!pluginDlls.Any())
+            {
+                return "<pre>No Plugins Installed</pre>";
+            }
+
+            foreach ( var pluginDll in pluginDlls.OrderBy( a => a.FullName ) )
+            {
+                var rockReference = pluginDll.GetReferencedAssemblies().Where( a => a.Name == "Rock" ).FirstOrDefault();
+                stringBuilderPluginReport.AppendLine( $@"
+<div class='row'>
+    <div class='col-md-6'>
+        <span>{pluginDll.GetName().Name}</span>
+    </div>
+    <div class='col-md-6'>
+        Rock.Version: {rockReference?.Version}
+    </div>
+</div>" );
+            }
+
+            stringBuilderPluginReport.AppendLine( $@"
+<div class='row'>
+    <div class='col-md-6'>
+        <span class='label label-warning'>bad.knownbadpluginname.dll</span>
+    </div>
+    <div class='col-md-6'>
+        Rock.Version: 1.4.0.1
+    </div>
+</div>" );
+
+            return stringBuilderPluginReport.ToString();
+        }
 
         #endregion
+
+        protected void btnGetReport_Click( object sender, EventArgs e )
+        {
+            lPluginDllsReport.Text = GetPluginDllsReport();
+        }
     }
 }
