@@ -32,6 +32,7 @@ using Rock;
 using Rock.Data;
 using Rock.Web.Cache;
 using Rock.Lava;
+using Ical.Net.CalendarComponents;
 
 namespace Rock.Model
 {
@@ -302,7 +303,7 @@ namespace Rock.Model
 
                 var calEvent = GetICalEvent();
 
-                Ical.Net.Interfaces.DataTypes.IRecurrencePattern rrule = null;
+                RecurrencePattern rrule = null;
 
                 if ( calEvent != null )
                 {
@@ -662,9 +663,9 @@ namespace Rock.Model
         /// Gets the Schedule's iCalender Event.
         /// </summary>
         /// <value>
-        /// A <see cref="Ical.Net.Event"/> representing the iCalendar event for this Schedule.
+        /// A <see cref="Ical.Net.CalendarComponents.CalendarEvent"/> representing the iCalendar event for this Schedule.
         /// </value>
-        public virtual Ical.Net.Event GetICalEvent()
+        public virtual CalendarEvent GetICalEvent()
         {
             if ( _getICalEvent == null )
             {
@@ -674,7 +675,7 @@ namespace Rock.Model
             return _getICalEvent;
         }
 
-        private Ical.Net.Event _getICalEvent = null;
+        private CalendarEvent _getICalEvent = null;
 
         /// <summary>
         /// Gets the occurrences.
@@ -783,7 +784,7 @@ namespace Rock.Model
             }
             else
             {
-                Event calEvent = GetICalEvent();
+                var calEvent = GetICalEvent();
                 if ( calEvent == null )
                 {
                     return occurrences;
@@ -1656,7 +1657,7 @@ namespace Rock.Model
         /// <returns></returns>
         [RockObsolete( "1.12.4" )]
         [Obsolete( "Use CreateCalendarEvent instead" )]
-        public static Ical.Net.Event GetCalendarEvent( string iCalendarContent )
+        public static CalendarEvent GetCalendarEvent( string iCalendarContent )
         {
             // changed to obsolete because this used to return a shared object that could be altered or create thread-safety issues
             return CreateCalendarEvent( iCalendarContent );
@@ -1667,11 +1668,11 @@ namespace Rock.Model
         /// </summary>
         /// <param name="iCalendarContent">RFC 5545 ICal Content</param>
         /// <returns></returns>
-        public static Event CreateCalendarEvent( string iCalendarContent )
+        public static CalendarEvent CreateCalendarEvent( string iCalendarContent )
         {
-            StringReader stringReader = new StringReader( iCalendarContent );
-            var calendarList = Calendar.LoadFromStream( stringReader );
-            Event calendarEvent = null;
+            var stringReader = new StringReader( iCalendarContent );
+            var calendarList = CalendarCollection.Load( stringReader );
+            CalendarEvent calendarEvent = null;
 
             //// iCal is stored as a list of Calendar's each with a list of Events, etc.  
             //// We just need one Calendar and one Event
@@ -1680,7 +1681,7 @@ namespace Rock.Model
                 var calendar = calendarList[0] as Calendar;
                 if ( calendar != null )
                 {
-                    calendarEvent = calendar.Events[0] as Event;
+                    calendarEvent = calendar.Events[0] as CalendarEvent;
                 }
             }
 
@@ -1695,7 +1696,7 @@ namespace Rock.Model
         /// <returns></returns>
         [Obsolete("Use the override with the string instead of the Ical.Net.Event.")]
         [RockObsolete( "1.12.4" )]
-        public static IList<Occurrence> GetOccurrences( Ical.Net.Event icalEvent, DateTime startTime )
+        public static IList<Occurrence> GetOccurrences( CalendarEvent icalEvent, DateTime startTime )
         {
             return icalEvent.GetOccurrences( startTime ).ToList();
         }
@@ -1709,7 +1710,7 @@ namespace Rock.Model
         /// <returns></returns>
         [Obsolete("Use the override with the string instead of the Ical.Net.Event.")]
         [RockObsolete( "1.12.4" )]
-        public static IList<Occurrence> GetOccurrences( Ical.Net.Event icalEvent, DateTime startTime, DateTime endTime )
+        public static IList<Occurrence> GetOccurrences( CalendarEvent icalEvent, DateTime startTime, DateTime endTime )
         {
             return icalEvent.GetOccurrences( startTime, endTime ).ToList();
         }

@@ -1240,11 +1240,11 @@ namespace Rock.Lava
 
             var endDate = startDate.AddYears( 1 );
 
-            var calendar = Calendar.LoadFromStream( new StringReader( iCalString ) ).First() as Calendar;
+            var calendar = CalendarCollection.Load( new StringReader( iCalString ) ).First();
 
             var tzName = RockDateTime.OrgTimeZoneInfo.Id;
 
-            var calendarEvent = calendar.Events[0] as Event;
+            var calendarEvent = calendar.Events[0];
 
             List<DateTimeOffset> dates;
 
