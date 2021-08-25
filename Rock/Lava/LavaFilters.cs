@@ -1240,34 +1240,43 @@ namespace Rock.Lava
 
             var endDate = startDate.AddYears( 1 );
 
-            var calendar = CalendarCollection.Load( new StringReader( iCalString ) ).First();
+            var dates = new List<DateTimeOffset>();
 
-            var tzName = RockDateTime.OrgTimeZoneInfo.Id;
+            var calendar = CalendarCollection.Load( new StringReader( iCalString ) ).FirstOrDefault();
 
-            var calendarEvent = calendar.Events[0];
-
-            List<DateTimeOffset> dates;
-
-            if ( !useEndDateTime && calendarEvent.DtStart != null )
+            if ( calendar == null )
             {
-                dates = calendar.GetOccurrences( startDate, endDate )
-                    .Take( returnCount )
-                    .Select( d => new DateTimeOffset( d.Period.StartTime.ToTimeZone( tzName ).Value ) )
-                    .ToList();
-            }
-            else if ( useEndDateTime && calendarEvent.DtEnd != null )
-            {
-                dates = calendar.GetOccurrences( startDate, endDate )
-                    .Take( returnCount )
-                    .Select( d => new DateTimeOffset( d.Period.EndTime.ToTimeZone( tzName ).Value ) )
-                    .ToList();
-            }
-            else
-            {
-                dates = new List<DateTimeOffset>();
+                return dates;
             }
 
-            dates = dates.Select( x => x.ToOffset( RockDateTime.OrgTimeZoneInfo.BaseUtcOffset ) ).ToList();
+            var tzRock = RockDateTime.OrgTimeZoneInfo;
+
+            // If the calendar does not define a timezone, assume it is intended for the Rock organization timezone.
+            if ( !calendar.TimeZones.Any() )
+            {
+                calendar.AddTimeZone( RockDateTime.OrgTimeZoneInfo );
+            }
+
+            var calendarEvents = calendar.GetOccurrences( startDate, endDate )
+                .Take( returnCount )
+                .ToList();
+
+            foreach ( var ce in calendarEvents )
+            {
+                var eventDate = useEndDateTime ? ce.Period.EndTime : ce.Period.StartTime;
+
+                if ( string.IsNullOrEmpty( eventDate?.TzId ) )
+                {
+                    var dto = new DateTimeOffset( eventDate.Year, eventDate.Month, eventDate.Day, eventDate.Hour, eventDate.Minute, eventDate.Second, eventDate.Millisecond, tzRock.BaseUtcOffset );
+
+                    dates.Add( dto );
+                }
+                else
+                {
+                    // Convert the event datetime to a Rock datetime.
+                    dates.Add( TimeZoneInfo.ConvertTime( eventDate.AsDateTimeOffset, tzRock ) );
+                }
+            }
 
             return dates;
         }
