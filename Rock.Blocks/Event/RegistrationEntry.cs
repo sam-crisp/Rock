@@ -2652,16 +2652,23 @@ namespace Rock.Blocks.Event
                 }.Send();
             }
 
-            if ( isNewRegistration && settings.WorkflowTypeIds.Any() )
+            if ( isNewRegistration )
             {
                 var registrationService = new RegistrationService( new RockContext() );
                 var newRegistration = registrationService.Get( registration.Id );
 
                 if ( newRegistration != null )
                 {
-                    foreach ( var workflowTypeId in settings.WorkflowTypeIds )
+                    foreach ( var item in newRegistration.Registrants.Where( r => r.PersonAlias != null && r.PersonAlias.Person != null ) )
                     {
-                        newRegistration.LaunchWorkflow( workflowTypeId, newRegistration.ToString() );
+                        newRegistration.LaunchWorkflow( settings.RegistrantWorkflowTypeId, newRegistration.ToString() );
+                    }
+                    if ( settings.WorkflowTypeIds.Any() )
+                    {
+                        foreach ( var workflowTypeId in settings.WorkflowTypeIds )
+                        {
+                            newRegistration.LaunchWorkflow( workflowTypeId, newRegistration.ToString() );
+                        }
                     }
                 }
             }
