@@ -25,6 +25,8 @@ using Rock.Model;
 using Rock.Web.UI.Controls;
 using System.Linq;
 using System.Linq.Expressions;
+using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace Rock.Reporting.DataFilter.ConnectionRequest
 {
@@ -107,8 +109,8 @@ function() {
         public override string FormatSelection( Type entityType, string selection )
         {
             string result = "Connection Type";
-            string[] selectionValues = selection.Split( '|' );
-            if ( selectionValues.Length >= 1 )
+            var selectionValues = JsonConvert.DeserializeObject<List<string>>( selection );
+            if ( selectionValues.Count >= 1 )
             {
                 var connectionType = new ConnectionTypeService( new RockContext() ).Get( selectionValues[0].AsGuid() );
 
@@ -167,15 +169,15 @@ function() {
         /// <returns></returns>
         public override string GetSelection( Type entityType, Control[] controls )
         {
+            var selectionValues = new List<string>();
             var connectionTypeId = ( controls[0] as RockDropDownList ).SelectedValueAsId();
-            Guid? connectionTypeGuid = null;
             var connectionType = new ConnectionTypeService( new RockContext() ).Get( connectionTypeId ?? 0 );
             if ( connectionType != null )
             {
-                connectionTypeGuid = connectionType.Guid;
+                selectionValues.Add( connectionType.Guid.ToString() );
             }
 
-            return connectionTypeGuid.ToString();
+            return selectionValues.ToJson();
         }
 
         /// <summary>
@@ -186,13 +188,16 @@ function() {
         /// <param name="selection">The selection.</param>
         public override void SetSelection( Type entityType, Control[] controls, string selection )
         {
-            string[] selectionValues = selection.Split( '|' );
-            if ( selectionValues.Length >= 1 )
+            if ( !string.IsNullOrWhiteSpace( selection ) )
             {
-                var connectionType = new ConnectionTypeService( new RockContext() ).Get( selectionValues[0].AsGuid() );
-                if ( connectionType != null )
+                var selectionValues = JsonConvert.DeserializeObject<List<string>>( selection );
+                if ( selectionValues.Count >= 1 )
                 {
-                    ( controls[0] as RockDropDownList ).SetValue( connectionType.Id );
+                    var connectionType = new ConnectionTypeService( new RockContext() ).Get( selectionValues[0].AsGuid() );
+                    if ( connectionType != null )
+                    {
+                        ( controls[0] as RockDropDownList ).SetValue( connectionType.Id );
+                    }
                 }
             }
         }
@@ -207,22 +212,26 @@ function() {
         /// <returns></returns>
         public override Expression GetExpression( Type entityType, IService serviceInstance, ParameterExpression parameterExpression, string selection )
         {
-            string[] selectionValues = selection.Split( '|' );
-            if ( selectionValues.Length >= 1 )
+            if ( !string.IsNullOrWhiteSpace( selection ) )
             {
-                var connectionType = new ConnectionTypeService( new RockContext() ).Get( selectionValues[0].AsGuid() );
-                int? connectionTypeId = null;
-                if ( connectionType != null )
+                var selectionValues = JsonConvert.DeserializeObject<List<string>>( selection );
+
+                if ( selectionValues.Count >= 1 )
                 {
-                    connectionTypeId = connectionType.Id;
+                    var connectionType = new ConnectionTypeService( new RockContext() ).Get( selectionValues[0].AsGuid() );
+                    int? connectionTypeId = null;
+                    if ( connectionType != null )
+                    {
+                        connectionTypeId = connectionType.Id;
+                    }
+
+                    var qry = new ConnectionRequestService( ( RockContext ) serviceInstance.Context ).Queryable()
+                        .Where( p => p.ConnectionOpportunity.ConnectionTypeId == connectionTypeId );
+
+                    Expression extractedFilterExpression = FilterExpressionExtractor.Extract<Rock.Model.ConnectionRequest>( qry, parameterExpression, "p" );
+
+                    return extractedFilterExpression;
                 }
-
-                var qry = new ConnectionRequestService( ( RockContext ) serviceInstance.Context ).Queryable()
-                    .Where( p => p.ConnectionOpportunity.ConnectionTypeId == connectionTypeId );
-
-                Expression extractedFilterExpression = FilterExpressionExtractor.Extract<Rock.Model.ConnectionRequest>( qry, parameterExpression, "p" );
-
-                return extractedFilterExpression;
             }
 
             return null;

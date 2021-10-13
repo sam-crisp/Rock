@@ -32,7 +32,7 @@ namespace Rock.Reporting.DataFilter.ConnectionRequest
     /// <summary>
     ///
     /// </summary>
-    [Description( "Would allow fitering by activity types." )]
+    [Description( "Would allow filtering by activity types." )]
     [Export( typeof( DataFilterComponent ) )]
     [ExportMetadata( "ComponentName", "Activity Filter" )]
     public class ActivityFilter : DataFilterComponent
@@ -106,30 +106,27 @@ namespace Rock.Reporting.DataFilter.ConnectionRequest
         {
             string s = "Activity";
 
-            string[] options = selection.Split( '|' );
-            if ( options.Length >= 4 )
+            var selectionConfig = SelectionConfig.Parse( selection );
+            if ( selectionConfig != null && selectionConfig.ConnectionActivityTypeGuid.HasValue )
             {
-                var activityType = new ConnectionActivityTypeService( new RockContext() ).Get( options[0].AsGuid() );
+                var activityType = new ConnectionActivityTypeService( new RockContext() ).Get( selectionConfig.ConnectionActivityTypeGuid.Value );
                 var activityName = GetActivityName( activityType );
-                ComparisonType comparisonType = options[1].ConvertToEnum<ComparisonType>( ComparisonType.GreaterThanOrEqualTo );
-
-                string dateRangeText;
-                int? lastXWeeks = options[3].AsIntegerOrNull();
-                if ( lastXWeeks.HasValue )
+                var dateRangeString = string.Empty;
+                if ( selectionConfig.SlidingDateRangeDelimitedValues.IsNotNullOrWhiteSpace() )
                 {
-                    dateRangeText = " in last " + ( lastXWeeks.Value * 7 ).ToString() + " days";
-                }
-                else
-                {
-                    dateRangeText = SlidingDateRangePicker.FormatDelimitedValues( options[3].Replace( ',', '|' ) );
+                    var dateRange = SlidingDateRangePicker.FormatDelimitedValues( selectionConfig.SlidingDateRangeDelimitedValues );
+                    if ( dateRangeString.IsNotNullOrWhiteSpace() )
+                    {
+                        dateRangeString += $" Date Range: {dateRangeString}";
+                    }
                 }
 
                 s = string.Format(
-                    "Activity '{0}' {1} {2} times. Date Range: {3}",
+                    "Activity '{0}' {1} {2} times. {3}",
                     activityName,
-                    comparisonType.ConvertToString(),
-                    options[2],
-                    dateRangeText );
+                    selectionConfig.IntegerCompare.ConvertToString(),
+                    selectionConfig.MinimumCount,
+                    dateRangeString );
             }
 
             return s;
@@ -183,10 +180,17 @@ namespace Rock.Reporting.DataFilter.ConnectionRequest
             var defaultCount = 1;
 
             // set the default values in case this is a newly added filter
+            var selectionConfig = new SelectionConfig()
+            {
+                IntegerCompare = ComparisonType.GreaterThanOrEqualTo,
+                MinimumCount = defaultCount,
+                SlidingDateRangeDelimitedValues = defaultDelimitedValues
+            };
+
             SetSelection(
                 entityType,
                 controls,
-                string.Format( "{0}|{1}|{2}|{3}", ddlActivityType.SelectedValue, ComparisonType.GreaterThanOrEqualTo.ConvertToInt().ToString(), defaultCount, defaultDelimitedValues ) );
+                selectionConfig.ToJson() );
 
             return controls;
         }
@@ -246,14 +250,22 @@ namespace Rock.Reporting.DataFilter.ConnectionRequest
         /// <returns></returns>
         public override string GetSelection( Type entityType, Control[] controls )
         {
-            var ddlActivityType = controls[0] as RockDropDownList;
-            var ddlIntegerCompare = controls[1] as RockDropDownList;
-            var nbCount = controls[2] as NumberBox;
-            var slidingDateRangePicker = controls[3] as SlidingDateRangePicker;
+            var selectionConfig = new SelectionConfig();
 
-            // convert the date range from pipe-delimited to comma since we use pipe delimited for the selection values
-            var dateRangeCommaDelimitedValues = slidingDateRangePicker.DelimitedValues.Replace( '|', ',' );
-            return string.Format( "{0}|{1}|{2}|{3}", ddlActivityType.SelectedValue, ddlIntegerCompare.SelectedValue, nbCount.Text, dateRangeCommaDelimitedValues );
+            if ( controls.Count() >= 4 )
+            {
+                var ddlActivityType = controls[0] as RockDropDownList;
+                var ddlIntegerCompare = controls[1] as RockDropDownList;
+                var nbCount = controls[2] as NumberBox;
+                var slidingDateRangePicker = controls[3] as SlidingDateRangePicker;
+
+                selectionConfig.ConnectionActivityTypeGuid = ddlActivityType.SelectedValueAsGuid();
+                selectionConfig.IntegerCompare = ddlIntegerCompare.SelectedValueAsEnum<ComparisonType>( ComparisonType.GreaterThanOrEqualTo );
+                selectionConfig.SlidingDateRangeDelimitedValues = slidingDateRangePicker.DelimitedValues;
+                selectionConfig.MinimumCount = nbCount.IntegerValue ?? 1;
+            }
+
+            return selectionConfig.ToJson();
         }
 
         /// <summary>
@@ -264,35 +276,17 @@ namespace Rock.Reporting.DataFilter.ConnectionRequest
         /// <param name="selection">The selection.</param>
         public override void SetSelection( Type entityType, Control[] controls, string selection )
         {
+            SelectionConfig selectionConfig = SelectionConfig.Parse( selection );
+
             var ddlActivityType = controls[0] as RockDropDownList;
             var ddlIntegerCompare = controls[1] as RockDropDownList;
             var nbCount = controls[2] as NumberBox;
             var slidingDateRangePicker = controls[3] as SlidingDateRangePicker;
 
-            string[] options = selection.Split( '|' );
-            if ( options.Length >= 4 )
-            {
-                ddlActivityType.SelectedValue = options[0];
-                ddlIntegerCompare.SelectedValue = options[1];
-                nbCount.Text = options[2];
-                int? lastXWeeks = options[3].AsIntegerOrNull();
-
-                if ( lastXWeeks.HasValue )
-                {
-                    //// selection was from when it just simply a LastXWeeks instead of Sliding Date Range
-                    // Last X Weeks was treated as "LastXWeeks * 7" days, so we have to convert it to a SlidingDateRange of Days to keep consistent behavior
-                    slidingDateRangePicker.SlidingDateRangeMode = SlidingDateRangePicker.SlidingDateRangeType.Last;
-                    slidingDateRangePicker.TimeUnit = SlidingDateRangePicker.TimeUnitType.Day;
-                    slidingDateRangePicker.NumberOfTimeUnits = lastXWeeks.Value * 7;
-                }
-                else
-                {
-                    // convert from comma-delimited to pipe since we store it as comma delimited so that we can use pipe delimited for the selection values
-                    var dateRangeCommaDelimitedValues = options[3];
-                    string slidingDelimitedValues = dateRangeCommaDelimitedValues.Replace( ',', '|' );
-                    slidingDateRangePicker.DelimitedValues = slidingDelimitedValues;
-                }
-            }
+            ddlIntegerCompare.SelectedValue = selectionConfig.IntegerCompare.ConvertToInt().ToString();
+            nbCount.Text = selectionConfig.MinimumCount.ToString();
+            slidingDateRangePicker.DelimitedValues = selectionConfig.SlidingDateRangeDelimitedValues;
+            ddlActivityType.SetValue( selectionConfig.ConnectionActivityTypeGuid );
         }
 
         /// <summary>
@@ -305,34 +299,13 @@ namespace Rock.Reporting.DataFilter.ConnectionRequest
         /// <returns></returns>
         public override Expression GetExpression( Type entityType, IService serviceInstance, ParameterExpression parameterExpression, string selection )
         {
-            string[] options = selection.Split( '|' );
-            if ( options.Length < 4 )
+            SelectionConfig selectionConfig = SelectionConfig.Parse( selection );
+            if ( !selectionConfig.ConnectionActivityTypeGuid.HasValue )
             {
                 return null;
             }
 
-            Guid activityTypeGuid = options[0].AsGuid();
-            ComparisonType comparisonType = options[1].ConvertToEnum<ComparisonType>( ComparisonType.GreaterThanOrEqualTo );
-            int? count = options[2].AsIntegerOrNull();
-            string slidingDelimitedValues;
-
-            if ( options[3].AsIntegerOrNull().HasValue )
-            {
-                //// selection was from when it just simply a LastXWeeks instead of Sliding Date Range
-                // Last X Weeks was treated as "LastXWeeks * 7" days, so we have to convert it to a SlidingDateRange of Days to keep consistent behavior
-                int lastXWeeks = options[3].AsIntegerOrNull() ?? 1;
-                var fakeSlidingDateRangePicker = new SlidingDateRangePicker();
-                fakeSlidingDateRangePicker.SlidingDateRangeMode = SlidingDateRangePicker.SlidingDateRangeType.Last;
-                fakeSlidingDateRangePicker.TimeUnit = SlidingDateRangePicker.TimeUnitType.Day;
-                fakeSlidingDateRangePicker.NumberOfTimeUnits = lastXWeeks * 7;
-                slidingDelimitedValues = fakeSlidingDateRangePicker.DelimitedValues;
-            }
-            else
-            {
-                slidingDelimitedValues = options[3].Replace( ',', '|' );
-            }
-
-            var dateRange = SlidingDateRangePicker.CalculateDateRangeFromDelimitedValues( slidingDelimitedValues );
+            var dateRange = SlidingDateRangePicker.CalculateDateRangeFromDelimitedValues( selectionConfig.SlidingDateRangeDelimitedValues );
             var rockContext = serviceInstance.Context as RockContext;
             var connectionRequestActivityQry = new ConnectionRequestActivityService( rockContext ).Queryable();
 
@@ -348,13 +321,13 @@ namespace Rock.Reporting.DataFilter.ConnectionRequest
                 connectionRequestActivityQry = connectionRequestActivityQry.Where( a => a.CreatedDateTime < endDate );
             }
 
-            connectionRequestActivityQry = connectionRequestActivityQry.Where( a => a.ConnectionActivityType.Guid == activityTypeGuid );
+            connectionRequestActivityQry = connectionRequestActivityQry.Where( a => a.ConnectionActivityType.Guid == selectionConfig.ConnectionActivityTypeGuid.Value );
 
             var qry = new ConnectionRequestService( rockContext ).Queryable()
-                  .Where( p => connectionRequestActivityQry.Where( xx => xx.ConnectionRequestId == p.Id ).Count() == count );
+                  .Where( p => connectionRequestActivityQry.Where( xx => xx.ConnectionRequestId == p.Id ).Count() == selectionConfig.MinimumCount );
 
             BinaryExpression compareEqualExpression = FilterExpressionExtractor.Extract<Rock.Model.ConnectionRequest>( qry, parameterExpression, "p" ) as BinaryExpression;
-            BinaryExpression result = FilterExpressionExtractor.AlterComparisonType( comparisonType, compareEqualExpression, null );
+            BinaryExpression result = FilterExpressionExtractor.AlterComparisonType( selectionConfig.IntegerCompare, compareEqualExpression, null );
 
             return result;
         }
@@ -375,5 +348,60 @@ namespace Rock.Reporting.DataFilter.ConnectionRequest
         }
 
         #endregion
+
+        /// <summary>
+        /// Get and set the filter settings from DataViewFilter.Selection
+        /// </summary>
+        protected class SelectionConfig
+        {
+            /// <summary>
+            /// Initializes a new instance of the <see cref="SelectionConfig"/> class.
+            /// </summary>
+            public SelectionConfig()
+            {
+            }
+
+            /// <summary>
+            /// Gets or sets the connection activity type identifiers.
+            /// </summary>
+            /// <value>
+            /// The connection activity type identifiers.
+            /// </value>
+            public Guid? ConnectionActivityTypeGuid { get; set; }
+
+            /// <summary>
+            /// Gets or sets the integer compare.
+            /// </summary>
+            /// <value>
+            /// The integer compare.
+            /// </value>
+            public ComparisonType IntegerCompare { get; set; }
+
+            /// <summary>
+            /// Gets or sets the minimum count.
+            /// </summary>
+            /// <value>
+            /// The minimum count.
+            /// </value>
+            public int MinimumCount { get; set; }
+
+            /// <summary>
+            /// Gets or sets the sliding date range.
+            /// </summary>
+            /// <value>
+            /// The sliding date range.
+            /// </value>
+            public string SlidingDateRangeDelimitedValues { get; set; }
+
+            /// <summary>
+            /// Parses the specified selection from a JSON or delimited string.
+            /// </summary>
+            /// <param name="selection">The selection.</param>
+            /// <returns></returns>
+            public static SelectionConfig Parse( string selection )
+            {
+                return selection.FromJsonOrNull<SelectionConfig>();
+            }
+        }
     }
 }

@@ -32,7 +32,7 @@ using Rock.Web.Utilities;
 namespace Rock.Reporting.DataFilter.ConnectionRequest
 {
     /// <summary>
-    /// Select all the requests where the requester is the same person as thee people returned from this other data view.
+    ///
     /// </summary>
     [Description( "Select all the requests where the requester is the same person as the people returned from this other data view." )]
     [Export( typeof( DataFilterComponent ) )]

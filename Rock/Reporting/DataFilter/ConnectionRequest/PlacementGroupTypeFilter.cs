@@ -16,11 +16,13 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Web.UI;
+using Newtonsoft.Json;
 using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
@@ -107,8 +109,8 @@ function() {
         public override string FormatSelection( Type entityType, string selection )
         {
             string result = "Placement Group Type";
-            string[] selectionValues = selection.Split( '|' );
-            if ( selectionValues.Length >= 1 )
+            var selectionValues = JsonConvert.DeserializeObject<List<string>>( selection );
+            if ( selectionValues.Count >= 1 )
             {
                 var groupType = GroupTypeCache.Get( selectionValues[0].AsGuid() );
 
@@ -156,15 +158,15 @@ function() {
         /// <returns></returns>
         public override string GetSelection( Type entityType, Control[] controls )
         {
+            var selectionValues = new List<string>();
             int? groupTypeId = ( controls[0] as GroupTypePicker ).SelectedValueAsId();
-            Guid? groupTypeGuid = null;
             var groupType = new GroupTypeService( new RockContext() ).Get( groupTypeId ?? 0 );
             if ( groupType != null )
             {
-                groupTypeGuid = groupType.Guid;
+                selectionValues.Add( groupType.Guid.ToString() );
             }
 
-            return groupTypeGuid.ToString();
+            return selectionValues.ToJson();
         }
 
         /// <summary>
@@ -175,13 +177,16 @@ function() {
         /// <param name="selection">The selection.</param>
         public override void SetSelection( Type entityType, Control[] controls, string selection )
         {
-            string[] selectionValues = selection.Split( '|' );
-            if ( selectionValues.Length >= 1 )
+            if ( !string.IsNullOrWhiteSpace( selection ) )
             {
-                var groupType = new GroupTypeService( new RockContext() ).Get( selectionValues[0].AsGuid() );
-                if ( groupType != null )
+                var selectionValues = JsonConvert.DeserializeObject<List<string>>( selection );
+                if ( selectionValues.Count >= 1 )
                 {
-                    ( controls[0] as GroupTypePicker ).SetValue( groupType.Id );
+                    var groupType = new GroupTypeService( new RockContext() ).Get( selectionValues[0].AsGuid() );
+                    if ( groupType != null )
+                    {
+                        ( controls[0] as GroupTypePicker ).SetValue( groupType.Id );
+                    }
                 }
             }
         }
@@ -196,22 +201,26 @@ function() {
         /// <returns></returns>
         public override Expression GetExpression( Type entityType, IService serviceInstance, ParameterExpression parameterExpression, string selection )
         {
-            string[] selectionValues = selection.Split( '|' );
-            if ( selectionValues.Length >= 1 )
+            if ( !string.IsNullOrWhiteSpace( selection ) )
             {
-                var groupType = new GroupTypeService( new RockContext() ).Get( selectionValues[0].AsGuid() );
-                int? groupTypeId = null;
-                if ( groupType != null )
+                var selectionValues = JsonConvert.DeserializeObject<List<string>>( selection );
+
+                if ( selectionValues.Count >= 1 )
                 {
-                    groupTypeId = groupType.Id;
+                    var groupType = new GroupTypeService( new RockContext() ).Get( selectionValues[0].AsGuid() );
+                    int? groupTypeId = null;
+                    if ( groupType != null )
+                    {
+                        groupTypeId = groupType.Id;
+                    }
+
+                    var qry = new ConnectionRequestService( ( RockContext ) serviceInstance.Context ).Queryable()
+                        .Where( p => p.AssignedGroupId.HasValue && p.AssignedGroup.GroupTypeId == groupTypeId );
+
+                    Expression extractedFilterExpression = FilterExpressionExtractor.Extract<Rock.Model.ConnectionRequest>( qry, parameterExpression, "p" );
+
+                    return extractedFilterExpression;
                 }
-
-                var qry = new ConnectionRequestService( ( RockContext ) serviceInstance.Context ).Queryable()
-                    .Where( p => p.AssignedGroupId.HasValue && p.AssignedGroup.GroupTypeId == groupTypeId );
-
-                Expression extractedFilterExpression = FilterExpressionExtractor.Extract<Rock.Model.ConnectionRequest>( qry, parameterExpression, "p" );
-
-                return extractedFilterExpression;
             }
 
             return null;

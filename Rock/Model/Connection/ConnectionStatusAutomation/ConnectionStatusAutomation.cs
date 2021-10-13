@@ -144,7 +144,7 @@ namespace Rock.Model
         /// </summary>
         public ConnectionStatusAutomationConfiguration()
         {
-            this.HasRequired( p => p.SourceStatus ).WithMany( p => p.ConnectionStatusAutomations ).HasForeignKey( p => p.SourceStatusId ).WillCascadeOnDelete( false );
+            this.HasRequired( p => p.SourceStatus ).WithMany( p => p.ConnectionStatusAutomations ).HasForeignKey( p => p.SourceStatusId ).WillCascadeOnDelete( true );
             this.HasRequired( p => p.DestinationStatus ).WithMany().HasForeignKey( p => p.DestinationStatusId ).WillCascadeOnDelete( false );
             this.HasOptional( p => p.DataView ).WithMany().HasForeignKey( p => p.DataViewId ).WillCascadeOnDelete( false );
         }

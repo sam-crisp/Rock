@@ -1999,7 +1999,7 @@ namespace RockWeb.Blocks.Connection
                 connectionStatusAutomation.DestinationStatus = destinationStatus;
             }
 
-            if ( dataViewId.HasValue && connectionStatusAutomation.DataView != null )
+            if ( dataViewId.HasValue && connectionStatusAutomation.DataView == null )
             {
                 connectionStatusAutomation.DataView = new DataViewService( new RockContext() ).Get( dataViewId.Value );
             }
