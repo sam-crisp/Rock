@@ -109,10 +109,10 @@ function() {
         public override string FormatSelection( Type entityType, string selection )
         {
             string result = "Connection Type";
-            var selectionValues = JsonConvert.DeserializeObject<List<string>>( selection );
-            if ( selectionValues.Count >= 1 )
+            var selectionConfig = SelectionConfig.Parse( selection );
+            if ( selectionConfig != null && selectionConfig.ConnectionTypeGuid.HasValue )
             {
-                var connectionType = new ConnectionTypeService( new RockContext() ).Get( selectionValues[0].AsGuid() );
+                var connectionType = new ConnectionTypeService( new RockContext() ).Get( selectionConfig.ConnectionTypeGuid.Value );
 
                 if ( connectionType != null )
                 {
@@ -135,6 +135,7 @@ function() {
             connectionTypePicker.Label = "Connection Type";
 
             connectionTypePicker.Items.Clear();
+            connectionTypePicker.Items.Insert( 0, new ListItem() );
             var connectionTypeList = new ConnectionTypeService( new RockContext() ).Queryable()
                 .OrderBy( a => a.Order )
                 .ThenBy( a => a.Name )
@@ -169,15 +170,15 @@ function() {
         /// <returns></returns>
         public override string GetSelection( Type entityType, Control[] controls )
         {
-            var selectionValues = new List<string>();
+            var selectionConfig = new SelectionConfig();
             var connectionTypeId = ( controls[0] as RockDropDownList ).SelectedValueAsId();
             var connectionType = new ConnectionTypeService( new RockContext() ).Get( connectionTypeId ?? 0 );
             if ( connectionType != null )
             {
-                selectionValues.Add( connectionType.Guid.ToString() );
+                selectionConfig.ConnectionTypeGuid = connectionType.Guid;
             }
 
-            return selectionValues.ToJson();
+            return selectionConfig.ToJson();
         }
 
         /// <summary>
@@ -190,10 +191,10 @@ function() {
         {
             if ( !string.IsNullOrWhiteSpace( selection ) )
             {
-                var selectionValues = JsonConvert.DeserializeObject<List<string>>( selection );
-                if ( selectionValues.Count >= 1 )
+                SelectionConfig selectionConfig = SelectionConfig.Parse( selection );
+                if ( controls.Length > 0 && selectionConfig.ConnectionTypeGuid.HasValue )
                 {
-                    var connectionType = new ConnectionTypeService( new RockContext() ).Get( selectionValues[0].AsGuid() );
+                    var connectionType = new ConnectionTypeService( new RockContext() ).Get( selectionConfig.ConnectionTypeGuid.Value );
                     if ( connectionType != null )
                     {
                         ( controls[0] as RockDropDownList ).SetValue( connectionType.Id );
@@ -212,31 +213,59 @@ function() {
         /// <returns></returns>
         public override Expression GetExpression( Type entityType, IService serviceInstance, ParameterExpression parameterExpression, string selection )
         {
-            if ( !string.IsNullOrWhiteSpace( selection ) )
+            SelectionConfig selectionConfig = SelectionConfig.Parse( selection );
+            if ( !selectionConfig.ConnectionTypeGuid.HasValue )
             {
-                var selectionValues = JsonConvert.DeserializeObject<List<string>>( selection );
-
-                if ( selectionValues.Count >= 1 )
-                {
-                    var connectionType = new ConnectionTypeService( new RockContext() ).Get( selectionValues[0].AsGuid() );
-                    int? connectionTypeId = null;
-                    if ( connectionType != null )
-                    {
-                        connectionTypeId = connectionType.Id;
-                    }
-
-                    var qry = new ConnectionRequestService( ( RockContext ) serviceInstance.Context ).Queryable()
-                        .Where( p => p.ConnectionOpportunity.ConnectionTypeId == connectionTypeId );
-
-                    Expression extractedFilterExpression = FilterExpressionExtractor.Extract<Rock.Model.ConnectionRequest>( qry, parameterExpression, "p" );
-
-                    return extractedFilterExpression;
-                }
+                return null;
             }
 
-            return null;
+            var connectionType = new ConnectionTypeService( new RockContext() ).Get( selectionConfig.ConnectionTypeGuid.Value );
+            int? connectionTypeId = null;
+            if ( connectionType != null )
+            {
+                connectionTypeId = connectionType.Id;
+            }
+
+            var qry = new ConnectionRequestService( ( RockContext ) serviceInstance.Context ).Queryable()
+                .Where( p => p.ConnectionOpportunity.ConnectionTypeId == connectionTypeId );
+
+            Expression extractedFilterExpression = FilterExpressionExtractor.Extract<Rock.Model.ConnectionRequest>( qry, parameterExpression, "p" );
+
+            return extractedFilterExpression;
+
         }
 
         #endregion
+
+        /// <summary>
+        /// Get and set the filter settings from DataViewFilter.Selection
+        /// </summary>
+        protected class SelectionConfig
+        {
+            /// <summary>
+            /// Initializes a new instance of the <see cref="SelectionConfig"/> class.
+            /// </summary>
+            public SelectionConfig()
+            {
+            }
+
+            /// <summary>
+            /// Gets or sets the connection type identifiers.
+            /// </summary>
+            /// <value>
+            /// The connection type identifiers.
+            /// </value>
+            public Guid? ConnectionTypeGuid { get; set; }
+
+            /// <summary>
+            /// Parses the specified selection from a JSON or delimited string.
+            /// </summary>
+            /// <param name="selection">The selection.</param>
+            /// <returns></returns>
+            public static SelectionConfig Parse( string selection )
+            {
+                return selection.FromJsonOrNull<SelectionConfig>();
+            }
+        }
     }
 }

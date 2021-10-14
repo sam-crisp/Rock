@@ -31,10 +31,10 @@ using Rock.Model;
 namespace Rock.Jobs
 {
     /// <summary>
-    /// This job will perform routine operations on active connection requests.This includes processing any configured Status Automation rules that are configured on the Connection Type.
+    ///
     /// </summary>
     [DisplayName( "Connection Requests Automation" )]
-    [Description( "This job will perform routine operations on active connection requests.This includes processing any configured Status Automation rules that are configured on the Connection Type." )]
+    [Description( "This job will perform routine operations on active connection requests. This includes processing any configured Status Automation rules that are configured on the Connection Type." )]
 
     [DisallowConcurrentExecution]
     public class ConnectionRequestsAutomation : IJob
@@ -63,7 +63,7 @@ namespace Rock.Jobs
             // Use concurrent safe data structures to track the count and errors
             var errors = new ConcurrentBag<string>();
             var updatedResults = new ConcurrentBag<int>();
-            var connectionTypeViews = GetConnectionTypeViews();
+            var connectionTypeViews = GetConnectionTypeViewsWithOrderedStatuses();
 
             // Loop through each connection type
             Parallel.ForEach(
@@ -88,7 +88,7 @@ namespace Rock.Jobs
         }
 
         /// <summary>
-        /// Processes the step type. Add steps for everyone in the dataview
+        /// Processes the connection type. Add steps for everyone in the dataview
         /// </summary>
         /// <param name="connectionTypeView">The connection type view.</param>
         /// <param name="updatedResults">The updated results.</param>
@@ -102,14 +102,14 @@ namespace Rock.Jobs
             var groupViews = new List<GroupView>();
             foreach ( var connectionStatus in connectionTypeView.ConnectionStatuses )
             {
-                var rockContext = new RockContext();
-                var connectionRequestService = new ConnectionRequestService( rockContext );
-                var connectionRequestQry = connectionRequestService.Queryable( "AssignedGroup.Members" ).Where( a => a.ConnectionStatusId == connectionStatus.Id );
                 foreach ( var connectionStatusAutomation in connectionStatus.ConnectionStatusAutomations )
                 {
+                    var rockContext = new RockContext();
+                    var connectionRequestService = new ConnectionRequestService( rockContext );
+                    var connectionRequestQry = connectionRequestService.Queryable().Include( a => a.AssignedGroup.Members ).Where( a => a.ConnectionStatusId == connectionStatus.Id );
                     if ( connectionStatusAutomation.DataViewId.HasValue )
                     {
-                        // Get the dataview configured for the step type
+                        // Get the dataview configured for the connection request
                         var dataViewService = new DataViewService( rockContext );
                         var dataview = dataViewService.Get( connectionStatusAutomation.DataViewId.Value );
 
@@ -119,16 +119,16 @@ namespace Rock.Jobs
                             continue;
                         }
 
-                        // We can use the dataview to get the person alias id query
+                        // Now we'll filter our connection request query to only include the ones that are in the configured data view.
                         var dataViewGetQueryArgs = new DataViewGetQueryArgs
                         {
                             DbContext = rockContext
                         };
 
-                        IQueryable<IEntity> dataviewQuery;
+                        IQueryable<ConnectionRequest> dataviewQuery;
                         try
                         {
-                            dataviewQuery = dataview.GetQuery( dataViewGetQueryArgs );
+                            dataviewQuery = dataview.GetQuery( dataViewGetQueryArgs ) as IQueryable<ConnectionRequest>;
                         }
                         catch ( Exception ex )
                         {
@@ -143,9 +143,7 @@ namespace Rock.Jobs
                             continue;
                         }
 
-                        // This query contains person ids in the dataview
-                        var connectionRequestInDataView = dataviewQuery.AsNoTracking().Select( e => e.Id );
-                        connectionRequestQry = connectionRequestQry.Where( a => connectionRequestInDataView.Contains( a.Id ) );
+                        connectionRequestQry = connectionRequestQry.Where( a => dataviewQuery.Any( b => b.Id == a.Id ) );
                     }
 
                     var eligibleConnectionRequests = new List<ConnectionRequest>();
@@ -154,24 +152,24 @@ namespace Rock.Jobs
                         var connectionRequests = connectionRequestQry.ToList();
                         foreach ( var connectionRequest in connectionRequests )
                         {
-                            var isRequirementMeet = true;
-                            // Group Requirement can't be meet when either placement group or placement group role id is missing
+                            var isRequirementMet = true;
+                            // Group Requirement can't be met when either placement group or placement group role id is missing
                             if ( !connectionRequest.AssignedGroupId.HasValue || !connectionRequest.AssignedGroupMemberRoleId.HasValue )
                             {
-                                isRequirementMeet = false;
+                                isRequirementMet = false;
                             }
                             else
                             {
                                 var groupView = GetGroupView( connectionRequest, groupViews, rockContext );
                                 if ( groupView != null && groupView.HasGroupRequirement )
                                 {
-                                    isRequirementMeet = IsGroupRequirementMeet( connectionRequest, groupView, rockContext );
+                                    isRequirementMet = IsGroupRequirementMet( connectionRequest, groupView, rockContext );
                                 }
                             }
 
-                            // connection request based on if group requirement is meet or not is added to list for status update
-                            if ( ( connectionStatusAutomation.GroupRequirementsFilter == GroupRequirementsFilter.DoesNotMeet && !isRequirementMeet ) ||
-                                ( connectionStatusAutomation.GroupRequirementsFilter == GroupRequirementsFilter.MustMeet && isRequirementMeet ) )
+                            // connection request based on if group requirement is met or not is added to list for status update
+                            if ( ( connectionStatusAutomation.GroupRequirementsFilter == GroupRequirementsFilter.DoesNotMeet && !isRequirementMet ) ||
+                                ( connectionStatusAutomation.GroupRequirementsFilter == GroupRequirementsFilter.MustMeet && isRequirementMet ) )
                             {
                                 eligibleConnectionRequests.Add( connectionRequest );
                             }
@@ -198,10 +196,12 @@ namespace Rock.Jobs
         #region Data Helpers
 
         /// <summary>
-        /// Gets the connection type view query.
+        /// Gets the connection type view query.  The ConnectionStatues within each type
+        /// should be processed by their ConnectionStatus.Order to avoid non-ideal
+        /// conditions from arising.
         /// </summary>
         /// <returns></returns>
-        private List<ConnectionTypeView> GetConnectionTypeViews()
+        private List<ConnectionTypeView> GetConnectionTypeViewsWithOrderedStatuses()
         {
             var rockContext = new RockContext();
             var connectionTypeService = new ConnectionTypeService( rockContext );
@@ -239,7 +239,7 @@ namespace Rock.Jobs
             return groupView;
         }
 
-        private bool IsGroupRequirementMeet( ConnectionRequest connectionRequest, GroupView groupView, RockContext rockContext )
+        private bool IsGroupRequirementMet( ConnectionRequest connectionRequest, GroupView groupView, RockContext rockContext )
         {
             var requirementMeet = true;
             if ( groupView != null )

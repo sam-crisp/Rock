@@ -1363,7 +1363,7 @@ namespace RockWeb.Blocks.Connection
             var dataViewId = dvpDataView.SelectedValueAsId();
             if ( !dataViewId.HasValue && groupRequirementsFilter == GroupRequirementsFilter.Ignore )
             {
-                nbStatusWarning.Text = "Your current configuration will matches all requests. Please provide either a dataview and/or a group requirements filter.";
+                nbStatusWarning.Text = "Your current configuration will match all requests. Please provide either a dataview and/or a group requirements filter.";
                 nbStatusWarning.Visible = true;
                 return;
             }

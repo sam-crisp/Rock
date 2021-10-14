@@ -192,7 +192,9 @@ namespace Rock.Model
                         if ( isAutomationValid )
                         {
                             Entity.ConnectionStatusId = connectionStatusAutomation.DestinationStatusId;
-                            rockContext.SaveChanges();
+
+                            // disabled pre post processing in order to prevent circular loop that may arise due to status change.
+                            rockContext.SaveChanges( true );
                         }
                     }
                 }
