@@ -108,4 +108,7 @@ import { TextFieldType } from "./textField";
 registerFieldType(FieldTypeGuids.Text, new TextFieldType());
 
 import { TimeFieldType } from "./timeField";
-registerFieldType(FieldTypeGuids.Time, new TimeFieldType());
+registerFieldType( FieldTypeGuids.Time, new TimeFieldType() );
+
+import { UrlLinkFieldType } from "./urlLinkField";
+registerFieldType( FieldTypeGuids.UrlLink, new UrlLinkFieldType() );

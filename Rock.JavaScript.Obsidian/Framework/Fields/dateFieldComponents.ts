@@ -15,13 +15,13 @@
 // </copyright>
 //
 import { defineComponent } from "vue";
-import { getFieldEditorProps } from "./utils";
+import DatePartsPicker, { getDefaultDatePartsPickerModel } from "../Elements/datePartsPicker";
 import DatePicker from "../Elements/datePicker";
 import { asBoolean } from "../Services/boolean";
 import { toNumber } from "../Services/number";
-import DatePartsPicker, { getDefaultDatePartsPickerModel } from "../Elements/datePartsPicker";
-import { ConfigurationValueKey } from "./dateField";
 import { RockDateTime } from "../Util/rockDateTime";
+import { ConfigurationValueKey } from "./dateField";
+import { getFieldEditorProps } from "./utils";
 
 export const EditComponent = defineComponent({
     name: "DateField.Edit",

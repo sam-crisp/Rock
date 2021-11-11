@@ -19,6 +19,7 @@ import PaneledBlockTemplate from "../../Templates/paneledBlockTemplate";
 import { Component, defineComponent, PropType } from "vue";
 import TextBox from "../../Elements/textBox";
 import EmailBox from "../../Elements/emailBox";
+import UrlLinkBox from "../../Elements/urlLinkBox";
 import CurrencyBox from "../../Elements/currencyBox";
 import PanelWidget from "../../Elements/panelWidget";
 import DatePicker from "../../Elements/datePicker";
@@ -800,8 +801,37 @@ const currencyBoxGallery = defineComponent({
 </GalleryAndResult>`
 });
 
+/** Demonstrates an Url Link  box */
+const urlLinkBoxGallery = defineComponent({
+    name: "UrlLinkBoxGallery",
+    components: {
+        GalleryAndResult,
+        UrlLinkBox,
+        Toggle
+    },
+    data() {
+        return {
+            requireTrailingForwardSlash: false,
+            value: "www.rockrms.com/"
+        };
+    },
+    template: `
+<GalleryAndResult>
+    <template #header>
+        UrlLinkBox
+    </template>
+    <template #gallery>
+        <Toggle label="Require Trailing Forward Slash" v-model="requireTrailingForwardSlash" />
+        <UrlLinkBox label="UrlLinkBox 1" v-model="value" :shouldRequireTrailingForwardSlash="requireTrailingForwardSlash" />
+    </template>
+    <template #result>
+        {{value}}
+    </template>
+</GalleryAndResult>`
+} );
+
 /** Demonstrates an email box */
-const emailBoxGallery = defineComponent({
+const emailBoxGallery = defineComponent( {
     name: "EmailBoxGallery",
     components: {
         GalleryAndResult,
@@ -1039,6 +1069,7 @@ const galleryComponents: Record<string, Component> = {
     ratingGallery,
     currencyBoxGallery,
     emailBoxGallery,
+    urlLinkBoxGallery,
     numberUpDownGallery,
     staticFormControlGallery,
     addressControlGallery,

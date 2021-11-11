@@ -321,6 +321,11 @@ const galleryComponents: Record<string, Component> = {
 
     TimeGallery: getFieldTypeGalleryComponent("Time", "13:15:00", FieldTypeGuids.Time, {
     }),
+
+    UrlLinkBoxGallery: getFieldTypeGalleryComponent( "UrlLinkBox", "www.rockrms.com", FieldTypeGuids.UrlLink, {
+        shouldRequireTrailingForwardSlash: "false",
+        shouldAlwaysShowCondensed: "false"
+    }),
 };
 
 const galleryTemplate: string = Object.keys(galleryComponents).sort().map(g => `<${g} />`).join("");

@@ -16,6 +16,7 @@
 //
 import DateKey from "../Services/dateKey";
 import { isEmail } from "../Services/email";
+import { isUrl, isUrlWithTrailingForwardSlash } from "../Services/url";
 import { isNullOrWhiteSpace } from "../Services/string";
 import { defineRule } from "vee-validate";
 import { toNumberOrNull } from "../Services/number";
@@ -254,4 +255,37 @@ defineRule("ssn", (value: unknown) => {
     }
 
     return "must be a valid social security number";
-});
+} );
+
+defineRule( "url", ( value =>
+{
+    // Field is empty, should pass
+    if ( isNullOrWhiteSpace( value ) )
+    {
+        return true;
+    }
+
+    // Check if email
+    if ( !isUrl( value ) )
+    {
+        return "must be a valid url.";
+    }
+
+    return true;
+}) as ValidationRuleFunction );
+
+defineRule( "urlwithtrailingforwardslash", ( value => {
+    // Field is empty, should pass
+    if ( isNullOrWhiteSpace( value ) )
+    {
+        return true;
+    }
+
+    // Check if email
+    if ( !isUrlWithTrailingForwardSlash( value ) )
+    {
+        return "Please ensure the URL ends with a forward slash.";
+    }
+
+    return true;
+}) as ValidationRuleFunction );
