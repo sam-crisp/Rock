@@ -24,5 +24,6 @@ services:
       - MSSQL_SA_PASSWORD=Passw0rd!!
       - MSSQL_TCP_PORT=1433
       - MSSQL_PID=Developer
+    restart: always
   #redis:
   #  image: "redis:alpine"
