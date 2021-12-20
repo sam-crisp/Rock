@@ -1,0 +1,28 @@
+version: "3.9"
+services:
+  #rock-web: 
+  #  build:
+  #    dockerfile: ./IISHosting.dockerfile
+  #  hostname: rockweb
+  #  container_name: rockweb
+    #build: ./RockWeb
+  #  ports:
+  #    - "80:80"
+  #  volumes:
+  #    - ../RockWeb:c:\inetpub\wwwroot
+  #  depends_on:
+  #    - ms-sql
+  ms-sql:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    hostname: sql-server
+    container_name: sql-server
+    ports:
+      - "1433:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Passw0rd!!
+      - MSSQL_SA_PASSWORD=Passw0rd!!
+      - MSSQL_TCP_PORT=1433
+      - MSSQL_PID=Developer
+  #redis:
+  #  image: "redis:alpine"

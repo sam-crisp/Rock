@@ -1,2 +1,2 @@
-copy EntityFramework.Rock.psm1 ..\..\packages\EntityFramework.6.1.3\tools\EntityFramework.psm1
+copy EntityFramework.Rock.psm1 ..\..\packages\EntityFramework.6.4.4\tools\EntityFramework.psm1
 pause
