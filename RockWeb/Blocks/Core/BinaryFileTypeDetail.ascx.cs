@@ -163,6 +163,7 @@ namespace RockWeb.Blocks.Core
             tbName.Text = binaryFileType.Name;
             tbDescription.Text = binaryFileType.Description;
             tbIconCssClass.Text = binaryFileType.IconCssClass;
+            nbMaxFileSizeBytes.Text = binaryFileType.MaxFileSizeBytes.ToString();
             cbCacheToServerFileSystem.Checked = binaryFileType.CacheToServerFileSystem;
 
             if ( binaryFileType.CacheControlHeaderSettings != null )
@@ -247,6 +248,7 @@ namespace RockWeb.Blocks.Core
             // allow these to be edited in restricted edit mode if not readonly
             tbDescription.ReadOnly = readOnly;
             tbIconCssClass.ReadOnly = readOnly;
+            nbMaxFileSizeBytes.ReadOnly = readOnly;
             cbCacheToServerFileSystem.Enabled = !readOnly;
             cpCacheSettings.Enabled = !readOnly;
             cbRequiresViewSecurity.Enabled = !readOnly;
@@ -304,6 +306,7 @@ namespace RockWeb.Blocks.Core
             binaryFileType.Name = tbName.Text;
             binaryFileType.Description = tbDescription.Text;
             binaryFileType.IconCssClass = tbIconCssClass.Text;
+            binaryFileType.MaxFileSizeBytes = nbMaxFileSizeBytes.Text.AsIntegerOrNull();
             binaryFileType.CacheToServerFileSystem = cbCacheToServerFileSystem.Checked;
             binaryFileType.CacheControlHeaderSettings = cpCacheSettings.CurrentCacheability.ToJson();
             binaryFileType.RequiresViewSecurity = cbRequiresViewSecurity.Checked;

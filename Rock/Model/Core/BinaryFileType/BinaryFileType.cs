@@ -199,6 +199,9 @@ namespace Rock.Model
             }
         }
 
+        [DataMember]
+        public int? MaxFileSizeBytes { get; set; }
+
         private RockCacheability _cacheControlHeader;
         /// <summary>
         /// Gets the cache control header.
