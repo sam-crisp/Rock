@@ -77,7 +77,7 @@ export default defineComponent({
                 <span class="input-group-addon">
                     <i class="fa fa-link"></i>
                 </span>
-                <input :id="uniqueId" class="form-control" v-bind="field" :disabled="disabled" :tabindex="tabIndex" type="url" />
+                <input :id="uniqueId" class="form-control" v-bind="field" :disabled="disabled" :tabindex="tabIndex" type="text" />
             </div>
         </div>
     </template>
