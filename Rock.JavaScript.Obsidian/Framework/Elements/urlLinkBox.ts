@@ -15,7 +15,7 @@
 // </copyright>
 //
 import { ruleStringToArray, ruleArrayToString } from "../Rules/index";
-import { useVModelPassthrough } from '../Util/component';
+import { useVModelPassthrough } from "../Util/component";
 import { defineComponent, PropType, computed } from "vue";
 import RockFormField from "./rockFormField";
 
@@ -46,9 +46,9 @@ export default defineComponent({
     ],
 
     setup(props, { emit }) {
-        let value = useVModelPassthrough(props, "modelValue", emit);
+        const value = useVModelPassthrough(props, "modelValue", emit);
 
-        let computedRules = computed(() => {
+        const computedRules = computed(() => {
             const rules = ruleStringToArray(props.rules);
 
             if (rules.indexOf("url") === -1) {
@@ -56,13 +56,13 @@ export default defineComponent({
             }
 
             if (props.requiresTrailingSlash) {
-                rules.push("endswith:/")
+                rules.push("endswith:/");
             }
 
             return ruleArrayToString(rules);
-        })
+        });
 
-        return { value, computedRules}
+        return { value, computedRules };
     },
 
     template: `
