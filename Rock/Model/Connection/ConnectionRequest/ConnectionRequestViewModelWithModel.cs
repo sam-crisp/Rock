@@ -15,13 +15,15 @@
 // </copyright>
 //
 
+using Newtonsoft.Json;
+
 namespace Rock.Model
 {
     /// <summary>
-    /// This model is used to include the ConnectionRequest and ConnectionType so security can be checked if needed.
+    /// This model is used to include the full ConnectionRequest model.
     /// </summary>
     /// <seealso cref="Rock.Model.ConnectionRequestViewModel" />
-    internal class ConnectionRequestViewModelSecurity : ConnectionRequestViewModel
+    public class ConnectionRequestViewModelWithModel : ConnectionRequestViewModel
     {
         // <summary>
         /// Gets or sets the <see cref="Rock.Model.ConnectionRequest"/>.
@@ -29,21 +31,7 @@ namespace Rock.Model
         /// <value>
         /// The connection request.
         /// </value>
+        [JsonIgnore]
         public ConnectionRequest ConnectionRequest { get; set; }
-
-        // <summary>
-        /// Gets or sets the <see cref="Rock.Model.ConnectionType"/>.
-        /// </summary>
-        /// <value>
-        /// The connection type.
-        /// </value>
-
-        public ConnectionType ConnectionType { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether user has direct access.
-        /// </summary>
-
-        public bool UserHasDirectAccess { get; set; }
     }
 }

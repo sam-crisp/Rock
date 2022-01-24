@@ -190,7 +190,7 @@ namespace RockWeb.Blocks.Connection
         /// <value>
         /// The connection requests view model with security.
         /// </value>
-        public List<ConnectionRequestViewModelSecurity> ConnectionRequestViewModelsWithSecurity { get; set; }
+        public List<ConnectionRequestViewModelWithModel> ConnectionRequestViewModelsWithFullModel { get; set; }
 
         #endregion
 
@@ -353,7 +353,7 @@ namespace RockWeb.Blocks.Connection
             public const string CurrentSortProperty = "CurrentSortProperty";
             public const string CampusId = "CampusId";
             public const string AvailableAttributeIds = "AvailableAttributeIds";
-            public const string ConnectionRequestViewModelsWithSecurity = "ConnectionRequestViewModelsWithSecurity";
+            public const string ConnectionRequestViewModelsWithFullModel = "ConnectionRequestViewModelsWithFullModel";
         }
 
         #endregion Keys
@@ -574,7 +574,7 @@ namespace RockWeb.Blocks.Connection
                 AvailableAttributes = ( ViewState[ViewStateKey.AvailableAttributeIds] as int[] ).Select( a => AttributeCache.Get( a ) ).ToList();
             }
 
-            ConnectionRequestViewModelsWithSecurity = ( this.ViewState[ViewStateKey.ConnectionRequestViewModelsWithSecurity] as string ).FromJsonOrNull<List<ConnectionRequestViewModelSecurity>>() ?? new List<ConnectionRequestViewModelSecurity>();
+            ConnectionRequestViewModelsWithFullModel = ( this.ViewState[ViewStateKey.ConnectionRequestViewModelsWithFullModel] as string ).FromJsonOrNull<List<ConnectionRequestViewModelWithModel>>() ?? new List<ConnectionRequestViewModelWithModel>();
 
             AddDynamicControls();
         }
@@ -676,7 +676,7 @@ namespace RockWeb.Blocks.Connection
             };
 
             ViewState[ViewStateKey.AvailableAttributeIds] = AvailableAttributes == null ? null : AvailableAttributes.Select( a => a.Id ).ToArray();
-            ViewState[ViewStateKey.ConnectionRequestViewModelsWithSecurity] = JsonConvert.SerializeObject( ConnectionRequestViewModelsWithSecurity, Formatting.None, jsonSetting );
+            ViewState[ViewStateKey.ConnectionRequestViewModelsWithFullModel] = JsonConvert.SerializeObject( ConnectionRequestViewModelsWithFullModel, Formatting.None, jsonSetting );
             return base.SaveViewState();
         }
 
@@ -2141,10 +2141,10 @@ namespace RockWeb.Blocks.Connection
 
             // Bind the data
             var rockContext = new RockContext();
-            var modelQuery = GetConnectionRequestQuery( rockContext );
-            ConnectionRequestViewModelsWithSecurity = modelQuery.ToList();
+            var modelQuery = GetConnectionRequestModelWithFullModelQuery( rockContext );
+            ConnectionRequestViewModelsWithFullModel = modelQuery.ToList();
             gRequests.EntityTypeId = EntityTypeCache.Get<ConnectionRequest>().Id;
-            gRequests.SetLinqDataSource( ConnectionRequestViewModelsWithSecurity.Select( a => a.ConnectionRequest ).AsQueryable() );
+            gRequests.SetLinqDataSource( ConnectionRequestViewModelsWithFullModel.Select( a => a.ConnectionRequest ).AsQueryable() );
             gRequests.DataBind();
         }
 
@@ -2224,7 +2224,7 @@ namespace RockWeb.Blocks.Connection
                 return;
             }
 
-            var connectionRequestViewModel = ConnectionRequestViewModelsWithSecurity.FirstOrDefault( a => a.Id == model.Id );
+            var connectionRequestViewModel = ConnectionRequestViewModelsWithFullModel.FirstOrDefault( a => a.Id == model.Id );
 
             // Status icons
             var lStatusIcons = e.Row.FindControl( "lStatusIcons" ) as Literal;
@@ -5035,10 +5035,10 @@ namespace RockWeb.Blocks.Connection
         }
 
         /// <summary>
-        /// Gets the connection request.
+        /// Gets the connection request view model with full model.
         /// </summary>
         /// <returns></returns>
-        private IQueryable<ConnectionRequestViewModelSecurity> GetConnectionRequestQuery( RockContext rockContext )
+        private IQueryable<ConnectionRequestViewModelWithModel> GetConnectionRequestModelWithFullModelQuery( RockContext rockContext )
         {
             var connectionRequestService = new ConnectionRequestService( rockContext );
 
@@ -5051,7 +5051,7 @@ namespace RockWeb.Blocks.Connection
                 .ToList();
             var activityTypeIds = cblLastActivityFilter.SelectedValuesAsInt;
 
-            return connectionRequestService.GetConnectionRequestQuery(
+            return connectionRequestService.GetConnectionRequestViewModelWithFullModelQuery(
                 CurrentPersonAliasId ?? 0,
                 ConnectionOpportunityId ?? 0,
                 new ConnectionRequestViewModelQueryArgs
