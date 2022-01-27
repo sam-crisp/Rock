@@ -31,7 +31,6 @@ namespace Rock.Model
         /// <value>
         /// The connection request.
         /// </value>
-        [JsonIgnore]
         public ConnectionRequest ConnectionRequest { get; set; }
     }
 }
