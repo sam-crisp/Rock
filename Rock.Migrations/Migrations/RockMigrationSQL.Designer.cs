@@ -876,5 +876,17 @@ namespace Rock.Migrations.Migrations {
                 return ResourceManager.GetString("_202109212048053_Rollup_20210921_routemigration", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to DECLARE @LaunchWorkflowConditionId int = ( SELECT TOP 1 [Id] FROM [Attribute] WHERE [Guid] = &apos;E5EFC23D-E030-496C-A9A4-D2BF4181CB49&apos; )
+        ///DECLARE @LaunchWorkflowOnlyIfIndividualLoggedInId int = ( SELECT TOP 1 [Id] FROM [Attribute] WHERE [Guid] = &apos;EB298724-07D5-42AF-B4BF-82420AF6A657&apos; )
+        ///DECLARE @WriteInteractionOnlyIfIndividualLoggedInId int = ( SELECT TOP 1 [Id] FROM [Attribute] WHERE [Guid] = &apos;63B254F7-E19C-48FD-A93F-AFEE19C1ED21&apos; )
+        ///DECLARE @LogInteractionsId int = ( SELECT TOP 1 [Id] FROM [Attribute] WHERE [rest of string was truncated]&quot;;.
+        /// </summary>
+        public static string _202202041740467_RemoveContentChannelViewDetail {
+            get {
+                return ResourceManager.GetString("_202202041740467_RemoveContentChannelViewDetail", resourceCulture);
+            }
+        }
     }
 }
