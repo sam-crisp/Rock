@@ -451,7 +451,36 @@
 
                                         <div class="row">
                                             <div class="col-md-6">
+                                                <%--<Rock:Toggle ID="tglImagePickerType" runat="server" OffText="Image" OnText="Asset" Checked="false" Help='Select "Image" to pick from images saved to Rock or "Asset" to display images stored in an Asset Manager.' ButtonSizeCssClass="btn-xs" />--%>
+                                                <%--<asp:HiddenField ID="hfImpagePickerTypeSelection" runat="server" Value="1" />
+                                                <Rock:ButtonGroup ID="bgImagePickerType" runat="server" FormGroupCssClass="toggle-container" SelectedItemClass="btn btn-xs btn-primary active" UnselectedItemClass="btn btn-xs btn-default" Label="&nbsp;" Help='Select "Image" to pick from images saved to Rock or "Asset" to display images stored in an Asset Manager.'>
+                                                    <asp:ListItem Text="Image" Value="1" Selected="True" class="js-image-picker" />
+                                                    <asp:ListItem Text="Asset" Value="2" class="js-asset-picker"/>
+                                                </Rock:ButtonGroup>--%>
+
+                                                <asp:HyperLink ID="aImagePickerTypeImage" runat="server" CssClass="btn btn-xs btn-primary">Image</asp:HyperLink>
+                                                <asp:HyperLink ID="aImagePickerTypeAsset" runat="server" CssClass="btn btn-xs btn-default">Asset</asp:HyperLink>
+
                                                 <Rock:ImageUploader ID="componentImageUploader" ClientIDMode="Static" runat="server" Label="Image" UploadAsTemporary="false" DoneFunctionClientScript="handleImageUpdate(e, data)" DeleteFunctionClientScript="handleImageUpdate()" />
+                                                <asp:UpdatePanel ID="assetPickerPanel" runat="server">
+                                                    <ContentTemplate>
+                                                    <Rock:ItemFromBlockPicker
+                                                        ID="componentAssetManager"
+                                                        runat="server"
+                                                        BlockTypePath="~/Blocks/CMS/AssetManager.ascx"
+                                                        ShowInModal=true
+                                                        SelectControlCssClass="imageupload-group"
+                                                        CssClass="picker-asset"
+                                                        ModalSaveButtonText="Select"
+                                                        ModalSaveButtonCssClass="js-singleselect aspNetDisabled"
+                                                        ModalCssClass="js-AssetManager-modal"
+                                                        ButtonTextTemplate="Select Asset"
+                                                        ModalTitle="Asset Manager"
+                                                        style="display:none;">
+                                                    </Rock:ItemFromBlockPicker>
+                                                    </ContentTemplate>
+                                                </asp:UpdatePanel>
+                                                
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
@@ -1516,6 +1545,50 @@
         <script type="text/javascript">
             Sys.Application.add_load(function () {
                 Rock.controls.fullScreen.initialize('body');
+
+                $('#<%=aImagePickerTypeAsset.ClientID%>').on('click', function (e) {
+                    debugger
+                    $('#<%=aImagePickerTypeAsset.ClientID%>').removeClass("btn-default");
+                    $('#<%=aImagePickerTypeAsset.ClientID%>').addClass("btn-primary");
+                    $('#<%=aImagePickerTypeImage.ClientID%>').removeClass("btn-primary");
+                    $('#<%=aImagePickerTypeImage.ClientID%>').addClass("btn-default");
+                    $('#<%=componentImageUploader.ClientID%>').hide();
+                    $('#<%=componentAssetManager.ClientID%>').show();
+                    return false;
+                });
+
+                $('#<%=aImagePickerTypeImage.ClientID%>').on('click', function (e) {
+                    debugger
+                    $('#<%=aImagePickerTypeAsset.ClientID%>').removeClass("btn-primary");
+                    $('#<%=aImagePickerTypeAsset.ClientID%>').addClass("btn-default");
+                    $('#<%=aImagePickerTypeImage.ClientID%>').removeClass("btn-default");
+                    $('#<%=aImagePickerTypeImage.ClientID%>').addClass("btn-primary");
+                    $('#<%=componentImageUploader.ClientID%>').show();
+                    $('#<%=componentAssetManager.ClientID%>').hide();
+                    return false;
+                });
+
+                <%--$('#<%=bgImagePickerType.ClientID%>').off('click').on('click', function (e) {
+                    debugger
+
+                    if ($('.js-asset-picker').is(':checked')) {
+                        $('#<%=componentImageUploader.ClientID%>').hide();
+                        $('#<%=componentAssetManager.ClientID%>').show();
+                    } else {
+                        $('#<%=componentImageUploader.ClientID%>').show();
+                        $('#<%=componentAssetManager.ClientID%>').hide();
+                    }
+
+                  if ($('#<%=hfImpagePickerTypeSelection.ClientID%>').val() === "1") {
+                        $('#<%=hfImpagePickerTypeSelection.ClientID%>').val("2");
+                        $('#<%=componentImageUploader.ClientID%>').hide();
+                        $('#<%=componentAssetManager.ClientID%>').show();
+                    } else {
+                        $('#<%=hfImpagePickerTypeSelection.ClientID%>').val("1");
+                        $('#<%=componentImageUploader.ClientID%>').show();
+                        $('#<%=componentAssetManager.ClientID%>').hide();
+                    }
+                });--%>
 
                 if ($('#<%=pnlEmailEditor.ClientID%>').length) {
                     loadEmailEditor()
