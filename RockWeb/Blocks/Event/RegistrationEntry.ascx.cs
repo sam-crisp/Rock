@@ -1262,6 +1262,12 @@ namespace RockWeb.Blocks.Event
         {
             if ( CurrentPanel == PanelIndex.PanelRegistrant )
             {
+                if ( !Page.IsValid )
+                {
+                    ShowRegistrant();
+                    return;
+                }
+
                 _saveNavigationHistory = true;
 
                 ShowRegistrant( true, true );
@@ -4842,11 +4848,11 @@ namespace RockWeb.Blocks.Event
 
                     if ( field.FieldSource == RegistrationFieldSource.PersonField )
                     {
-                        CreatePersonField( hasDependantVisibilityRule, field, setValues, value, familyMemberSelected, BlockValidationGroup, phRegistrantControls );
+                        CreatePersonField( hasDependantVisibilityRule, field, setValues, value, familyMemberSelected, string.Empty, phRegistrantControls );
                     }
                     else
                     {
-                        CreateAttributeField( hasDependantVisibilityRule, field, setValues, value, GetAttributeValue( AttributeKey.ShowFieldDescriptions ).AsBoolean(), BlockValidationGroup, phRegistrantControls, DynamicControlPostbackMethod );
+                        CreateAttributeField( hasDependantVisibilityRule, field, setValues, value, GetAttributeValue( AttributeKey.ShowFieldDescriptions ).AsBoolean(), string.Empty, phRegistrantControls, DynamicControlPostbackMethod );
                     }
                 }
 
