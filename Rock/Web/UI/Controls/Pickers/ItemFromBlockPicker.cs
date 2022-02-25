@@ -449,6 +449,16 @@ namespace Rock.Web.UI.Controls
         }
 
         /// <summary>
+        /// Put any JS that needs to be registered when the control renders here. This does is Lava enabled with the same options as the button template.
+        /// </summary>
+        /// <value>The js script to register.</value>
+        public string JsScriptToRegister
+        {
+            get => ViewState["JsScriptToRegister"] as string;
+            set => ViewState["JsScriptToRegister"] = value;
+        }
+
+        /// <summary>
         /// Gets or sets the modal CSS class.
         /// If js hooks are needed to find this modal, this is the place to add them.
         /// </summary>
@@ -665,6 +675,11 @@ namespace Rock.Web.UI.Controls
             else
             {
                 base.CssClass = this.SelectControlCssClass + " " + this.CssClass;
+            }
+
+            if( JsScriptToRegister.IsNotNullOrWhiteSpace() )
+            {
+                ScriptManager.RegisterStartupScript( this, this.GetType(), "ItemFromBlockPickerBlockScript_" + this.ClientID, JsScriptToRegister.ResolveMergeFields( mergeFields ), true );
             }
 
             base.RenderControl( writer );

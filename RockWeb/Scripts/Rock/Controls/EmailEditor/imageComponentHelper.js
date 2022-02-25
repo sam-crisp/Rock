@@ -6,11 +6,11 @@
   Rock.controls.emailEditor = Rock.controls.emailEditor || {};
   Rock.controls.emailEditor.$currentImageComponent = $(false);
 
-  Rock.controls.emailEditor.imageComponentHelper = (function ()
-  {
+  Rock.controls.emailEditor.imageComponentHelper = (function () {
     var exports = {
-      initializeEventHandlers: function ()
-      {
+      initializeEventHandlers: function () {
+        // No event handlers are needed for the asset picker
+
         var self = this;
         $('#component-image-imgcsswidth, #component-image-imagealign').on('change', function (e)
         {
@@ -33,8 +33,7 @@
           self.setImageWrapAnchor();
         });
       },
-      setProperties: function ($imageComponent)
-      {
+      setProperties: function ($imageComponent) {
         Rock.controls.emailEditor.$currentImageComponent = $imageComponent;
         var $img = $imageComponent.find('img');
         var imageUrl = $img.attr('src');
@@ -48,7 +47,7 @@
 
         $('#componentImageUploader').find('.imageupload-thumbnail-image').css('background-image', 'url("' + imageUrl + '")');
 
-        if (imageCssWidth == 'full') {
+        if (imageCssWidth === 'full') {
           $('#component-image-imgcsswidth').val(1);
         }
         else {
@@ -80,17 +79,28 @@
         // Return this to the previous function caller
         return Rock.controls.emailEditor.$currentImageComponent;
       },
-      handleImageUpdate: function (e, data)
-      {
+      handleImageUpdate: function (e, data) {
+          debugger
         Rock.controls.emailEditor.imageComponentHelper.setImageFromData(data);
       },
-      setImageCss: function ()
-      {
+      handleAssetUpdate: function (e, data) {
+        debugger
+        if (data !== undefined && typeof (data) === 'string') {
+          var parsedData = ''
+          if (data.includes('AssetStorageProviderId')) {
+            parsedData = JSON.parse(data);
+          }
+
+          // maybe check for an access denied error here and display it.
+          Rock.controls.emailEditor.imageComponentHelper.setAssetFromData(e, parsedData);
+        }
+      },
+      setImageCss: function () {
         var cssWidth = $('#component-image-imgcsswidth').val();
 
         var $currentImg = Rock.controls.emailEditor.$currentImageComponent.find('img');
 
-        if (cssWidth == 0) {
+        if (cssWidth === 0) {
           $currentImg.css('width', 'auto');
           $currentImg.attr('data-imgcsswidth', 'image');
         }
@@ -101,27 +111,33 @@
 
         Rock.controls.emailEditor.$currentImageComponent.css('text-align', $('#component-image-imagealign').val());
       },
-      setMargins: function ()
-      {
+      setMargins: function () {
         Rock.controls.emailEditor.$currentImageComponent
-                .css('margin-top', Rock.controls.util.getValueAsPixels($('#component-image-margin-top').val()))
-                .css('margin-left', Rock.controls.util.getValueAsPixels($('#component-image-margin-left').val()))
-                .css('margin-right', Rock.controls.util.getValueAsPixels($('#component-image-margin-right').val()))
-                .css('margin-bottom', Rock.controls.util.getValueAsPixels($('#component-image-margin-bottom').val()));
-      },
-      setImageFromData: function (data)
-      {
+          .css('margin-top', Rock.controls.util.getValueAsPixels($('#component-image-margin-top').val()))
+          .css('margin-left', Rock.controls.util.getValueAsPixels($('#component-image-margin-left').val()))
+          .css('margin-right', Rock.controls.util.getValueAsPixels($('#component-image-margin-right').val()))
+          .css('margin-bottom', Rock.controls.util.getValueAsPixels($('#component-image-margin-bottom').val()));
+        },
+      setImageFromData: function (data) {
         Rock.controls.emailEditor.$currentImageComponent.attr('data-image-id', data ? data.response().result.Id : null);
         Rock.controls.emailEditor.$currentImageComponent.attr('data-image-filename', data ? data.response().result.FileName : null);
 
         Rock.controls.emailEditor.imageComponentHelper.setImageSrc();
-      },
-      setImageWrapAnchor: function ()
-      {
+        },
+       setAssetFromData: function (e, data) {
+           Rock.controls.emailEditor.$currentImageComponent.attr('data-image-AssetStorageProviderId', data ? data.AssetStorageProviderId : null);
+           Rock.controls.emailEditor.$currentImageComponent.attr('data-image-Key', data ? data.Key : null);
+           Rock.controls.emailEditor.$currentImageComponent.attr('data-image-IconPath', data ? data.IconPath : null);
+           Rock.controls.emailEditor.$currentImageComponent.attr('data-image-Name', data ? data.Name : null);
+           Rock.controls.emailEditor.$currentImageComponent.attr('data-image-Url', data ? data.Url : null);
+
+           Rock.controls.emailEditor.imageComponentHelper.setAssetImageSrc(data.Url);
+       },
+      setImageWrapAnchor: function () {
         var $imageLinkInput = $('#component-image-link');
         var imageLinkUrl = $imageLinkInput.val();
         var $img = Rock.controls.emailEditor.$currentImageComponent.find('img');
-        if (imageLinkUrl && imageLinkUrl != '') {
+        if (imageLinkUrl && imageLinkUrl !== '') {
           if ($img.parent().is('a')) {
             $img.parent().attr('href', imageLinkUrl);
           }
@@ -136,8 +152,7 @@
           }
         }
       },
-      setImageSrc: function ()
-      {
+      setImageSrc: function () {
         var binaryFileId = Rock.controls.emailEditor.$currentImageComponent.attr('data-image-id');
         var imageUrl;
         if (!binaryFileId) {
@@ -172,6 +187,11 @@
         }
 
         Rock.controls.emailEditor.$currentImageComponent.find('img').attr('src', imageUrl).attr('alt', imageAltText);
+      },
+      setAssetImageSrc: function (url) {
+        //debugger
+        var imageAltText = $('#component-image-alt').val();
+        Rock.controls.emailEditor.$currentImageComponent.find('img').attr('src', url).attr('alt', imageAltText);
       }
     }
 

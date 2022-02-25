@@ -257,19 +257,26 @@ namespace RockWeb.Blocks.Communication
             componentAssetManager.PickerButtonTemplate = @"
 {% assign iconPath = SelectedValue | FromJSON | Property:'IconPath' %}
 {% assign fileName = SelectedValue | FromJSON | Property:'Name' %}
+
 {% if iconPath != '' and fileName != '' %}
     {% assign escFileName = fileName | UrlEncode %}
     {% assign imageTypeUrl = iconPath | Replace: fileName, escFileName %}
 {% endif %}
 
 <div class='fileupload-thumbnail{% if imageTypeUrl contains '/Assets/Icons/FileTypes/' %} fileupload-thumbnail-icon{% endif %}' {% if fileName != '' %}style='background-image:url({{ imageTypeUrl }}) !important;' title='{{ fileName }}'{% endif %}>
-    {% if fileName != '' %}<span class='file-link'>{{ fileName }}</span>{% else %}<span class='file-link file-link-default'></span>{% endif %}
+    {% if fileName != '' %}<span class='file-link' style='background-color: transparent'>{{ fileName }}</span>{% else %}<span class='file-link file-link-default'></span>{% endif %}
 </div>
 <div class='imageupload-dropzone'>
     <span>
         Select Asset
     </span>
 </div>";
+
+            componentAssetManager.JsScriptToRegister = @"
+    Sys.Application.add_load(function (e) {
+        var data = '{{ SelectedValue }}';
+        handleAssetUpdate(e, data);
+    });";
 
             var videoProviders = Rock.Communication.VideoEmbed.VideoEmbedContainer.Instance.Dictionary.Select( c => c.Value.Key );
             lbVideoUrlHelpText.Attributes["data-original-title"] += ( videoProviders.Count() > 1 ? string.Join( ", ", videoProviders.Take( videoProviders.Count() - 1 ) ) + " and " + videoProviders.Last() : videoProviders.FirstOrDefault() ) + ".";
@@ -295,14 +302,6 @@ namespace RockWeb.Blocks.Communication
             mediumControl.ValidationGroup = vsPushEditor.ValidationGroup;
 
             phPushControl.Controls.Add( mediumControl );
-
-//            tglImagePickerType.ClientScript = $@"
-//    $('#{tglImagePickerType.ClientID}').off('click').on('click', function (e) {{
-//        debugger
-//        $('.js-image-uploader-control').slideToggle();
-//        $('.js-asset-manager-control').slideToggle();
-//    }});
-//";
 
             RegisterTaskActivityScript();
         }
