@@ -66,7 +66,7 @@ namespace RockWeb.Blocks.Cms
                         var imageControl = repeaterItem.FindControl( "imgIconPath" ) as System.Web.UI.HtmlControls.HtmlImage;
                         var nameControl = repeaterItem.FindControl( "lbName" ) as Label;
                         var urlControl = repeaterItem.FindControl( "lbUrl" ) as Label;
-                        return $@"{{ ""AssetStorageProviderId"": ""{hfAssetStorageId.Value}"", ""Key"": ""{keyControl.Text}"", ""IconPath"": ""{imageControl.Attributes["src"]}"", ""Name"": ""{nameControl.Text}"", ""Url"": ""{urlControl.Text}"" }}";
+                        return $@"{{ ""AssetStorageProviderId"": ""{hfAssetStorageId.Value}"", ""Key"": ""{keyControl.Text}"", ""IconPath"": ""{imageControl.Attributes["src"].UrlEncode()}"", ""Name"": ""{nameControl.Text}"", ""Url"": ""{urlControl.Text}"" }}";
                     }
                 }
 

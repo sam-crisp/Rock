@@ -45,8 +45,32 @@
         var imageResizeMode = Rock.controls.emailEditor.$currentImageComponent.attr('data-image-resizemode');
         var imageAltText = $img.attr('alt');
 
-        $('#componentImageUploader').find('.imageupload-thumbnail-image').css('background-image', 'url("' + imageUrl + '")');
+        // TODO: Check if component has asset or image attribute and then populate the needed control. Make sure to change the toggle switch also.
+          //debugger
+          var $assetThumbnail = $('.js-asset-thumbnail');
+          var $assetThumbnailName = $('.js-asset-thumbnail-name');
 
+          if (Rock.controls.emailEditor.$currentImageComponent.attr('data-image-AssetStorageProviderId') !== undefined) {
+              var assetIconPath = Rock.controls.emailEditor.$currentImageComponent.attr('data-image-IconPath');
+              if (assetIconPath !== undefined) {
+                  $assetThumbnailName.removeClass('file-link-default');
+                  $assetThumbnail.attr('style', 'background-image:url(' + assetIconPath + ')');
+              }
+
+              $('#componentImageUploader').find('.imageupload-thumbnail-image').css('background-image', 'url("/Assets/Images/image-placeholder.jpg")');
+
+          } else {
+              $('#componentImageUploader').find('.imageupload-thumbnail-image').css('background-image', 'url("' + imageUrl + '")');
+              if ($assetThumbnailName.length !== 0) {
+                  $assetThumbnailName.text('');
+                  $assetThumbnailName.addClass('file-link-default');
+              }
+
+              if ($assetThumbnail.length !== 0) {
+                $assetThumbnail.attr('style', '');
+              }
+          }
+        
         if (imageCssWidth === 'full') {
           $('#component-image-imgcsswidth').val(1);
         }
@@ -80,11 +104,11 @@
         return Rock.controls.emailEditor.$currentImageComponent;
       },
       handleImageUpdate: function (e, data) {
-          debugger
+          //debugger
         Rock.controls.emailEditor.imageComponentHelper.setImageFromData(data);
       },
       handleAssetUpdate: function (e, data) {
-        debugger
+        //debugger
         if (data !== undefined && typeof (data) === 'string') {
           var parsedData = ''
           if (data.includes('AssetStorageProviderId')) {
@@ -117,22 +141,33 @@
           .css('margin-left', Rock.controls.util.getValueAsPixels($('#component-image-margin-left').val()))
           .css('margin-right', Rock.controls.util.getValueAsPixels($('#component-image-margin-right').val()))
           .css('margin-bottom', Rock.controls.util.getValueAsPixels($('#component-image-margin-bottom').val()));
-        },
+      },
       setImageFromData: function (data) {
+        Rock.controls.emailEditor.$currentImageComponent.attr('data-image-AssetStorageProviderId', undefined);
+        Rock.controls.emailEditor.$currentImageComponent.attr('data-image-Key', undefined);
+        Rock.controls.emailEditor.$currentImageComponent.attr('data-image-IconPath', undefined);
+        Rock.controls.emailEditor.$currentImageComponent.attr('data-image-Name', undefined);
+        Rock.controls.emailEditor.$currentImageComponent.attr('data-image-Url', undefined);
+        Rock.controls.emailEditor.$currentImageComponent.find('img').attr('src', undefined)
+
         Rock.controls.emailEditor.$currentImageComponent.attr('data-image-id', data ? data.response().result.Id : null);
         Rock.controls.emailEditor.$currentImageComponent.attr('data-image-filename', data ? data.response().result.FileName : null);
 
         Rock.controls.emailEditor.imageComponentHelper.setImageSrc();
-        },
-       setAssetFromData: function (e, data) {
-           Rock.controls.emailEditor.$currentImageComponent.attr('data-image-AssetStorageProviderId', data ? data.AssetStorageProviderId : null);
-           Rock.controls.emailEditor.$currentImageComponent.attr('data-image-Key', data ? data.Key : null);
-           Rock.controls.emailEditor.$currentImageComponent.attr('data-image-IconPath', data ? data.IconPath : null);
-           Rock.controls.emailEditor.$currentImageComponent.attr('data-image-Name', data ? data.Name : null);
-           Rock.controls.emailEditor.$currentImageComponent.attr('data-image-Url', data ? data.Url : null);
+      },
+      setAssetFromData: function (e, data) {
+        Rock.controls.emailEditor.$currentImageComponent.attr('data-image-id', undefined);
+        Rock.controls.emailEditor.$currentImageComponent.attr('data-image-filename', undefined);
+        Rock.controls.emailEditor.$currentImageComponent.find('img').attr('src', undefined)
 
-           Rock.controls.emailEditor.imageComponentHelper.setAssetImageSrc(data.Url);
-       },
+        Rock.controls.emailEditor.$currentImageComponent.attr('data-image-AssetStorageProviderId', data ? data.AssetStorageProviderId : null);
+        Rock.controls.emailEditor.$currentImageComponent.attr('data-image-Key', data ? data.Key : null);
+        Rock.controls.emailEditor.$currentImageComponent.attr('data-image-IconPath', data ? data.IconPath : null);
+        Rock.controls.emailEditor.$currentImageComponent.attr('data-image-Name', data ? data.Name : null);
+        Rock.controls.emailEditor.$currentImageComponent.attr('data-image-Url', data ? data.Url : null);
+
+        Rock.controls.emailEditor.imageComponentHelper.setAssetImageSrc(data.Url);
+      },
       setImageWrapAnchor: function () {
         var $imageLinkInput = $('#component-image-link');
         var imageLinkUrl = $imageLinkInput.val();

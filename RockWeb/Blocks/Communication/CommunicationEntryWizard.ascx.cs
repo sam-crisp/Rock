@@ -263,8 +263,12 @@ namespace RockWeb.Blocks.Communication
     {% assign imageTypeUrl = iconPath | Replace: fileName, escFileName %}
 {% endif %}
 
-<div class='fileupload-thumbnail{% if imageTypeUrl contains '/Assets/Icons/FileTypes/' %} fileupload-thumbnail-icon{% endif %}' {% if fileName != '' %}style='background-image:url({{ imageTypeUrl }}) !important;' title='{{ fileName }}'{% endif %}>
-    {% if fileName != '' %}<span class='file-link' style='background-color: transparent'>{{ fileName }}</span>{% else %}<span class='file-link file-link-default'></span>{% endif %}
+<div class='js-asset-thumbnail fileupload-thumbnail{% if imageTypeUrl contains '/Assets/Icons/FileTypes/' %} fileupload-thumbnail-icon{% endif %}' {% if fileName != '' %}style='background-image:url({{ imageTypeUrl }}) !important;' title='{{ fileName }}'{% endif %}>
+    {% if fileName != '' %}
+        <span class='js-asset-thumbnail-name file-link' style='background-color: transparent'>{{ fileName }}</span>
+    {% else %}
+        <span class='js-asset-thumbnail file-link file-link-default'></span>
+    {% endif %}
 </div>
 <div class='imageupload-dropzone'>
     <span>

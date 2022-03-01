@@ -1939,7 +1939,6 @@
             }
 
             function handleImageUpdate(e, data) {
-                debugger
                 Rock.controls.emailEditor.imageComponentHelper.handleImageUpdate(e, data);
             }
 
