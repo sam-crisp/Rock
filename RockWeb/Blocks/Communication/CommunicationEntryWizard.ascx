@@ -452,8 +452,8 @@
                                         <div class="row">
                                             <div class="col-md-6">
 
-                                                <asp:HyperLink ID="aImagePickerTypeImage" runat="server" CssClass="btn btn-xs btn-primary">Image</asp:HyperLink>
-                                                <asp:HyperLink ID="aImagePickerTypeAsset" runat="server" CssClass="btn btn-xs btn-default">Asset</asp:HyperLink>
+                                                <asp:HyperLink ID="aImagePickerTypeImage" runat="server" CssClass="js-image-picker-type-image btn btn-xs btn-primary">Image</asp:HyperLink>
+                                                <asp:HyperLink ID="aImagePickerTypeAsset" runat="server" CssClass="js-image-picker-type-asset btn btn-xs btn-default">Asset</asp:HyperLink>
 
                                                 <Rock:ImageUploader ID="componentImageUploader" ClientIDMode="Static" runat="server" Label="Image" UploadAsTemporary="false" DoneFunctionClientScript="handleImageUpdate(e, data)" DeleteFunctionClientScript="handleImageUpdate()" />
 
@@ -465,7 +465,7 @@
                                                         BlockTypePath="~/Blocks/CMS/AssetManager.ascx"
                                                         ShowInModal=true
                                                         SelectControlCssClass="imageupload-group"
-                                                        CssClass="picker-asset"
+                                                        CssClass="js-component-asset-manager picker-asset"
                                                         ModalSaveButtonText="Select"
                                                         ModalSaveButtonCssClass="js-singleselect aspNetDisabled"
                                                         ModalCssClass="js-AssetManager-modal"
@@ -1537,30 +1537,30 @@
                 Rock.controls.fullScreen.initialize('body');
 
                 if ($('#<%=aImagePickerTypeAsset.ClientID%>').hasClass("btn-primary")) {
-                    $('#<%=componentAssetManager.ClientID%>').show();
-                    $('#<%=componentImageUploader.ClientID%>').hide();
+                    $('.js-component-asset-manager').show();
+                    $('#componentImageUploader').hide();
                 } else {
-                    $('#<%=componentAssetManager.ClientID%>').hide();
-                    $('#<%=componentImageUploader.ClientID%>').show();
+                    $('.js-component-asset-manager').hide();
+                    $('#componentImageUploader').show();
                 }
 
-                $('#<%=aImagePickerTypeAsset.ClientID%>').off('click').on('click', function (e) {
-                    $('#<%=aImagePickerTypeAsset.ClientID%>').removeClass("btn-default");
-                    $('#<%=aImagePickerTypeAsset.ClientID%>').addClass("btn-primary");
-                    $('#<%=aImagePickerTypeImage.ClientID%>').removeClass("btn-primary");
-                    $('#<%=aImagePickerTypeImage.ClientID%>').addClass("btn-default");
-                    $('#<%=componentImageUploader.ClientID%>').hide();
-                    $('#<%=componentAssetManager.ClientID%>').show();
+                $('.js-image-picker-type-asset').off('click').on('click', function (e) {
+                    $('.js-image-picker-type-asset').removeClass("btn-default");
+                    $('.js-image-picker-type-asset').addClass("btn-primary");
+                    $('.js-image-picker-type-image').removeClass("btn-primary");
+                    $('.js-image-picker-type-image').addClass("btn-default");
+                    $('#componentImageUploader').hide();
+                    $('.js-component-asset-manager').show();
                     return false;
                 });
 
-                $('#<%=aImagePickerTypeImage.ClientID%>').off('click').on('click', function (e) {
-                    $('#<%=aImagePickerTypeAsset.ClientID%>').removeClass("btn-primary");
-                    $('#<%=aImagePickerTypeAsset.ClientID%>').addClass("btn-default");
-                    $('#<%=aImagePickerTypeImage.ClientID%>').removeClass("btn-default");
-                    $('#<%=aImagePickerTypeImage.ClientID%>').addClass("btn-primary");
-                    $('#<%=componentImageUploader.ClientID%>').show();
-                    $('#<%=componentAssetManager.ClientID%>').hide();
+                $('.js-image-picker-type-image').off('click').on('click', function (e) {
+                    $('.js-image-picker-type-asset').removeClass("btn-primary");
+                    $('.js-image-picker-type-asset').addClass("btn-default");
+                    $('.js-image-picker-type-image').removeClass("btn-default");
+                    $('.js-image-picker-type-image').addClass("btn-primary");
+                    $('#componentImageUploader').show();
+                    $('.js-component-asset-manager').hide();
                     return false;
                 });
 

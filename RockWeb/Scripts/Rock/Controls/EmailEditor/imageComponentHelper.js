@@ -51,19 +51,36 @@
           var $assetThumbnailName = $('.js-asset-thumbnail-name');
 
           if (Rock.controls.emailEditor.$currentImageComponent.attr('data-image-AssetStorageProviderId') !== undefined) {
+              // This indicates the asset manager should be used, so set the thumbnail and show it
               var assetIconPath = Rock.controls.emailEditor.$currentImageComponent.attr('data-image-IconPath');
               if (assetIconPath !== undefined) {
                   $assetThumbnailName.removeClass('file-link-default');
                   $assetThumbnail.attr('style', 'background-image:url(' + assetIconPath + ')');
+
+                  $('.js-image-picker-type-asset').removeClass("btn-default");
+                  $('.js-image-picker-type-asset').addClass("btn-primary");
+                  $('.js-image-picker-type-image').removeClass("btn-primary");
+                  $('.js-image-picker-type-image').addClass("btn-default");
+                  $('#componentImageUploader').hide();
+                  $('.js-component-asset-manager').show();
               }
 
               $('#componentImageUploader').find('.imageupload-thumbnail-image').css('background-image', 'url("/Assets/Images/image-placeholder.jpg")');
 
           } else {
+              //debugger
               $('#componentImageUploader').find('.imageupload-thumbnail-image').css('background-image', 'url("' + imageUrl + '")');
               if ($assetThumbnailName.length !== 0) {
                   $assetThumbnailName.text('');
+                  $assetThumbnailName.attr('title', '');
                   $assetThumbnailName.addClass('file-link-default');
+
+                  $('.js-image-picker-type-asset').removeClass("btn-primary");
+                  $('.js-image-picker-type-asset').addClass("btn-default");
+                  $('.js-image-picker-type-image').removeClass("btn-default");
+                  $('.js-image-picker-type-image').addClass("btn-primary");
+                  $('#componentImageUploader').show();
+                  $('.js-component-asset-manager').hide();
               }
 
               if ($assetThumbnail.length !== 0) {
