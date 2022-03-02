@@ -1075,7 +1075,7 @@ namespace Rock.Blocks.Event
 
             entity.LoadAttributes( rockContext );
 
-            return ClientAttributeHelper.GetClientEditValue( attribute, entity.GetAttributeValue( attribute.Key ) );
+            return PublicAttributeHelper.GetPublicEditValue( attribute, entity.GetAttributeValue( attribute.Key ) );
         }
 
         /// <summary>
@@ -1742,7 +1742,7 @@ namespace Rock.Blocks.Event
 
                 var newValue = registrantInfo.FieldValues.GetValueOrNull( field.Guid );
                 var originalValue = registrant.GetAttributeValue( attribute.Key );
-                var newValueAsString = ClientAttributeHelper.GetValueFromClient( attribute, newValue.ToStringSafe() );
+                var newValueAsString = PublicAttributeHelper.GetPrivateValue( attribute, newValue.ToStringSafe() );
                 registrant.SetAttributeValue( attribute.Key, newValueAsString );
 
                 if ( ( originalValue ?? string.Empty ).Trim() != ( newValueAsString ?? string.Empty ).Trim() )
@@ -1944,7 +1944,7 @@ namespace Rock.Blocks.Event
                     var attribute = fieldModel.AttributeId.HasValue ? AttributeCache.Get( fieldModel.AttributeId.Value ) : null;
 
                     field.Guid = fieldModel.Guid;
-                    field.Attribute = attribute != null ? ClientAttributeHelper.ToClientEditableAttributeValue( attribute, attribute.DefaultValue ) : null;
+                    field.Attribute = attribute != null ? PublicAttributeHelper.ToPublicEditableAttributeValue( attribute, attribute.DefaultValue ) : null;
                     field.FieldSource = ( int ) fieldModel.FieldSource;
                     field.PersonFieldType = ( int ) fieldModel.PersonFieldType;
                     field.IsRequired = fieldModel.IsRequired;
@@ -1986,7 +1986,7 @@ namespace Rock.Blocks.Event
             var beforeAttributes = registrationAttributes
                 .Where( a =>
                     a.Categories.Any( c => c.Guid == Rock.SystemGuid.Category.REGISTRATION_ATTRIBUTE_START_OF_REGISTRATION.AsGuid() ) )
-                .Select( a => ClientAttributeHelper.ToClientEditableAttributeValue( a, a.DefaultValue ) )
+                .Select( a => PublicAttributeHelper.ToPublicEditableAttributeValue( a, a.DefaultValue ) )
                 .ToList();
 
             // only show the Registration Attributes After Registrants that have don't have a category or have a category of REGISTRATION_ATTRIBUTE_END_OF_REGISTRATION
@@ -1994,7 +1994,7 @@ namespace Rock.Blocks.Event
                 .Where( a =>
                     !a.Categories.Any() ||
                     a.Categories.Any( c => c.Guid == Rock.SystemGuid.Category.REGISTRATION_ATTRIBUTE_END_OF_REGISTRATION.AsGuid() ) )
-                .Select( a => ClientAttributeHelper.ToClientEditableAttributeValue( a, a.DefaultValue ) )
+                .Select( a => PublicAttributeHelper.ToPublicEditableAttributeValue( a, a.DefaultValue ) )
                 .ToList();
 
             // Get the maximum number of registrants
@@ -2424,15 +2424,25 @@ namespace Rock.Blocks.Event
                 transaction.FinancialPaymentDetail = new FinancialPaymentDetail();
             }
 
-            DefinedValueCache currencyType = null;
-            DefinedValueCache creditCardType = null;
+            /* 02/17/2022 MDP
+            Note that after the transaction, the HostedGateway knows more about the FinancialPaymentDetail than Rock does
+            since it is the gateway that collects the payment info. But just in case paymentInfo has information the the gateway hasn't set,
+            we'll fill in any missing details.
+            But then we'll want to use FinancialPaymentDetail as the most accurate values for the payment info. 
+            */
 
             if ( paymentInfo != null )
             {
                 transaction.FinancialPaymentDetail.SetFromPaymentInfo( paymentInfo, gateway, rockContext );
-                currencyType = paymentInfo.CurrencyTypeValue;
-                creditCardType = paymentInfo.CreditCardTypeValue;
             }
+
+            var currencyTypeValue = transaction.FinancialPaymentDetail?.CurrencyTypeValueId != null
+                ? DefinedValueCache.Get( transaction.FinancialPaymentDetail.CurrencyTypeValueId.Value )
+                : null;
+
+            var creditCardTypeValue = transaction.FinancialPaymentDetail?.CreditCardTypeValueId != null
+                ? DefinedValueCache.Get( transaction.FinancialPaymentDetail.CreditCardTypeValueId.Value )
+                : null;
 
             Guid sourceGuid = Guid.Empty;
             if ( Guid.TryParse( GetAttributeValue( AttributeKey.Source ), out sourceGuid ) )
@@ -2467,8 +2477,8 @@ namespace Rock.Blocks.Event
                 // Get the batch
                 var batch = batchService.Get(
                 batchPrefix,
-                currencyType,
-                creditCardType,
+                currencyTypeValue,
+                creditCardTypeValue,
                 transaction.TransactionDateTime.Value,
                 financialGateway.GetBatchTimeOffset() );
 
@@ -3156,7 +3166,7 @@ namespace Rock.Blocks.Event
                             if ( attribute != null )
                             {
                                 string originalValue = groupMember.GetAttributeValue( attribute.Key );
-                                string newValue = ClientAttributeHelper.GetValueFromClient( attribute, fieldValue.ToString() );
+                                string newValue = PublicAttributeHelper.GetPrivateValue( attribute, fieldValue.ToString() );
                                 groupMember.SetAttributeValue( attribute.Key, newValue );
 
                                 if ( ( originalValue ?? string.Empty ).Trim() != ( newValue ?? string.Empty ).Trim() )

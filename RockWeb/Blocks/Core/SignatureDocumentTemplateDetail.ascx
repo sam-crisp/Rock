@@ -43,14 +43,16 @@
                         </div>
                     </div>
 
-                    <a href="#" onclick="$('.js-template-tips').slideToggle();return false;" class="">Template Tips
-                    </a>
+                    <p class="text-right">
+                        <small><a href="#" onclick="$('.js-template-tips').slideToggle();return false;" class="">Template Tips</a></small>
+                    </p>
+                    
                     <div class="js-template-tips well" style="display: none">
                         <h2>Template Tips</h2>
                         <p>Below are some tips to assist you in your template creation. The merge fields that you use to customize your templates will vary depending on where they are being used.</p>
 
                         <label>Merge Fields for Workflow Electronic Signatures</label>
-                        <p>Below are some common merge fields for templates used for the electronic signature workflow action.</p>
+                        <p>Below are some common merge fields for templates used for the electronic signature workflow action. Note that the attribute keys will need to map to what you have configured in your workflow template.</p>
                         <div class='row'>
                             <div class='col-md-6'>
                                 {{ Workflow | Attribute:'SignedByPerson' }}<br>
@@ -65,7 +67,7 @@
                         <br />
 
                         <label>Merge Fields for Event Registration</label>
-                        <p>Below are some common merge fields for templates used for event registration.</p>
+                        <p>Below are some common merge fields for templates used for event registration. Again, the attribute value keys will be different in your registration.</p>
                         <div class='row'>
                             <div class='col-md-6'>
                                 <p><b>Registrant Fields</b></p>
@@ -80,12 +82,23 @@
 
                     </div>
 
-                    <Rock:NotificationBox ID="nbSignatureLavaTemplateWarning" runat="server" NotificationBoxType="Validation" Text="Lava Template is required." Visible="false" />
-                    <Rock:Toggle ID="tglTemplatePreview" runat="server" CssClass="pull-right" OnText="Preview" OffText="Edit" Checked="false" ButtonSizeCssClass="btn-xs" OnCssClass="btn-info" OffCssClass="btn-info" OnCheckedChanged="tglTemplatePreview_CheckedChanged" />
-                    <Rock:HtmlEditor ID="ceESignatureLavaTemplate" runat="server" Label="Lava Template" Help="The Lava template that makes up the body of the document." Height="300"/>
-                    <Rock:RockControlWrapper ID="rcwSignatureDocumentPreview" runat="server" Visible="false" Label="Lava Template Preview" Help="Preview of Signature Template as a PDF">
+
+                    <div class="well">
+
+                        <Rock:NotificationBox ID="nbSignatureLavaTemplateWarning" runat="server" NotificationBoxType="Validation" Text="Lava Template is required." Visible="false" />
+
+                        <div class="clearfix">
+                            <Rock:Toggle ID="tglTemplatePreview" runat="server" CssClass="pull-right" OnText="Preview" OffText="Edit" Checked="false" ButtonSizeCssClass="btn-xs" OnCssClass="btn-info" OffCssClass="btn-info" OnCheckedChanged="tglTemplatePreview_CheckedChanged" />
+                        </div>
+                        
+                        <Rock:CodeEditor ID="ceESignatureLavaTemplate" runat="server" EditorMode="Lava"  Label="Lava Template" Help="The Lava template that makes up the body of the document." EditorHeight="500" />
+                        <Rock:RockControlWrapper ID="rcwSignatureDocumentPreview" runat="server" Visible="false" Label="Lava Template Preview" Help="Preview of Signature Template as a PDF">
+
                         <Rock:PDFViewer ID="pdfSignatureDocumentPreview" runat="server" />
                     </Rock:RockControlWrapper>
+
+                    </div>
+                    
 
 
                     <%-- Legacy Signature Provider Settings --%>

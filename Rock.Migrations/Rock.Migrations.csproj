@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\EntityFramework.6.4.4\build\EntityFramework.props" Condition="Exists('..\packages\EntityFramework.6.4.4\build\EntityFramework.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -12,6 +13,8 @@
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -34,10 +37,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
-      <HintPath>..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.dll</HintPath>
+      <HintPath>..\packages\EntityFramework.6.4.4\lib\net45\EntityFramework.dll</HintPath>
     </Reference>
     <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
-      <HintPath>..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+      <HintPath>..\packages\EntityFramework.6.4.4\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.SqlServer.Types, Version=11.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.SqlServer.Types.11.0.2\lib\net20\Microsoft.SqlServer.Types.dll</HintPath>
@@ -80,6 +83,26 @@
     <Compile Include="Migrations\202202090430115_AddWorkflowRelatedModel.cs" />
     <Compile Include="Migrations\202202090430115_AddWorkflowRelatedModel.Designer.cs">
       <DependentUpon>202202090430115_AddWorkflowRelatedModel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202202111031395_FixPersonMergeWithGroupAssignments.cs" />
+    <Compile Include="Migrations\202202111031395_FixPersonMergeWithGroupAssignments.Designer.cs">
+      <DependentUpon>202202111031395_FixPersonMergeWithGroupAssignments.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202202152230518_Rollup_20220215.cs" />
+    <Compile Include="Migrations\202202152230518_Rollup_20220215.Designer.cs">
+      <DependentUpon>202202152230518_Rollup_20220215.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202202152250406_CodeGenerated_20220215.cs" />
+    <Compile Include="Migrations\202202152250406_CodeGenerated_20220215.Designer.cs">
+      <DependentUpon>202202152250406_CodeGenerated_20220215.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202202162343093_rollup_20220216.cs" />
+    <Compile Include="Migrations\202202162343093_rollup_20220216.Designer.cs">
+      <DependentUpon>202202162343093_rollup_20220216.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202203012130384_CodeGenerated_20220301.cs" />
+    <Compile Include="Migrations\202203012130384_CodeGenerated_20220301.Designer.cs">
+      <DependentUpon>202203012130384_CodeGenerated_20220301.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Version 13.0\Version 1.13.1\202201142130057_GroupType_IsCapacityRequired.cs" />
     <Compile Include="Migrations\Version 13.0\Version 1.13.1\202201142130057_GroupType_IsCapacityRequired.Designer.cs">
@@ -986,6 +1009,22 @@
     <EmbeddedResource Include="Migrations\202202090430115_AddWorkflowRelatedModel.resx">
       <DependentUpon>202202090430115_AddWorkflowRelatedModel.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202202111031395_FixPersonMergeWithGroupAssignments.resx">
+      <DependentUpon>202202111031395_FixPersonMergeWithGroupAssignments.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202202152230518_Rollup_20220215.resx">
+      <DependentUpon>202202152230518_Rollup_20220215.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202202152250406_CodeGenerated_20220215.resx">
+      <DependentUpon>202202152250406_CodeGenerated_20220215.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202202162343093_rollup_20220216.resx">
+      <DependentUpon>202202162343093_rollup_20220216.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202203012130384_CodeGenerated_20220301.resx">
+      <DependentUpon>202203012130384_CodeGenerated_20220301.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Migrations\Version 13.0\Version 1.13.1\202201142130057_GroupType_IsCapacityRequired.resx">
       <DependentUpon>202201142130057_GroupType_IsCapacityRequired.cs</DependentUpon>
     </EmbeddedResource>
@@ -1777,6 +1816,9 @@
     <Content Include="Migrations\Version 12.0\Version 1.12.4\202105251443228_SparklineChart_SparklineUpdate.sql">
       <DependentUpon>202105251443228_SparklineChart.cs</DependentUpon>
     </Content>
+    <Content Include="Migrations\202202111031395_FixPersonMergeWithGroupAssignments_spCrm_PersonMerge.sql">
+      <DependentUpon>202202111031395_FixPersonMergeWithGroupAssignments.cs</DependentUpon>
+    </Content>
     <Content Include="SqlServerTypes\readme.htm" />
     <None Include="Migrations\Version 12.0\Version 1.12.5\202106042044568_StatementGeneratorDefaultTemplateUpdate_RockDefaultTemplate.lava">
       <DependentUpon>202106042044568_StatementGeneratorDefaultTemplateUpdate.cs</DependentUpon>
@@ -1824,10 +1866,17 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>CD $(SolutionDir)Dev Tools\EntityFramework\
-CALL CopyToPackage.bat
-</PreBuildEvent>
+    <PreBuildEvent>
+    </PreBuildEvent>
   </PropertyGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\EntityFramework.6.4.4\build\EntityFramework.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\EntityFramework.6.4.4\build\EntityFramework.props'))" />
+    <Error Condition="!Exists('..\packages\EntityFramework.6.4.4\build\EntityFramework.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\EntityFramework.6.4.4\build\EntityFramework.targets'))" />
+  </Target>
+  <Import Project="..\packages\EntityFramework.6.4.4\build\EntityFramework.targets" Condition="Exists('..\packages\EntityFramework.6.4.4\build\EntityFramework.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
