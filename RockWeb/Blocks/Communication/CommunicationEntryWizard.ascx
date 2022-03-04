@@ -470,7 +470,8 @@
                                                         ModalSaveButtonCssClass="js-singleselect aspNetDisabled"
                                                         ModalCssClass="js-AssetManager-modal"
                                                         ButtonTextTemplate="Select Asset"
-                                                        ModalTitle="Asset Manager">
+                                                        ModalTitle="Asset Manager"
+                                                        ShowSelectNoneButton=false>
                                                     </Rock:ItemFromBlockPicker>
                                                     </ContentTemplate>
                                                 </asp:UpdatePanel>

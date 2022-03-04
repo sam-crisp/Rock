@@ -480,6 +480,23 @@ namespace Rock.Web.UI.Controls
         }
 
         /// <summary>
+        /// Gets or sets a value indicating whether [show select none button].
+        /// </summary>
+        /// <value><c>true</c> if [show select none button]; otherwise, <c>false</c>.</value>
+        public bool ShowSelectNoneButton
+        {
+            get
+            {
+                EnsureChildControls();
+                return ViewState["ShowSelectNoneButton"] as bool? ?? true;
+            }
+            set
+            {
+                EnsureChildControls();
+                ViewState["ShowSelectNoneButton"] = value;
+            }
+        }
+        /// <summary>
         /// Shows the modal.
         /// </summary>
         public void ShowModal()
@@ -531,7 +548,7 @@ namespace Rock.Web.UI.Controls
 
             _btnSelectNone = new LinkButton();
             _btnSelectNone.ID = this.ID + "_btnSelectNone";
-            _btnSelectNone.CssClass = "picker-select-none";
+            _btnSelectNone.CssClass = "js-picker-select-none picker-select-none";
             _btnSelectNone.Text = "<i class='fa fa-times'></i>";
             _btnSelectNone.CausesValidation = false;
             _btnSelectNone.Click += _lbClearPicker_Click;
@@ -665,7 +682,7 @@ namespace Rock.Web.UI.Controls
             mergeFields.Add( "SelectedValue", SelectedValue ?? string.Empty );
 
             _lbShowPicker.Text = this.PickerButtonTemplate.ResolveMergeFields( mergeFields );
-            _btnSelectNone.Visible = SelectedValue.IsNotNullOrWhiteSpace() && _lbShowPicker.Visible;
+            _btnSelectNone.Visible = SelectedValue.IsNotNullOrWhiteSpace() && _lbShowPicker.Visible && ShowSelectNoneButton;
 
             if ( this.ShowInModal )
             {

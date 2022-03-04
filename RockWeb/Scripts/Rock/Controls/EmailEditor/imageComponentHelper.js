@@ -19,7 +19,8 @@
 
         $('#component-image-imageheight, #component-image-imagewidth, #component-image-resizemode, #component-image-alt').on('change', function (e)
         {
-          self.setImageSrc();
+            self.setImageSrc();
+            self.setAssetImageSrc();
         });
 
         $('#component-image-margin-top,#component-image-margin-left,#component-image-margin-right,#component-image-margin-bottom').on('change', function (e)
@@ -45,47 +46,46 @@
         var imageResizeMode = Rock.controls.emailEditor.$currentImageComponent.attr('data-image-resizemode');
         var imageAltText = $img.attr('alt');
 
-        // TODO: Check if component has asset or image attribute and then populate the needed control. Make sure to change the toggle switch also.
-          //debugger
-          var $assetThumbnail = $('.js-asset-thumbnail');
-          var $assetThumbnailName = $('.js-asset-thumbnail-name');
+        var $assetThumbnail = $('.js-asset-thumbnail');
+        var $assetThumbnailName = $('.js-asset-thumbnail-name');
 
-          if (Rock.controls.emailEditor.$currentImageComponent.attr('data-image-AssetStorageProviderId') !== undefined) {
-              // This indicates the asset manager should be used, so set the thumbnail and show it
-              var assetIconPath = Rock.controls.emailEditor.$currentImageComponent.attr('data-image-IconPath');
-              if (assetIconPath !== undefined) {
-                  $assetThumbnailName.removeClass('file-link-default');
-                  $assetThumbnail.attr('style', 'background-image:url(' + assetIconPath + ')');
+        if (Rock.controls.emailEditor.$currentImageComponent.attr('data-image-AssetStorageProviderId') !== undefined) {
+          // This indicates the asset manager should be used, so set the thumbnail and show it
+          var assetIconPath = Rock.controls.emailEditor.$currentImageComponent.attr('data-image-IconPath');
+          if (assetIconPath !== undefined) {
+            var fileName = Rock.controls.emailEditor.$currentImageComponent.attr('data-image-name');
+            $assetThumbnailName.text(fileName || '');
+            $assetThumbnailName.attr('title', fileName || '');
+            $assetThumbnailName.removeClass('file-link-default');
+            $assetThumbnail.attr('style', 'background-image:url(' + assetIconPath + ')');
 
-                  $('.js-image-picker-type-asset').removeClass("btn-default");
-                  $('.js-image-picker-type-asset').addClass("btn-primary");
-                  $('.js-image-picker-type-image').removeClass("btn-primary");
-                  $('.js-image-picker-type-image').addClass("btn-default");
-                  $('#componentImageUploader').hide();
-                  $('.js-component-asset-manager').show();
-              }
+            $('.js-image-picker-type-asset').removeClass("btn-default");
+            $('.js-image-picker-type-asset').addClass("btn-primary");
+            $('.js-image-picker-type-image').removeClass("btn-primary");
+            $('.js-image-picker-type-image').addClass("btn-default");
+            $('#componentImageUploader').hide();
+            $('.js-component-asset-manager').show();
+            }
 
-              $('#componentImageUploader').find('.imageupload-thumbnail-image').css('background-image', 'url("/Assets/Images/image-placeholder.jpg")');
+          $('#componentImageUploader').find('.imageupload-thumbnail-image').css('background-image', 'url("/Assets/Images/image-placeholder.jpg")');
+        } else {
+          $('#componentImageUploader').find('.imageupload-thumbnail-image').css('background-image', 'url("' + imageUrl + '")');
+          if ($assetThumbnailName.length !== 0) {
+            $assetThumbnailName.text('');
+            $assetThumbnailName.attr('title', '');
+            $assetThumbnailName.addClass('file-link-default');
 
-          } else {
-              //debugger
-              $('#componentImageUploader').find('.imageupload-thumbnail-image').css('background-image', 'url("' + imageUrl + '")');
-              if ($assetThumbnailName.length !== 0) {
-                  $assetThumbnailName.text('');
-                  $assetThumbnailName.attr('title', '');
-                  $assetThumbnailName.addClass('file-link-default');
+            $('.js-image-picker-type-asset').removeClass("btn-primary");
+            $('.js-image-picker-type-asset').addClass("btn-default");
+            $('.js-image-picker-type-image').removeClass("btn-default");
+            $('.js-image-picker-type-image').addClass("btn-primary");
+            $('#componentImageUploader').show();
+            $('.js-component-asset-manager').hide();
+            }
 
-                  $('.js-image-picker-type-asset').removeClass("btn-primary");
-                  $('.js-image-picker-type-asset').addClass("btn-default");
-                  $('.js-image-picker-type-image').removeClass("btn-default");
-                  $('.js-image-picker-type-image').addClass("btn-primary");
-                  $('#componentImageUploader').show();
-                  $('.js-component-asset-manager').hide();
-              }
-
-              if ($assetThumbnail.length !== 0) {
-                $assetThumbnail.attr('style', '');
-              }
+            if ($assetThumbnail.length !== 0) {
+            $assetThumbnail.attr('style', '');
+            }
           }
         
         if (imageCssWidth === 'full') {
@@ -121,11 +121,10 @@
         return Rock.controls.emailEditor.$currentImageComponent;
       },
       handleImageUpdate: function (e, data) {
-          //debugger
         Rock.controls.emailEditor.imageComponentHelper.setImageFromData(data);
       },
-      handleAssetUpdate: function (e, data) {
-        //debugger
+        handleAssetUpdate: function (e, data) {
+
         if (data !== undefined && typeof (data) === 'string') {
           var parsedData = ''
           if (data.includes('AssetStorageProviderId')) {
@@ -141,7 +140,7 @@
 
         var $currentImg = Rock.controls.emailEditor.$currentImageComponent.find('img');
 
-        if (cssWidth === 0) {
+        if (cssWidth === '0') {
           $currentImg.css('width', 'auto');
           $currentImg.attr('data-imgcsswidth', 'image');
         }
@@ -183,7 +182,7 @@
         Rock.controls.emailEditor.$currentImageComponent.attr('data-image-Name', data ? data.Name : null);
         Rock.controls.emailEditor.$currentImageComponent.attr('data-image-Url', data ? data.Url : null);
 
-        Rock.controls.emailEditor.imageComponentHelper.setAssetImageSrc(data.Url);
+        Rock.controls.emailEditor.imageComponentHelper.setAssetImageSrc();
       },
       setImageWrapAnchor: function () {
         var $imageLinkInput = $('#component-image-link');
@@ -240,10 +239,21 @@
 
         Rock.controls.emailEditor.$currentImageComponent.find('img').attr('src', imageUrl).attr('alt', imageAltText);
       },
-      setAssetImageSrc: function (url) {
-        //debugger
+      setAssetImageSrc: function () {
+        // Also called by property changes, so don't do anything if this is not an asset.
+        if (Rock.controls.emailEditor.$currentImageComponent.attr('data-image-AssetStorageProviderId') === undefined) {
+            return;
+        }
+
+        var imageWidth = parseInt($('#component-image-imagewidth').val()) || '';
+        Rock.controls.emailEditor.$currentImageComponent.css('width', imageWidth);
+
+        var imageHeight = parseInt($('#component-image-imageheight').val()) || '';
+        Rock.controls.emailEditor.$currentImageComponent.css('height', imageHeight);
+
         var imageAltText = $('#component-image-alt').val();
-        Rock.controls.emailEditor.$currentImageComponent.find('img').attr('src', url).attr('alt', imageAltText);
+        var imageUrl = Rock.controls.emailEditor.$currentImageComponent.attr('data-image-Url');
+        Rock.controls.emailEditor.$currentImageComponent.find('img').attr('src', imageUrl).attr('alt', imageAltText);
       }
     }
 

@@ -267,7 +267,7 @@ namespace RockWeb.Blocks.Communication
     {% if fileName != '' %}
         <span class='js-asset-thumbnail-name file-link' style='background-color: transparent'>{{ fileName }}</span>
     {% else %}
-        <span class='js-asset-thumbnail file-link file-link-default'></span>
+        <span class='js-asset-thumbnail-name file-link file-link-default'></span>
     {% endif %}
 </div>
 <div class='imageupload-dropzone'>
