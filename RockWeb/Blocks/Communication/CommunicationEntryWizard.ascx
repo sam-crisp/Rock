@@ -451,10 +451,10 @@
 
                                         <div class="row">
                                             <div class="col-md-6">
-
-                                                <asp:HyperLink ID="aImagePickerTypeImage" runat="server" CssClass="js-image-picker-type-image btn btn-xs btn-primary">Image</asp:HyperLink>
-                                                <asp:HyperLink ID="aImagePickerTypeAsset" runat="server" CssClass="js-image-picker-type-asset btn btn-xs btn-default">Asset</asp:HyperLink>
-
+                                                <div class="btn-group toggle-container">
+                                                    <asp:HyperLink ID="aImagePickerTypeImage" runat="server" CssClass="js-image-picker-type-image btn btn-toggle btn-xs btn-primary">Image</asp:HyperLink>
+                                                    <asp:HyperLink ID="aImagePickerTypeAsset" runat="server" CssClass="js-image-picker-type-asset btn btn-toggle btn-xs btn-default">Asset</asp:HyperLink>
+                                                </div>
                                                 <Rock:ImageUploader ID="componentImageUploader" ClientIDMode="Static" runat="server" Label="Image" UploadAsTemporary="false" DoneFunctionClientScript="handleImageUpdate(e, data)" DeleteFunctionClientScript="handleImageUpdate()" />
 
                                                 <asp:UpdatePanel ID="assetPickerPanel" runat="server">
