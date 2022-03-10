@@ -68,6 +68,7 @@ namespace RockWeb.Blocks.Groups
         private Dictionary<int, List<GroupMemberRegistrationItem>> _groupMembersWithRegistrations = new Dictionary<int, List<GroupMemberRegistrationItem>>();
         private int? _homePhoneTypeId = DefinedValueCache.GetId( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME.AsGuid() );
         private int? _cellPhoneTypeId = DefinedValueCache.GetId( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() );
+        private bool _allowInactiveGroupMembers = true;
 
         private class GroupMemberRegistrationItem
         {
@@ -134,6 +135,7 @@ namespace RockWeb.Blocks.Groups
         /// <param name="e">An <see cref="T:System.EventArgs" /> object that contains the event data.</param>
         protected override void OnInit( EventArgs e )
         {
+            //gGroupMembers.Actions.ShowCommunicate = false;
             base.OnInit( e );
 
             this.BlockUpdated += GroupMemberList_BlockUpdated;
@@ -205,6 +207,17 @@ namespace RockWeb.Blocks.Groups
                     gGroupMembers.GetRecipientMergeFields += gGroupMembers_GetRecipientMergeFields;
                     gGroupMembers.Actions.AddClick += gGroupMembers_AddClick;
                     gGroupMembers.GridRebind += gGroupMembers_GridRebind;
+
+                    // Add a custom button with an EventHandler that is only in this block.
+                    var customActionConfigEventButton = new CustomActionConfigEvent
+                    {
+                        IconCssClass = "fa fa-comment",
+                        HelpText = "Communicate",
+                        EventHandler = gGroupMembers_CommunicateClick
+                    };
+
+                    gGroupMembers.Actions.AddCustomActionBlockButton( customActionConfigEventButton );
+
                     gGroupMembers.RowItemText = _groupTypeCache.GroupTerm + " " + _groupTypeCache.GroupMemberTerm;
                     gGroupMembers.ExportFilename = _group.Name;
                     gGroupMembers.ExportSource = ExcelExportSource.DataSource;
@@ -813,6 +826,12 @@ namespace RockWeb.Blocks.Groups
             BindGroupMembersGrid( e.IsExporting, e.IsCommunication );
         }
 
+        protected void gGroupMembers_CommunicateClick( object sender, EventArgs e )
+        {
+            mdActiveRecords.Visible = true;
+            mdActiveRecords.Show();
+        }
+
         #endregion
 
         #region Internal Methods
@@ -1279,7 +1298,7 @@ namespace RockWeb.Blocks.Groups
                 .AsNoTracking()
                 .Where( m => m.GroupId == _group.Id );
 
-            if ( isCommunication )
+            if ( isCommunication && !_allowInactiveGroupMembers )
             {
                 qry = qry.Where( a => a.GroupMemberStatus != GroupMemberStatus.Inactive );
             }
@@ -1588,5 +1607,21 @@ namespace RockWeb.Blocks.Groups
         }
 
         #endregion
+
+        protected void lbActiveAndInactiveGroupMembers_Click( object sender, EventArgs e )
+        {
+            // Sets the query parameters to include active and inactive group members, and then triggers the communicate action.
+            _allowInactiveGroupMembers = true;
+            mdActiveRecords.Hide();
+            gGroupMembers.Actions.InvokeCommunicateClick( sender, e );
+        }
+
+        protected void lbActiveGroupMembersOnly_Click( object sender, EventArgs e )
+        {
+            // Sets the query parameters to include active group members only, and then triggers the communicate action.
+            _allowInactiveGroupMembers = false;
+            mdActiveRecords.Hide();
+            gGroupMembers.Actions.InvokeCommunicateClick( sender, e );
+        }
     }
 }

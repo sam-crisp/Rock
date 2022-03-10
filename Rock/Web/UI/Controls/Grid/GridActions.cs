@@ -659,7 +659,7 @@ namespace Rock.Web.UI.Controls
         }
 
         /// <summary>
-        /// Handles the Click event of the lbAdd control.
+        /// Handles the Click event of the lbCommunicate control.
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="EventArgs" /> instance containing the event data.</param>
@@ -740,6 +740,19 @@ namespace Rock.Web.UI.Controls
         {
             _customActionConfigEvents.Add( customConfig );
             RecreateChildControls();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        public void InvokeCommunicateClick( object sender, EventArgs e )
+        {
+            if ( CommunicateClick != null )
+            {
+                CommunicateClick( sender, e );
+            }
         }
 
         #endregion
