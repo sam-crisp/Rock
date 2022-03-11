@@ -665,10 +665,7 @@ namespace Rock.Web.UI.Controls
         /// <param name="e">The <see cref="EventArgs" /> instance containing the event data.</param>
         void lbCommunicate_Click( object sender, EventArgs e )
         {
-            if ( CommunicateClick != null )
-            {
-                CommunicateClick( sender, e );
-            }
+            CommunicateClick?.Invoke( sender, e );
         }
 
         /// <summary>
@@ -749,10 +746,7 @@ namespace Rock.Web.UI.Controls
         /// <param name="e"></param>
         public void InvokeCommunicateClick( object sender, EventArgs e )
         {
-            if ( CommunicateClick != null )
-            {
-                CommunicateClick( sender, e );
-            }
+            CommunicateClick?.Invoke( sender, e );
         }
 
         #endregion

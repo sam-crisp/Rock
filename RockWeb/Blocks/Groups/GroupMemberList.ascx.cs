@@ -68,7 +68,9 @@ namespace RockWeb.Blocks.Groups
         private Dictionary<int, List<GroupMemberRegistrationItem>> _groupMembersWithRegistrations = new Dictionary<int, List<GroupMemberRegistrationItem>>();
         private int? _homePhoneTypeId = DefinedValueCache.GetId( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME.AsGuid() );
         private int? _cellPhoneTypeId = DefinedValueCache.GetId( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() );
-        private bool _allowInactiveGroupMembers = true;
+
+        private bool _allowInactiveGroupMembers = false;
+        private bool _hasInactiveGroupMembersSelected = false;
 
         private class GroupMemberRegistrationItem
         {
@@ -215,8 +217,8 @@ namespace RockWeb.Blocks.Groups
                         HelpText = "Communicate",
                         EventHandler = gGroupMembers_CommunicateClick
                     };
-
                     gGroupMembers.Actions.AddCustomActionBlockButton( customActionConfigEventButton );
+                    gGroupMembers.Actions.ShowCommunicate = false;
 
                     gGroupMembers.RowItemText = _groupTypeCache.GroupTerm + " " + _groupTypeCache.GroupMemberTerm;
                     gGroupMembers.ExportFilename = _group.Name;
@@ -828,8 +830,16 @@ namespace RockWeb.Blocks.Groups
 
         protected void gGroupMembers_CommunicateClick( object sender, EventArgs e )
         {
-            mdActiveRecords.Visible = true;
-            mdActiveRecords.Show();
+            BindGroupMembersGrid();
+            if ( _hasInactiveGroupMembersSelected )
+            {
+                mdActiveRecords.Visible = true;
+                mdActiveRecords.Show();
+            }
+            else
+            {
+                gGroupMembers.Actions.InvokeCommunicateClick( sender, e );
+            }
         }
 
         #endregion
@@ -1566,6 +1576,19 @@ namespace RockWeb.Blocks.Groups
 
             _showNoteColumn = GetAttributeValue( "ShowNoteColumn" ).AsBoolean();
             gGroupMembers.ColumnsOfType<RockBoundField>().First( a => a.DataField == "Note" ).Visible = _showNoteColumn;
+
+            List<int> selectedGroupMemberIds = new List<int>();
+
+            // If any row is selected, use those selected, otherwise choose all of them.
+            selectedGroupMemberIds = !gGroupMembers.SelectedKeys.Any() ? qry.Select( gm => gm.Id ).ToList() : gGroupMembers.SelectedKeys.OfType<int>().ToList();
+
+            var hasInactiveGroupMembers = qry.Where( gm => gm.GroupMemberStatus == GroupMemberStatus.Inactive ).Any();
+
+            if ( selectedGroupMemberIds.Count > 0 && hasInactiveGroupMembers )
+            {
+                // Determine if the current query has inactive group members selected.
+                _hasInactiveGroupMembersSelected = qry.Where( gm => gm.GroupMemberStatus == GroupMemberStatus.Inactive && selectedGroupMemberIds.Contains( gm.Id ) ).Any();
+            }
 
             gGroupMembers.SetLinqDataSource( qry );
             gGroupMembers.DataBind();
