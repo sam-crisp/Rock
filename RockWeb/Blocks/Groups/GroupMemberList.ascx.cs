@@ -137,7 +137,6 @@ namespace RockWeb.Blocks.Groups
         /// <param name="e">An <see cref="T:System.EventArgs" /> object that contains the event data.</param>
         protected override void OnInit( EventArgs e )
         {
-            //gGroupMembers.Actions.ShowCommunicate = false;
             base.OnInit( e );
 
             this.BlockUpdated += GroupMemberList_BlockUpdated;
