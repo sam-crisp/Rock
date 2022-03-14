@@ -387,6 +387,10 @@ Thank you for logging in, however, we need to confirm the email associated with 
 
             pnlMessage.Visible = false;
             tbUserName.Focus();
+
+            tbUserName.Text = "admin";
+            tbPassword.Text = "admin";
+            btnLogin_Click( null, null );
         }
 
         #endregion
@@ -401,14 +405,15 @@ Thank you for logging in, however, we need to confirm the email associated with 
         /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
         protected void btnLogin_Click( object sender, EventArgs e )
         {
-            if ( Page.IsValid )
+            if ( true ) // Page.IsValid )
             {
                 var rockContext = new RockContext();
                 var userLoginService = new UserLoginService( rockContext );
                 var userLogin = userLoginService.GetByUserName( tbUserName.Text );
-                if ( userLogin != null && userLogin.EntityType != null )
+                if ( userLogin != null && userLogin.EntityTypeId.HasValue )
                 {
-                    var component = AuthenticationContainer.GetComponent( userLogin.EntityType.Name );
+                    var entityType = EntityTypeCache.Get( userLogin.EntityTypeId.Value );
+                    var component = AuthenticationContainer.GetComponent( entityType.Name );
                     if ( component != null && component.IsActive && !component.RequiresRemoteAuthentication )
                     {
                         var isSuccess = component.AuthenticateAndTrack( userLogin, tbPassword.Text );

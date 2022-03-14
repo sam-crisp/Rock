@@ -134,6 +134,10 @@ namespace Rock.Utility
                delimited list of proxies.
                Example from parner church with a CDN AND Web Farm: X-Forwarded-For: 68.14.xxx.xx, 147.243.xxx.xxx, 147.243.xxxx.xxx:57275
             */
+            if ( !request.ServerVariables.AllKeys.Contains( "HTTP_X_FORWARDED_FOR" ) )
+            {
+                return null;
+            }
 
             var headerValue = request.ServerVariables["HTTP_X_FORWARDED_FOR"];
 

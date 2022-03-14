@@ -78,7 +78,7 @@ namespace Rock.Model
 
                             // Did the provider type change?
                             int? origEntityTypeId = OriginalValues[nameof( UserLogin.EntityTypeId )].ToStringSafe().AsIntegerOrNull();
-                            int? entityTypeId = Entity.EntityType != null ? Entity.EntityType.Id : Entity.EntityTypeId;
+                            int? entityTypeId = Entity.EntityTypeId;
                             if ( !entityTypeId.Equals( origEntityTypeId ) )
                             {
                                 var origProviderType = EntityTypeCache.Get( origEntityTypeId ?? 0 )?.FriendlyName;
