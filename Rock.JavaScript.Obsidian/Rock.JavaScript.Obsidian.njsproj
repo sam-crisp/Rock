@@ -137,7 +137,8 @@
     <TypeScriptCompile Include="Framework\Blocks\WorkFlow\FormBuilder\FormBuilderDetail\sectionZone.ts" />
     <TypeScriptCompile Include="Framework\Blocks\WorkFlow\FormBuilder\Shared\segmentedPicker.ts" />
     <TypeScriptCompile Include="Framework\Blocks\WorkFlow\FormBuilder\FormBuilderDetail\settingsTab.ts" />
-    <TypeScriptCompile Include="Framework\Blocks\WorkFlow\FormBuilder\Shared\settingsWell.ts" />
+    <TypeScriptCompile Include="Framework\Controls\header.ts" />
+    <TypeScriptCompile Include="Framework\Controls\sectionContainer.ts" />
     <TypeScriptCompile Include="Framework\Blocks\WorkFlow\FormBuilder\FormBuilderDetail\types.d.ts" />
     <TypeScriptCompile Include="Framework\Blocks\WorkFlow\FormBuilder\FormBuilderDetail\utils.ts" />
     <TypeScriptCompile Include="Framework\Blocks\WorkFlow\FormBuilder\formTemplateDetail.ts" />
@@ -171,11 +172,14 @@
     <TypeScriptCompile Include="Framework\Controls\personPicker.ts" />
     <TypeScriptCompile Include="Framework\Controls\primaryBlock.ts" />
     <TypeScriptCompile Include="Framework\Controls\rockAttributeFilter.ts" />
+    <TypeScriptCompile Include="Framework\Controls\slidingDateRangePicker.ts" />
     <TypeScriptCompile Include="Framework\Controls\treeItemPicker.ts" />
     <TypeScriptCompile Include="Framework\Directives\dragDrop.ts" />
     <TypeScriptCompile Include="Framework\Elements\auditDetail.ts" />
     <TypeScriptCompile Include="Framework\Elements\fieldFilterContainer.ts" />
+    <TypeScriptCompile Include="Framework\Elements\fileUploader.ts" />
     <TypeScriptCompile Include="Framework\Elements\fullscreen.ts" />
+    <TypeScriptCompile Include="Framework\Elements\imageUploader.ts" />
     <TypeScriptCompile Include="Framework\Elements\inlineCheckBox.ts" />
     <TypeScriptCompile Include="Framework\Elements\inlineSlider.ts" />
     <TypeScriptCompile Include="Framework\Elements\inlineSwitch.ts" />
@@ -184,6 +188,10 @@
     <TypeScriptCompile Include="Framework\Elements\switch.ts" />
     <TypeScriptCompile Include="Framework\Elements\treeList.ts" />
     <TypeScriptCompile Include="Framework\Elements\urlLinkBox.ts" />
+    <TypeScriptCompile Include="Framework\Fields\fileField.ts" />
+    <TypeScriptCompile Include="Framework\Fields\fileFieldComponents.ts" />
+    <TypeScriptCompile Include="Framework\Fields\imageField.ts" />
+    <TypeScriptCompile Include="Framework\Fields\imageFieldComponents.ts" />
     <TypeScriptCompile Include="Framework\Fields\keyValueListField.ts" />
     <TypeScriptCompile Include="Framework\Fields\keyValueListFieldComponents.ts" />
     <TypeScriptCompile Include="Framework\Fields\urlLinkField.ts" />
@@ -298,6 +306,7 @@
     <TypeScriptCompile Include="Framework\index.ts" />
     <TypeScriptCompile Include="Framework\Rules\index.ts" />
     <TypeScriptCompile Include="Framework\Services\boolean.ts" />
+    <TypeScriptCompile Include="Framework\Services\slidingDateRange.ts" />
     <TypeScriptCompile Include="Framework\Services\dateKey.ts" />
     <TypeScriptCompile Include="Framework\Services\email.ts" />
     <TypeScriptCompile Include="Framework\Services\number.ts" />

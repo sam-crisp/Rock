@@ -77,6 +77,24 @@ namespace Rock.WebStartup
         #endregion Properties
 
         /// <summary>
+        /// Class UnobservedTaskException.
+        /// Implements the <see cref="System.Exception" />
+        /// </summary>
+        /// <seealso cref="System.Exception" />
+        private class UnobservedTaskException : Exception
+        {
+            /// <summary>
+            /// Initializes a new instance of the <see cref="UnobservedTaskException"/> class.
+            /// </summary>
+            /// <param name="message">The message.</param>
+            /// <param name="exception">The exception.</param>
+            public UnobservedTaskException( string message, Exception exception )
+                : base( message, exception )
+            {
+            }
+        }
+
+        /// <summary>
         /// If there are Task.Runs that don't handle their exceptions, this will catch those
         /// so that we can log it.
         /// </summary>
@@ -84,17 +102,8 @@ namespace Rock.WebStartup
         /// <param name="e">The <see cref="UnobservedTaskExceptionEventArgs"/> instance containing the event data.</param>
         private static void TaskScheduler_UnobservedTaskException( object sender, UnobservedTaskExceptionEventArgs e )
         {
-            Exception ex;
-            if ( e.Exception?.InnerExceptions?.Count == 1 )
-            {
-                ex = e.Exception.InnerException;
-            }
-            else
-            {
-                ex = e.Exception;
-            }
-
-            ExceptionLogService.LogException( ex );
+            Debug.WriteLine( "Unobserved Task Exception" );
+            ExceptionLogService.LogException( new UnobservedTaskException( "Unobserved Task Exception", e.Exception ) );
         }
 
         /// <summary>
@@ -140,8 +149,11 @@ namespace Rock.WebStartup
             }
 
             // Configure the values for RockDateTime.
-            RockDateTime.FirstDayOfWeek = Rock.Web.SystemSettings.StartDayOfWeek;
+            // To avoid the overhead of initializing the GlobalAttributesCache prior to LoadCacheObjects(), load these from the database instead.
+            RockDateTime.FirstDayOfWeek = new AttributeService( new RockContext() ).GetSystemSettingValue( Rock.SystemKey.SystemSetting.START_DAY_OF_WEEK ).ConvertToEnumOrNull<DayOfWeek>() ?? RockDateTime.DefaultFirstDayOfWeek;
             InitializeRockGraduationDate();
+
+            ShowDebugTimingMessage( "Initialize RockDateTime" );
 
             if ( runMigrationFileInfo.Exists )
             {
@@ -247,7 +259,16 @@ namespace Rock.WebStartup
         private static void InitializeRockGraduationDate()
         {
 #pragma warning disable CS0618 // Type or member is obsolete
-            RockDateTime.CurrentGraduationDate = PersonService.GetCurrentGraduationDate();
+
+            // To avoid the overhead of initializing the GlobalAttributesCache prior to LoadCacheObjects(), load GradeTransitionDate from the database instead.
+            var graduationDateWithCurrentYear = new AttributeService( new RockContext() ).GetGlobalAttribute( "GradeTransitionDate" )?.DefaultValue.MonthDayStringAsDateTime() ?? new DateTime( RockDateTime.Today.Year, 6, 1 );
+            if ( graduationDateWithCurrentYear < RockDateTime.Today )
+            {
+                // if the graduation date already occurred this year, return next year' graduation date
+                RockDateTime.CurrentGraduationDate = graduationDateWithCurrentYear.AddYears( 1 );
+            }
+
+            RockDateTime.CurrentGraduationDate = graduationDateWithCurrentYear;
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
@@ -608,7 +629,7 @@ namespace Rock.WebStartup
             // Get the versions that have already been installed
             var installedMigrationNumbers = pluginMigrationService.Queryable()
                 .Where( m => m.PluginAssemblyName == pluginAssemblyName )
-                .Select( a => a.MigrationNumber );
+                .Select( a => a.MigrationNumber ).ToArray();
 
             // narrow it down to migrations that haven't already been installed
             migrationTypesByNumber = migrationTypesByNumber
@@ -617,6 +638,11 @@ namespace Rock.WebStartup
 
             // Iterate each migration in the assembly in MigrationNumber order 
             var migrationTypesToRun = migrationTypesByNumber.OrderBy( a => a.Key ).Select( a => a.Value ).ToList();
+
+            if ( !migrationTypesToRun.Any() )
+            {
+                return result;
+            }
 
             var configConnectionString = System.Configuration.ConfigurationManager.ConnectionStrings["RockContext"]?.ConnectionString;
 

@@ -14,7 +14,7 @@
 // limitations under the License.
 // </copyright>
 //
-import { computed, defineComponent, ref, SetupContext, watch, watchEffect } from "vue";
+import { computed, defineComponent, ref, watch } from "vue";
 import { getFieldConfigurationProps, getFieldEditorProps } from "./utils";
 import CheckBox from "../Elements/checkBox";
 import CheckBoxList from "../Elements/checkBoxList";
@@ -41,7 +41,7 @@ export const EditComponent = defineComponent({
 
     props: getFieldEditorProps(),
 
-    setup(props, context: SetupContext) {
+    setup(props, { emit }) {
         const internalValue = ref(props.modelValue ?? "");
 
         /** The options to choose from in the drop down list */
@@ -56,7 +56,7 @@ export const EditComponent = defineComponent({
 
         watch(() => props.modelValue, () => internalValue.value = props.modelValue ?? "");
 
-        watchEffect(() => context.emit("update:modelValue", internalValue.value));
+        watch(internalValue, () => emit("update:modelValue", internalValue.value));
 
         return {
             internalValue,
@@ -66,6 +66,43 @@ export const EditComponent = defineComponent({
 
     template: `
 <DropDownList v-model="internalValue" :options="options" />
+`
+});
+
+export const FilterComponent = defineComponent({
+    name: "CampusField.Filter",
+
+    components: {
+        CheckBoxList
+    },
+
+    props: getFieldEditorProps(),
+
+    setup(props, { emit }) {
+        const internalValue = ref(props.modelValue.split(",").filter(s => s !== ""));
+
+        /** The options to choose from in the drop down list */
+        const options = computed((): ListItem[] => {
+            try {
+                return JSON.parse(props.configurationValues[ConfigurationValueKey.Values] ?? "[]") as ListItem[];
+            }
+            catch {
+                return [];
+            }
+        });
+
+        watch(() => props.modelValue, () => internalValue.value = props.modelValue.split(",").filter(s => s !== ""));
+
+        watch(internalValue, () => emit("update:modelValue", internalValue.value.join(",")));
+
+        return {
+            internalValue,
+            options
+        };
+    },
+
+    template: `
+<CheckBoxList v-model="internalValue" :options="options" />
 `
 });
 
