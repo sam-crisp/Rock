@@ -740,7 +740,7 @@ namespace Rock.Web.UI.Controls
         }
 
         /// <summary>
-        /// 
+        /// Allows a grid action to invoke the same EventHandler as the Communicate click.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
