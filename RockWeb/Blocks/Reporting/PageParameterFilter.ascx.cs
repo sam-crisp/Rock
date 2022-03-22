@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // </copyright>
-//
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -34,7 +34,6 @@ using Rock.Web.UI.Controls;
 
 namespace RockWeb.Blocks.Reporting
 {
-
     /// <summary>
     /// Filter block that passes the filter values as query string parameters.
     /// </summary>
@@ -51,7 +50,7 @@ namespace RockWeb.Blocks.Reporting
     -------------------
     4/5/2020 - JME
     This block has a setting 'Selection Action' that allows the block to either do:
-    A. Parital Postback (aka Update Block)
+    A. Partial Postback (aka Update Block)
     B. Full Postback (aka Update Page)
 
     The 'Update Block' is odd in that it will take the values from the filter attributes
@@ -66,7 +65,6 @@ namespace RockWeb.Blocks.Reporting
 
     ========================================
     */
-
 
     #region Block Attributes
     [BooleanField(
@@ -187,15 +185,15 @@ namespace RockWeb.Blocks.Reporting
         #endregion Attribute Keys
 
         #region Properties
-        Dictionary<string, object> CurrentParameters { get; set; }
+        protected Dictionary<string, object> CurrentParameters { get; set; }
         #endregion
 
         #region Fields
 
-        int _blockTypeEntityId;
-        Block _block;
-        int _filtersPerRow;
-        SelectionAction _reloadOnSelection;
+        private int _blockTypeEntityId;
+        private Block _block;
+        private int _filtersPerRow;
+        private SelectionAction _reloadOnSelection;
 
         #endregion
 
@@ -270,6 +268,7 @@ namespace RockWeb.Blocks.Reporting
             {
                 cbEnableHistory.Visible = false;
             }
+
             Control cbRequired = edtFilter.FindControl( "cbRequired" );
             if ( cbRequired != null )
             {
@@ -318,15 +317,16 @@ namespace RockWeb.Blocks.Reporting
                         var control = Page.FindControl( Request.Form["__EVENTTARGET"] );
                         if ( control != null && control.UniqueID.Contains( "attribute_field_" ) )
                         {
-                            // We need to update the form action so that the partial postback call post to the new parameterized url.
+                            // We need to update the form action so that the partial postback call post to the new parameterized URL.
                             Page.Form.Action = GetParameterizedUrl();
                             hfPostBack.Value = "True";
                             ScriptManager.RegisterStartupScript( control, control.GetType(), "Refresh-Controls", @"console.log('Doing Postback');  __doPostBack('" + Request.Form["__EVENTTARGET"] + @"','');", true );
                         }
                     }
-                    else // Reset hidden field for next time
+                    else
                     {
-                        hfPostBack.Value = "";
+                        // Reset hidden field for next time.
+                        hfPostBack.Value = string.Empty;
                     }
                 }
                 else if ( _reloadOnSelection == SelectionAction.UpdatePage )
@@ -351,7 +351,7 @@ namespace RockWeb.Blocks.Reporting
                 CurrentParameters = this.RockPage.PageParameters();
 
                 var query = new AttributeService( new RockContext() ).Get( _blockTypeEntityId, "Id", _block.Id.ToString() );
-                var attribsWithDefaultValue = query.AsQueryable().Where( a => a.DefaultValue != null && a.DefaultValue != "" ).ToList();
+                var attribsWithDefaultValue = query.AsQueryable().Where( a => a.DefaultValue != null && a.DefaultValue != string.Empty ).ToList();
 
                 // If we have any filters with default values, we want to load this block with the page parameters already set.
                 if ( attribsWithDefaultValue.Any() && !this.RockPage.PageParameters().Any() )
@@ -497,13 +497,13 @@ namespace RockWeb.Blocks.Reporting
                  .ToList();
 
             edtFilter.SetAttributeProperties( attribute );
-  
+
             mdFilter.Title = "Edit Filter";
             mdFilter.Show();
         }
 
         /// <summary>
-        /// Handes the Delete filters event.
+        /// Handles the Delete filters event.
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="RowEventArgs"/> instance containing the event data.</param>
@@ -535,8 +535,8 @@ namespace RockWeb.Blocks.Reporting
             var attributeService = new AttributeService( rockContext );
 
             // reset editor
-            edtFilter.Name = "";
-            edtFilter.Key = "";
+            edtFilter.Name = string.Empty;
+            edtFilter.Key = string.Empty;
             edtFilter.AttributeId = null;
             edtFilter.IsFieldTypeEditable = true;
             edtFilter.SetAttributeFieldType( FieldTypeCache.Get( Rock.SystemGuid.FieldType.TEXT ).Id, null );
@@ -711,7 +711,7 @@ namespace RockWeb.Blocks.Reporting
 
             try
             {
-                Helper.AddEditControls( "", attributeKeys, _block, phAttributes, "", false, exclusions, _filtersPerRow );
+                Helper.AddEditControls( string.Empty, attributeKeys, _block, phAttributes, string.Empty, false, exclusions, _filtersPerRow );
             }
             catch
             {
@@ -746,7 +746,7 @@ namespace RockWeb.Blocks.Reporting
         /// <returns></returns>
         private NameValueCollection GenerateQueryString()
         {
-            var queryString = HttpUtility.ParseQueryString( String.Empty );
+            var queryString = HttpUtility.ParseQueryString( string.Empty );
             foreach ( var parameter in CurrentParameters )
             {
                 if ( parameter.Key != "PageId" )
@@ -828,6 +828,5 @@ namespace RockWeb.Blocks.Reporting
             return attributeValue.ConvertToEnum<SelectionAction>();
         }
         #endregion
-
     }
 }
