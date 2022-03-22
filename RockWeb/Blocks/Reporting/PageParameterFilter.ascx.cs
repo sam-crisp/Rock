@@ -534,10 +534,16 @@ namespace RockWeb.Blocks.Reporting
             var rockContext = new RockContext();
             var attributeService = new AttributeService( rockContext );
 
-            // reset editor
+            // Reset attribute editor fields.
             edtFilter.Name = string.Empty;
             edtFilter.Key = string.Empty;
-            edtFilter.AttributeId = null;
+            edtFilter.AbbreviatedName = "";
+
+            Rock.Model.Attribute attribute = new Rock.Model.Attribute();
+
+            // Set attribute fields to those from a new attribute to made sure the AttributeEditor / ViewState has no leftover values.
+            edtFilter.AttributeGuid = attribute.Guid;
+            edtFilter.AttributeId = attribute.Id;
             edtFilter.IsFieldTypeEditable = true;
             edtFilter.SetAttributeFieldType( FieldTypeCache.Get( Rock.SystemGuid.FieldType.TEXT ).Id, null );
 
