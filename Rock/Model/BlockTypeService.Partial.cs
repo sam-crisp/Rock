@@ -206,6 +206,9 @@ namespace Rock.Model
             }
         }
 
+        // Stores the list of block type files that have been processed in this application session.
+        private static List<string> _processedBlockPaths = new List<string>();
+
         /// <summary>
         /// Registers any block types that are not currently registered in Rock.
         /// </summary>
@@ -226,14 +229,22 @@ namespace Rock.Model
             FindAllBlocksInPath( physWebAppPath, list, "Plugins" );
 
             // Get a list of the BlockTypes already registered (via the path)
-            var registeredPaths = new List<string>();
-            using ( var rockContext = new RockContext() )
+            List<string> registeredPaths;
+            if ( refreshAll )
             {
-                registeredPaths = new BlockTypeService( rockContext )
-                    .Queryable().AsNoTracking()
-                    .Where( b => !string.IsNullOrEmpty( b.Path ) )
-                    .Select( b => b.Path )
-                    .ToList();
+                _processedBlockPaths = new List<string>();
+                registeredPaths = new List<string>();
+            }
+            else
+            { 
+                using ( var rockContext = new RockContext() )
+                {
+                    registeredPaths = new BlockTypeService( rockContext )
+                        .Queryable().AsNoTracking()
+                        .Where( b => !string.IsNullOrEmpty( b.Path ) )
+                        .Select( b => b.Path )
+                        .ToList();
+                }
             }
 
             // Get the Block Entity Type
@@ -242,68 +253,75 @@ namespace Rock.Model
             // for each BlockType
             foreach ( string path in list.Keys )
             {
-                if ( refreshAll || !registeredPaths.Any( b => b.Equals( path, StringComparison.OrdinalIgnoreCase ) ) )
+                // If the block has been previously processed, ignore it. 
+                if ( registeredPaths.Any( b => b.Equals( path, StringComparison.OrdinalIgnoreCase ) )
+                     || _processedBlockPaths.Any( b => b.Equals( path, StringComparison.OrdinalIgnoreCase ) ) )
                 {
-                    // Attempt to load the control
-                    try
+                    continue;
+                }
+
+                // Store the block path in the list of processed blocks to avoid re-processing if the registration fails.
+                _processedBlockPaths.Add( path );
+
+                // Attempt to load the control
+                try
+                {
+                    var blockCompiledType = System.Web.Compilation.BuildManager.GetCompiledType( path );
+                    if ( blockCompiledType != null && typeof( Web.UI.RockBlock ).IsAssignableFrom( blockCompiledType ) )
                     {
-                        var blockCompiledType = System.Web.Compilation.BuildManager.GetCompiledType( path );
-                        if ( blockCompiledType != null && typeof( Web.UI.RockBlock ).IsAssignableFrom( blockCompiledType ) )
+                        using ( var rockContext = new RockContext() )
                         {
-                            using ( var rockContext = new RockContext() )
+                            var blockTypeService = new BlockTypeService( rockContext );
+                            var blockType = blockTypeService.Queryable()
+                                .FirstOrDefault( b => b.Path == path );
+                            if ( blockType == null )
                             {
-                                var blockTypeService = new BlockTypeService( rockContext );
-                                var blockType = blockTypeService.Queryable()
-                                    .FirstOrDefault( b => b.Path == path );
-                                if ( blockType == null )
-                                {
-                                    // Create new BlockType record and save it
-                                    blockType = new BlockType();
-                                    blockType.Path = path;
-                                    blockTypeService.Add( blockType );
-                                }
+                                // Create new BlockType record and save it
+                                blockType = new BlockType();
+                                blockType.Path = path;
+                                blockTypeService.Add( blockType );
+                            }
 
-                                Type controlType = blockCompiledType;
+                            Type controlType = blockCompiledType;
 
-                                // Update Name, Category, and Description based on block's attribute definitions
-                                blockType.Name = Reflection.GetDisplayName( controlType ) ?? string.Empty;
-                                if ( string.IsNullOrWhiteSpace( blockType.Name ) )
+                            // Update Name, Category, and Description based on block's attribute definitions
+                            blockType.Name = Reflection.GetDisplayName( controlType ) ?? string.Empty;
+                            if ( string.IsNullOrWhiteSpace( blockType.Name ) )
+                            {
+                                // Parse the relative path to get the name
+                                var nameParts = list[path].Split( '/' );
+                                for ( int i = 0; i < nameParts.Length; i++ )
                                 {
-                                    // Parse the relative path to get the name
-                                    var nameParts = list[path].Split( '/' );
-                                    for ( int i = 0; i < nameParts.Length; i++ )
+                                    if ( i == nameParts.Length - 1 )
                                     {
-                                        if ( i == nameParts.Length - 1 )
-                                        {
-                                            nameParts[i] = Path.GetFileNameWithoutExtension( nameParts[i] );
-                                        }
-
-                                        nameParts[i] = nameParts[i].SplitCase();
+                                        nameParts[i] = Path.GetFileNameWithoutExtension( nameParts[i] );
                                     }
 
-                                    blockType.Name = string.Join( " > ", nameParts );
+                                    nameParts[i] = nameParts[i].SplitCase();
                                 }
 
-                                if ( blockType.Name.Length > 100 )
-                                {
-                                    blockType.Name = blockType.Name.Truncate( 100 );
-                                }
-
-                                blockType.Category = Rock.Reflection.GetCategory( controlType ) ?? string.Empty;
-                                blockType.Description = Rock.Reflection.GetDescription( controlType ) ?? string.Empty;
-
-                                rockContext.SaveChanges();
-
-                                // Update the attributes used by the block
-                                Rock.Attribute.Helper.UpdateAttributes( controlType, blockEntityTypeId, "BlockTypeId", blockType.Id.ToString(), rockContext );
+                                blockType.Name = string.Join( " > ", nameParts );
                             }
+
+                            if ( blockType.Name.Length > 100 )
+                            {
+                                blockType.Name = blockType.Name.Truncate( 100 );
+                            }
+
+                            blockType.Category = Rock.Reflection.GetCategory( controlType ) ?? string.Empty;
+                            blockType.Description = Rock.Reflection.GetDescription( controlType ) ?? string.Empty;
+
+                            rockContext.SaveChanges();
+
+                            // Update the attributes used by the block
+                            Rock.Attribute.Helper.UpdateAttributes( controlType, blockEntityTypeId, "BlockTypeId", blockType.Id.ToString(), rockContext );
                         }
                     }
-                    catch ( Exception ex )
-                    {
-                        System.Diagnostics.Debug.WriteLine( $"RegisterBlockTypes failed for {path} with exception: {ex.Message}" );
-                        ExceptionLogService.LogException( new Exception( string.Format( "Problem processing block with path '{0}'.", path ), ex ), null );
-                    }
+                }
+                catch ( Exception ex )
+                {
+                    System.Diagnostics.Debug.WriteLine( $"RegisterBlockTypes failed for {path} with exception: {ex.Message}" );
+                    ExceptionLogService.LogException( new Exception( string.Format( "Problem processing block with path '{0}'.", path ), ex ), null );
                 }
             }
         }
