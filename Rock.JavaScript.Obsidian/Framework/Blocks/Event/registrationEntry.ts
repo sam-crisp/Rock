@@ -172,7 +172,7 @@ export default defineComponent({
         const viewModel = useConfigurationValues<RegistrationEntryBlockViewModel | null>();
         const invokeBlockAction = useInvokeBlockAction();
 
-        if (viewModel === null) {
+        if (viewModel === null || viewModel.registrationInstanceNotFoundMessage) {
             notFound.value = true;
 
             return {
@@ -631,7 +631,7 @@ export default defineComponent({
 <div>
     <Alert v-if="notFound" alertType="warning">
         <strong>Sorry</strong>
-        <p>The selected registration could not be found or is no longer active.</p>
+        <p>{{viewModel.registrationInstanceNotFoundMessage || "The selected registration could not be found or is no longer active."}}</p>
     </Alert>
     <Alert v-else-if="mustLogin" alertType="warning">
         <strong>Please log in</strong>
