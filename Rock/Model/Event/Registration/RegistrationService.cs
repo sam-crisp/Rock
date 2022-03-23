@@ -184,7 +184,7 @@ namespace Rock.Model
             }
             else if ( !registrationTemplate.IsActive || !registrationInstance.IsActive )
             {
-                errorMessage = string.Format( "We could not find the {0} you are looking for.", registrationTemplate.RegistrationTerm.ToLower() );
+                errorMessage = $"We could not find the {registrationTemplate.RegistrationTerm.ToLower()} you are looking for.";
                 return null;
             }
 
@@ -194,12 +194,12 @@ namespace Rock.Model
 
             if ( isBeforeRegistrationOpens )
             {
-                errorMessage = string.Format( "{0} for {1} does not open until {2}.", registrationTemplate.RegistrationTerm, registrationInstance.Name, registrationInstance.StartDateTime.ToShortDateString() );
+                errorMessage = $"{registrationTemplate.RegistrationTerm} for {registrationInstance.Name} does not open until {registrationInstance.StartDateTime.ToShortDateString()}.";
                 return null;
             }
             else if ( isAfterRegistrationCloses )
             {
-                errorMessage = string.Format( "{0} closed on {1}.", registrationInstance.Name, registrationInstance.EndDateTime.ToShortDateString() );
+                errorMessage = $"{registrationInstance.Name} closed on {registrationInstance.EndDateTime.ToShortDateString()}.";
                 return null;
             }
 
