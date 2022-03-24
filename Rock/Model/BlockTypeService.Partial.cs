@@ -206,9 +206,6 @@ namespace Rock.Model
             }
         }
 
-        // Stores the list of block type files that have been processed in this application session.
-        private static List<string> _processedBlockPaths = new List<string>();
-
         /// <summary>
         /// Registers any block types that are not currently registered in Rock.
         /// </summary>
@@ -232,7 +229,7 @@ namespace Rock.Model
             List<string> registeredPaths;
             if ( refreshAll )
             {
-                _processedBlockPaths = new List<string>();
+                FlushRegistrationCache();
                 registeredPaths = new List<string>();
             }
             else
@@ -253,15 +250,18 @@ namespace Rock.Model
             // for each BlockType
             foreach ( string path in list.Keys )
             {
-                // If the block has been previously processed, ignore it. 
-                if ( registeredPaths.Any( b => b.Equals( path, StringComparison.OrdinalIgnoreCase ) )
-                     || _processedBlockPaths.Any( b => b.Equals( path, StringComparison.OrdinalIgnoreCase ) ) )
+                // If the block has been previously processed or successfully registered, ignore it. 
+                if ( _processedBlockPaths.Any( b => b.Equals( path, StringComparison.OrdinalIgnoreCase ) )
+                     || registeredPaths.Any( b => b.Equals( path, StringComparison.OrdinalIgnoreCase ) ) )
                 {
                     continue;
                 }
 
                 // Store the block path in the list of processed blocks to avoid re-processing if the registration fails.
-                _processedBlockPaths.Add( path );
+                lock ( _processedBlockPathsLock )
+                {
+                    _processedBlockPaths.Add( path );
+                }
 
                 // Attempt to load the control
                 try
@@ -323,6 +323,21 @@ namespace Rock.Model
                     System.Diagnostics.Debug.WriteLine( $"RegisterBlockTypes failed for {path} with exception: {ex.Message}" );
                     ExceptionLogService.LogException( new Exception( string.Format( "Problem processing block with path '{0}'.", path ), ex ), null );
                 }
+            }
+        }
+
+        // Stores the list of block type files that have been processed in this application session.
+        private static List<string> _processedBlockPaths = new List<string>();
+        private static readonly object _processedBlockPathsLock = new object();
+
+        /// <summary>
+        /// Flushes the cache used to track block registrations.
+        /// </summary>
+        public static void FlushRegistrationCache()
+        {
+            lock ( _processedBlockPathsLock )
+            {
+                _processedBlockPaths = new List<string>();
             }
         }
 
