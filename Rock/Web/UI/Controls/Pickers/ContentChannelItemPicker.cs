@@ -142,6 +142,7 @@ namespace Rock.Web.UI.Controls
                 EnsureChildControls();
                 return _ddlContentChannelItem.Required;
             }
+
             set
             {
                 EnsureChildControls();
@@ -323,7 +324,7 @@ namespace Rock.Web.UI.Controls
 
             _ddlContentChannelItem = new RockDropDownList();
             _ddlContentChannelItem.EnhanceForLongLists = true;
-            
+
             _ddlContentChannelItem.ID = this.ID + "_ddlContentChannelItem";
             Controls.Add( _ddlContentChannelItem );
 

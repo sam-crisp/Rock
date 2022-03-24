@@ -20,12 +20,11 @@ using System.Data.Entity;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-
+using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
-using Rock.Web.UI.Controls;
 using Rock.Web.Cache;
-using Rock.Attribute;
+using Rock.Web.UI.Controls;
 
 namespace Rock.Field.Types
 {
@@ -35,7 +34,6 @@ namespace Rock.Field.Types
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
     public class ContentChannelItemFieldType : FieldType, IEntityFieldType
     {
-
         #region Configuration
 
         /// <summary>
@@ -73,11 +71,10 @@ namespace Rock.Field.Types
             ddl.Help = "Content Channel to select items from, if left blank any content channel's item can be selected.";
 
             ddl.Items.Add( new ListItem() );
-            
+
             var contentChannels = ContentChannelCache.All().OrderBy( a => a.Name ).ToList();
             contentChannels.ForEach( g =>
-                ddl.Items.Add( new ListItem( g.Name, g.Id.ToString().ToUpper() ) )
-            );
+                ddl.Items.Add( new ListItem( g.Name, g.Id.ToString().ToUpper() ) ) );
 
             return controls;
         }
@@ -90,7 +87,7 @@ namespace Rock.Field.Types
         public override Dictionary<string, ConfigurationValue> ConfigurationValues( List<Control> controls )
         {
             Dictionary<string, ConfigurationValue> configurationValues = new Dictionary<string, ConfigurationValue>();
-            configurationValues.Add( CONTENT_CHANNEL_KEY, new ConfigurationValue( "Content Channel", "Content Channel to select items from, if left blank any content channel's item can be selected.", "" ) );
+            configurationValues.Add( CONTENT_CHANNEL_KEY, new ConfigurationValue( "Content Channel", "Content Channel to select items from, if left blank any content channel's item can be selected.", string.Empty ) );
 
             if ( controls != null && controls.Count == 1 )
             {
@@ -170,7 +167,7 @@ namespace Rock.Field.Types
             if ( configurationValues != null && configurationValues.ContainsKey( CONTENT_CHANNEL_KEY ) )
             {
                 int contentChannelId = 0;
-                if ( Int32.TryParse( configurationValues[CONTENT_CHANNEL_KEY].Value, out contentChannelId ) && contentChannelId > 0 )
+                if ( int.TryParse( configurationValues[CONTENT_CHANNEL_KEY].Value, out contentChannelId ) && contentChannelId > 0 )
                 {
                     editControl.ContentChannelId = contentChannelId;
                 }
