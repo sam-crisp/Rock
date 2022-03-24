@@ -192,14 +192,14 @@ namespace Rock.Model
             var isBeforeRegistrationOpens = registrationInstance.StartDateTime.HasValue && registrationInstance.StartDateTime > now;
             var isAfterRegistrationCloses = registrationInstance.EndDateTime.HasValue && registrationInstance.EndDateTime < now;
 
-            if ( isBeforeRegistrationOpens )
-            {
-                errorMessage = $"{registrationTemplate.RegistrationTerm} for {registrationInstance.Name} does not open until {registrationInstance.StartDateTime.ToShortDateString()}.";
-                return null;
-            }
-            else if ( isAfterRegistrationCloses )
+            if ( isAfterRegistrationCloses )
             {
                 errorMessage = $"{registrationInstance.Name} closed on {registrationInstance.EndDateTime.ToShortDateString()}.";
+                return null;
+            }
+            else if ( isBeforeRegistrationOpens )
+            {
+                errorMessage = $"{registrationTemplate.RegistrationTerm} for {registrationInstance.Name} does not open until {registrationInstance.StartDateTime.ToShortDateString()}.";
                 return null;
             }
 
