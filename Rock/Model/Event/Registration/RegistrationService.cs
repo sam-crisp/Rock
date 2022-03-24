@@ -70,7 +70,7 @@ namespace Rock.Model
 
             if ( registrationInstance == null || registrationTemplate == null )
             {
-                // errorMessage will contain the reason for the missing registration instance or template
+                // When the instance/template is null, errorMessage will already contain the reason for it thanks to GetActiveRegistrationInstance
                 return null;
             }
 
