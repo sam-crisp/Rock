@@ -73,8 +73,7 @@ namespace Rock.Field.Types
             ddl.Items.Add( new ListItem() );
 
             var contentChannels = ContentChannelCache.All().OrderBy( a => a.Name ).ToList();
-            contentChannels.ForEach( g =>
-                ddl.Items.Add( new ListItem( g.Name, g.Id.ToString().ToUpper() ) ) );
+            contentChannels.ForEach( g => ddl.Items.Add( new ListItem( g.Name, g.Id.ToString().ToUpper() ) ) );
 
             return controls;
         }
@@ -188,12 +187,26 @@ namespace Rock.Field.Types
             if ( picker != null )
             {
                 int? itemId = picker.ContentChannelItemId;
+                int? configurationChannelId = configurationValues[CONTENT_CHANNEL_KEY].Value.AsIntegerOrNull();
                 Guid? itemGuid = null;
                 if ( itemId.HasValue )
                 {
                     using ( var rockContext = new RockContext() )
                     {
-                        itemGuid = new ContentChannelItemService( rockContext ).Queryable().AsNoTracking().Where( a => a.Id == itemId.Value ).Select( a => ( Guid? ) a.Guid ).FirstOrDefault();
+                        // If the configuration Content Channel has a selected value, include that value in the clause.
+                        if ( configurationChannelId.HasValue )
+                        {
+                            itemGuid = new ContentChannelItemService( rockContext ).Queryable().AsNoTracking()
+                                .Where( a => a.Id == itemId.Value
+                                && a.ContentChannelId == configurationChannelId.Value )
+                                .Select( a => ( Guid? ) a.Guid ).FirstOrDefault();
+                        }
+                        else
+                        {
+                            itemGuid = new ContentChannelItemService( rockContext ).Queryable().AsNoTracking()
+                                .Where( a => a.Id == itemId.Value )
+                                .Select( a => ( Guid? ) a.Guid ).FirstOrDefault();
+                        }
                     }
                 }
 
