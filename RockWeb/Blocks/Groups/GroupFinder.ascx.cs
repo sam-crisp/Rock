@@ -643,8 +643,7 @@ namespace RockWeb.Blocks.Groups
         {
             acAddress.SetValues( null );
             BuildDynamicControls();
-
-            ShowResults();
+            ShowView();
         }
 
         /// <summary>
@@ -937,12 +936,19 @@ namespace RockWeb.Blocks.Groups
             {
                 acAddress.Visible = false;
 
-                // Check to see if there's any filters
+                // Check to see if there are any Schedule or attribute filters.
                 string scheduleFilters = GetAttributeValue( AttributeKey.ScheduleFilters );
+                bool displayCampusFilter = GetAttributeValue( AttributeKey.DisplayCampusFilter ).AsBoolean();
+                bool loadInitialResults = GetAttributeValue( AttributeKey.LoadInitialResults ).AsBoolean();
+
                 if ( !string.IsNullOrWhiteSpace( scheduleFilters ) || AttributeFilters.Any() )
                 {
                     phFilterControls.Visible = true;
                     btnSearch.Visible = true;
+                }
+                else if ( displayCampusFilter && !loadInitialResults )
+                {
+                    pnlResults.Visible = loadInitialResults && displayCampusFilter;
                 }
                 else
                 {
@@ -1070,6 +1076,7 @@ namespace RockWeb.Blocks.Groups
                 cblCampus.Label = GetAttributeValue( AttributeKey.CampusLabel );
                 cblCampus.Visible = true;
                 cblCampus.DataSource = campuses.OrderBy( c => c.Order );
+
                 cblCampus.DataBind();
             }
             else
@@ -1270,6 +1277,12 @@ namespace RockWeb.Blocks.Groups
                 if ( searchCampuses.Count > 0 )
                 {
                     groupQry = groupQry.Where( c => searchCampuses.Contains( c.CampusId ?? -1 ) );
+                }
+                else
+                {
+                    // If the campus filter is displayed, then make sure that a campus is selected.
+                    ShowError( "Please select at least one campus." );
+                    return;
                 }
             }
             else if ( GetAttributeValue( AttributeKey.EnableCampusContext ).AsBoolean() )
