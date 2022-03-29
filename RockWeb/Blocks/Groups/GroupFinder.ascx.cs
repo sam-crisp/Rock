@@ -1282,7 +1282,8 @@ namespace RockWeb.Blocks.Groups
                 {
                     // If the campus filter is displayed, none are chosen, and results are not displayed on load,
                     // then prompt the searcher to select a campus.
-                    ShowError( "Please select at least one campus." );
+                    ShowWarning( "Please select at least one campus." );
+                    pnlResults.Visible = false;
                     return;
                 }
             }
@@ -2265,6 +2266,13 @@ namespace RockWeb.Blocks.Groups
         {
             nbNotice.Heading = "Error";
             nbNotice.NotificationBoxType = NotificationBoxType.Danger;
+            ShowMessage( message );
+        }
+
+        private void ShowWarning( string message )
+        {
+            nbNotice.Heading = "Warning";
+            nbNotice.NotificationBoxType = NotificationBoxType.Warning;
             ShowMessage( message );
         }
 
