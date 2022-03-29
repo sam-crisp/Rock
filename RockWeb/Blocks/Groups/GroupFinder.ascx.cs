@@ -1278,9 +1278,10 @@ namespace RockWeb.Blocks.Groups
                 {
                     groupQry = groupQry.Where( c => searchCampuses.Contains( c.CampusId ?? -1 ) );
                 }
-                else
+                else if ( searchCampuses.Count == 0 && !GetAttributeValue( AttributeKey.LoadInitialResults ).AsBoolean() )
                 {
-                    // If the campus filter is displayed, then make sure that a campus is selected.
+                    // If the campus filter is displayed, none are chosen, and results are not displayed on load,
+                    // then prompt the searcher to select a campus.
                     ShowError( "Please select at least one campus." );
                     return;
                 }
