@@ -809,6 +809,7 @@ namespace RockWeb.Blocks.Groups
                     li.Selected = true;
                 }
             }
+
             cbIncludePending.Checked = GetAttributeValue( AttributeKey.IncludePending ).AsBoolean();
 
             var ppFieldType = new PageReferenceFieldType();
@@ -1086,6 +1087,7 @@ namespace RockWeb.Blocks.Groups
                     {
                         continue;
                     }
+
                     existingFilters.Add( filterId );
                     var control = attribute.FieldType.Field.FilterControl( attribute.QualifierValues, filterId, false, Rock.Reporting.FilterMode.SimpleFilter );
                     if ( control != null )
@@ -1358,9 +1360,9 @@ namespace RockWeb.Blocks.Groups
                     {
                         expression = Expression.Or( expression, filters[keys[i]] );
                     }
+
                     groupQry = groupQry.Where( parameterExpression, expression );
                 }
-
             }
 
             List<GroupLocation> fences = null;
@@ -1465,9 +1467,7 @@ namespace RockWeb.Blocks.Groups
 
                     // Limit the group locations to only those locations inside one of the fences
                     groupLocations = groupLocations
-                        .Where( gl =>
-                            fences.Any( f => gl.Location.GeoPoint.Intersects( f.Location.GeoFence ) )
-                            )
+                        .Where( gl => fences.Any( f => gl.Location.GeoPoint.Intersects( f.Location.GeoFence ) ) )
                         .ToList();
 
                     // Limit the groups to the those that still contain a valid location
@@ -1861,11 +1861,13 @@ namespace RockWeb.Blocks.Groups
             {
                 maxZoomLevel = "null";
             }
+
             var minZoomLevel = GetAttributeValue( AttributeKey.MinimumZoomLevel );
             if ( minZoomLevel.IsNullOrWhiteSpace() )
             {
                 minZoomLevel = "null";
             }
+
             var zoom = GetAttributeValue( AttributeKey.InitialZoomLevel );
             if ( zoom.IsNullOrWhiteSpace() )
             {
@@ -2343,6 +2345,7 @@ namespace RockWeb.Blocks.Groups
             {
                 groupTypeLocations = new Dictionary<int, int>();
             }
+
             var groupTypeLocationId = dropDownList.SelectedValue.AsIntegerOrNull();
             if ( groupTypeLocationId == null )
             {
