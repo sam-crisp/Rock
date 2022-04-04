@@ -30,10 +30,8 @@ namespace Rock.Migrations
         /// </summary>
         public override void Up()
         {
-            string followupDateReached;
-
-            // This is the name that the Connection Activity Type will have. 
-            followupDateReached = "Follow-up Date Reached";
+            // This is the name that the Connection Activity Type will have.
+            string followupDateReached = "Follow-up Date Reached";
 
             Sql( $@"
             IF NOT EXISTS (
