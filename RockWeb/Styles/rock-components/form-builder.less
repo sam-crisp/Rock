@@ -237,6 +237,7 @@
 }
 
 .form-sidebar {
+  z-index: 20;
   display: flex;
   flex: 1 0 auto;
   flex-direction: column;
@@ -245,7 +246,6 @@
   overflow: hidden;
   background-color: @gray-50;
   border-right: 1px solid #dfe0e1;
-  z-index: 20;
 
   .panel-body {
     padding: 12px 16px;
@@ -259,10 +259,10 @@
   width: 40px;
   color: #fff;
   cursor: pointer;
-  background-color: @side-navigation-open-background-color;
+  background-color: #484848;
 
   &:hover {
-    background-color: @side-navigation-background-color;
+    background-color: #3d3d3d;
   }
 }
 
@@ -343,17 +343,17 @@
   --gutter: 8px;
   display: flex;
   flex-wrap: wrap;
-  margin-top: calc(-1 * var(--gutter));
-  margin-right: calc(-.5 * var(--gutter));
-  margin-left: calc(-.5 * var(--gutter));
+  margin-top: ~"calc(-1 * var(--gutter))";
+  margin-right: ~"calc(-.5 * var(--gutter))";
+  margin-left: ~"calc(-.5 * var(--gutter))";
 
   .form-template-item {
     flex-shrink: 0;
     width: ~"calc(50% - var(--gutter))";
     max-width: 100%;
     margin-top: var(--gutter);
-    margin-right: calc(var(--gutter) * .5);
-    margin-left: calc(var(--gutter) * .5);
+    margin-right: ~"calc(var(--gutter) * .5)";
+    margin-left: ~"calc(var(--gutter) * .5)";
   }
 }
 
@@ -401,7 +401,7 @@
 
   .description {
     margin: 0;
-    font-size: @font-size-sm;
+    font-size: @font-size-small;
     color: @text-muted;
   }
 }
@@ -456,7 +456,6 @@
 }
 
 
-
 .block-instance.form-list {
   .filter-options,
   .form-category-display {
@@ -468,11 +467,20 @@
     padding: 0 !important;
 
     .category-header {
-      padding: 18px 18px 12px 18px;
+      padding: 18px 18px 12px;
     }
   }
 
   .form-actions {
     margin-top: 12px;
+  }
+
+  .btn-link-spaced {
+    padding: 0;
+    margin-right: 16px;
+  }
+
+  .btn-link-spaced + .btn-link-spaced {
+    margin-left: 16px;
   }
 }
