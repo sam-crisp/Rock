@@ -179,7 +179,7 @@
             </script>
             <Rock:ModalDialog ID="mdActiveRecords" runat="server" Visible="false" Title="Include Inactive Group Members" CancelLinkVisible="false" CloseLinkVisible="false">
                 <Content>
-                    <p>The selection contains both inactive and active records.  Do you want to include the inactive records?</p>
+                    <p>The selection contains inactive records.  Do you want to include the inactive records?</p>
                     <div class="actions">
                         <asp:LinkButton ID="lbActiveAndInactiveGroupMembers" OnClick="lbActiveAndInactiveGroupMembers_Click" runat="server" CssClass="btn btn-default" Text="Yes" />
                         <asp:LinkButton ID="lbActiveGroupMembersOnly" OnClick="lbActiveGroupMembersOnly_Click" runat="server" CssClass="btn btn-primary" Text="No" />
