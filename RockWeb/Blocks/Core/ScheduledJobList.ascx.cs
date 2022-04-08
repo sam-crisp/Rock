@@ -86,19 +86,23 @@ namespace RockWeb.Blocks.Administration
         {
             if ( !Page.IsPostBack )
             {
-                tbNameFilter.Text = gfSettings.GetUserPreference( GridUserPreferenceKey.Name );
-
-                // Set the Active Status
-                var itemActiveStatus = ddlActiveFilter.Items.FindByValue( gfSettings.GetUserPreference( GridUserPreferenceKey.ActiveStatus ) );
-                if ( itemActiveStatus != null )
-                {
-                    itemActiveStatus.Selected = true;
-                }
-
+                BindGridFilter();
                 BindGrid();
             }
 
             base.OnLoad( e );
+        }
+
+        /// <summary>
+        /// Binds the grid filter.
+        /// </summary>
+        private void BindGridFilter()
+        {
+            tbNameFilter.Text = gfSettings.GetUserPreference( GridUserPreferenceKey.Name );
+
+            // Set the Active Status
+            var activeStatusFilter = gfSettings.GetUserPreference( GridUserPreferenceKey.ActiveStatus );
+            ddlActiveFilter.SetValue( activeStatusFilter );
         }
 
         /// <summary>
@@ -120,6 +124,17 @@ namespace RockWeb.Blocks.Administration
             gfSettings.SaveUserPreference( GridUserPreferenceKey.Name, tbNameFilter.Text );
 
             BindGrid();
+        }
+
+        /// <summary>
+        /// Handles the ClearFilterClick event of the gfSettings control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        protected void gfSettings_ClearFilterClick( object sender, EventArgs e )
+        {
+            gfSettings.DeleteUserPreferences();
+            BindGridFilter();
         }
 
         #endregion
@@ -389,5 +404,7 @@ namespace RockWeb.Blocks.Administration
         }
 
         #endregion
+
+        
     }
 }

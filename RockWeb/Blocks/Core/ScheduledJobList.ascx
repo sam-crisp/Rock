@@ -12,7 +12,7 @@
             </div>
             <div class="panel-body">
                 <div class="grid grid-panel">
-                    <Rock:GridFilter ID="gfSettings" runat="server" OnApplyFilterClick="gfSettings_ApplyFilterClick">
+                    <Rock:GridFilter ID="gfSettings" runat="server" OnApplyFilterClick="gfSettings_ApplyFilterClick" OnClearFilterClick="gfSettings_ClearFilterClick">
                         <Rock:RockTextBox ID="tbNameFilter" runat="server" Label="Name" />
                         <Rock:RockDropDownList ID="ddlActiveFilter" runat="server" Label="Active Status">
                                 <asp:ListItem Text="[All]" Value="" />
