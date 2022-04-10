@@ -48,8 +48,8 @@ namespace RockWeb.Blocks.Connection
     [LinkedPage(
         "Previous Page",
         Key = AttributeKeys.PreviousPage,
-        IsRequired = true,
-        Order = 1 )]
+        Order = 1,
+        DefaultValue = Rock.SystemGuid.Page.CONNECTIONS_BOARD )]
 
     #endregion
 
@@ -161,6 +161,18 @@ namespace RockWeb.Blocks.Connection
     }});
 ", hfSelectedItems.ClientID, pnlEntry.ClientID );
             ScriptManager.RegisterStartupScript( hfSelectedItems, hfSelectedItems.GetType(), "select-items-" + BlockId.ToString(), script, true );
+
+            this.BlockUpdated += Block_BlockUpdated;
+        }
+
+        /// <summary>
+        /// Handles the BlockUpdated event of the Block control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        private void Block_BlockUpdated( object sender, EventArgs e )
+        {
+            SetControlSelection();
         }
 
         /// <summary>
@@ -264,11 +276,21 @@ namespace RockWeb.Blocks.Connection
             RebindOpportunityConnector( connectionOpportunity, rockContext );
         }
 
+        /// <summary>
+        /// Handles the Click event of the btnBulkRequestUpdateCancel control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void btnBulkRequestUpdateCancel_Click( object sender, EventArgs e )
         {
             NavigateToLinkedPage( AttributeKeys.PreviousPage );
         }
 
+        /// <summary>
+        /// Handles the Click event of the btnBulkRequestUpdateSave control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void btnBulkRequestUpdateSave_Click( object sender, EventArgs e )
         {
             if ( !Page.IsValid )
@@ -288,7 +310,7 @@ namespace RockWeb.Blocks.Connection
                 List<string> changes = GetChangesSummary( rockContext );
 
                 var requestCount = new ConnectionRequestService( rockContext ).Queryable().AsNoTracking()
-                .Where( cr => RequestIdsState.Contains( cr.Id ) && cr.CampusId == selectedCampusId ).Count();
+                    .Where( cr => RequestIdsState.Contains( cr.Id ) && cr.CampusId == selectedCampusId ).Count();
 
                 StringBuilder sb = new StringBuilder();
                 sb.AppendFormat( "<p>You are about to make the following updates to {0} connection requests:</p>", requestCount.ToString( "N0" ) );
@@ -312,6 +334,11 @@ namespace RockWeb.Blocks.Connection
             }
         }
 
+        /// <summary>
+        /// Handles the CheckedChanged event of the cbAddActivity control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void cbAddActivity_CheckedChanged( object sender, EventArgs e )
         {
             if ( cbAddActivity.Checked )
@@ -322,12 +349,22 @@ namespace RockWeb.Blocks.Connection
             dvActivity.Visible = cbAddActivity.Checked;
         }
 
+        /// <summary>
+        /// Handles the Click event of the btnBack control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void btnBack_Click( object sender, EventArgs e )
         {
             pnlEntry.Visible = true;
             pnlConfirm.Visible = false;
         }
 
+        /// <summary>
+        /// Handles the Click event of the btnConfirm control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void btnConfirm_Click( object sender, EventArgs e )
         {
             var rockContext = new RockContext();
@@ -362,32 +399,31 @@ namespace RockWeb.Blocks.Connection
                     connectionRequest.ConnectionState = ddlState.SelectedValue.ConvertToEnum<ConnectionState>();
                 }
 
-                if ( rbBulkUpdateCurrentConnector.Checked )
+                if ( !rbBulkUpdateCurrentConnector.Checked )
                 {
-                    //
-                }
-                else if ( rbBulkUpdateDefaultConnector.Checked )
-                {
-                    connectionRequest.ConnectorPersonAliasId = GetConnectionOpportunity( rockContext ).GetDefaultConnectorPersonAliasId( selectedCampusId );
-                }
-                else if ( rbBulkUpdateSelectConnector.Checked )
-                {
-                    int? connectorPersonId = ddlBulkUpdateOpportunityConnector.SelectedValue.AsIntegerOrNull();
-                    int? connectorPersonAliasId = null;
-                    if ( connectorPersonId.HasValue )
+                    if ( rbBulkUpdateDefaultConnector.Checked )
                     {
-                        var connectorPerson = new PersonService( rockContext ).Get( connectorPersonId.Value );
-                        if ( connectorPerson != null )
-                        {
-                            connectorPersonAliasId = connectorPerson.PrimaryAliasId;
-                        }
+                        connectionRequest.ConnectorPersonAliasId = GetConnectionOpportunity( rockContext ).GetDefaultConnectorPersonAliasId( selectedCampusId );
                     }
+                    else if ( rbBulkUpdateSelectConnector.Checked )
+                    {
+                        int? connectorPersonId = ddlBulkUpdateOpportunityConnector.SelectedValue.AsIntegerOrNull();
+                        int? connectorPersonAliasId = null;
+                        if ( connectorPersonId.HasValue )
+                        {
+                            var connectorPerson = new PersonService( rockContext ).Get( connectorPersonId.Value );
+                            if ( connectorPerson != null )
+                            {
+                                connectorPersonAliasId = connectorPerson.PrimaryAliasId;
+                            }
+                        }
 
-                    connectionRequest.ConnectorPersonAliasId = connectorPersonAliasId;
-                }
-                else if ( rbBulkUpdateNoConnector.Checked )
-                {
-                    connectionRequest.ConnectorPersonAliasId = null;
+                        connectionRequest.ConnectorPersonAliasId = connectorPersonAliasId;
+                    }
+                    else if ( rbBulkUpdateNoConnector.Checked )
+                    {
+                        connectionRequest.ConnectorPersonAliasId = null;
+                    }
                 }
 
                 if ( cbAddActivity.Checked )
@@ -441,6 +477,11 @@ namespace RockWeb.Blocks.Connection
             pnlConfirm.Visible = false;
         }
 
+        /// <summary>
+        /// Handles the ServerValidate event of the cvSelection control.
+        /// </summary>
+        /// <param name="source">The source of the event.</param>
+        /// <param name="args">The <see cref="ServerValidateEventArgs"/> instance containing the event data.</param>
         protected void cvSelection_ServerValidate( object source, ServerValidateEventArgs args )
         {
             nbBulkUpdateNotification.Visible = false;
@@ -506,6 +547,10 @@ namespace RockWeb.Blocks.Connection
             return RequestIdsState = entitySet.Items.Select( m => m.EntityId ).ToList();
         }
 
+        /// <summary>
+        /// Adds the campus selector controls.
+        /// </summary>
+        /// <param name="connectionCampusCountViewModels">The connection campus count view models.</param>
         private void AddCampusSelectorControls( List<ConnectionCampusCountViewModel> connectionCampusCountViewModels )
         {
             if ( connectionCampusCountViewModels.Count > 0 )
@@ -682,7 +727,7 @@ namespace RockWeb.Blocks.Connection
         {
             bool controlEnabled = SelectedFields.Contains( control.ClientID, StringComparer.OrdinalIgnoreCase );
             string iconCss = controlEnabled ? "fa-check-circle-o" : "fa-circle-o";
-            control.Label = string.Format( "<span class='js-select-item'><i class='fa {0}'></i></span> {1}", iconCss, label );
+            control.Label = $"<span class='js-select-item'><i class='fa {iconCss}'></i></span> {label}";
             var webControl = control as WebControl;
             if ( webControl != null )
             {
@@ -690,6 +735,11 @@ namespace RockWeb.Blocks.Connection
             }
         }
 
+        /// <summary>
+        /// Gets the changes summary.
+        /// </summary>
+        /// <param name="rockContext">The rock context.</param>
+        /// <returns></returns>
         private List<string> GetChangesSummary( RockContext rockContext )
         {
             var changes = new List<string>();
@@ -706,8 +756,7 @@ namespace RockWeb.Blocks.Connection
 
             if ( cbAddActivity.Checked && !string.IsNullOrWhiteSpace( ddlActivityType.SelectedValue ) )
             {
-                const string template = "Add new Connection Activity of type <span class='field-name'>{0}</span>";
-                changes.Add( string.Format( template, ddlActivityType.SelectedItem.Text ) );
+                changes.Add( $"Add new Connection Activity of type <span class='field-name'>{ddlActivityType.SelectedItem.Text}</span>" );
             }
 
             if ( rbBulkUpdateNoConnector.Checked )
@@ -728,8 +777,7 @@ namespace RockWeb.Blocks.Connection
 
             if ( wtpLaunchWorkflow.SelectedValue != "0" )
             {
-                const string template = "Launch Workflow <span class='field-name'>{0}</span>";
-                changes.Add( string.Format( template, wtpLaunchWorkflow.ItemName ) );
+                changes.Add( $"Launch Workflow <span class='field-name'>{wtpLaunchWorkflow.ItemName }</span>" );
             }
 
             var currentOpportunityId = ConnectionCampusCountViewModelsState.FirstOrDefault().OpportunityId;
@@ -743,18 +791,29 @@ namespace RockWeb.Blocks.Connection
             return changes;
         }
 
+        /// <summary>
+        /// Evaluates the changes about to be persisted
+        /// </summary>
+        /// <param name="historyMessages">The history messages.</param>
+        /// <param name="propertyName">Name of the property.</param>
+        /// <param name="newValue">The new value.</param>
         private void EvaluateChange( List<string> historyMessages, string propertyName, string newValue )
         {
             if ( !string.IsNullOrWhiteSpace( newValue ) )
             {
-                historyMessages.Add( string.Format( "Update <span class='field-name'>{0}</span> to value of <span class='field-value'>{1}</span>.", propertyName, newValue ) );
+                historyMessages.Add( $"Update <span class='field-name'>{propertyName}</span> to value of <span class='field-value'>{newValue}</span>." );
             }
             else
             {
-                historyMessages.Add( string.Format( "Clear <span class='field-name'>{0}</span> value.", propertyName ) );
+                historyMessages.Add( $"Clear <span class='field-name'>{propertyName}</span> value." );
             }
         }
 
+        /// <summary>
+        /// Gets the connection opportunity.
+        /// </summary>
+        /// <param name="rockContext">The rock context.</param>
+        /// <returns></returns>
         public ConnectionOpportunity GetConnectionOpportunity( RockContext rockContext )
         {
             var connectionOpportunityId = ddlOpportunity.SelectedValue.AsIntegerOrNull();
@@ -764,6 +823,11 @@ namespace RockWeb.Blocks.Connection
                 .FirstOrDefault(c => c.Id == connectionOpportunityId.Value );
         }
 
+        /// <summary>
+        /// Shows the notification.
+        /// </summary>
+        /// <param name="notificationType">Type of the notification.</param>
+        /// <param name="message">The message.</param>
         private void ShowNotification( NotificationBoxType notificationType, string message )
         {
             nbBulkUpdateNotification.Visible = true;
