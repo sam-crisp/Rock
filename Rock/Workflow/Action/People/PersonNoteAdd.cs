@@ -124,7 +124,6 @@ namespace Rock.Workflow.Action
                 // Add a NoteUrl for a person based on the existing Person Profile page, routes, and parameters.
                 var personPageService = new PageService( rockContext );
                 var personPage = personPageService.Get( SystemGuid.Page.PERSON_PROFILE_PERSON_PAGES.AsGuid() );
-                var personPageRouteList = personPage.PageRoutes;
 
                 // If the Person Profile Page has at least one route and at least one Page Context, use those to build the Note URL.
                 if ( personPage.PageRoutes.Count > 0 && personPage.PageContexts.Count > 0 )
