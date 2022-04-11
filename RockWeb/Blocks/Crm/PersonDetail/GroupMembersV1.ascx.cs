@@ -97,7 +97,7 @@ namespace RockWeb.Blocks.Crm.PersonDetail
 
     #endregion Block Attributes
 
-    public partial class GroupMembers : Rock.Web.UI.PersonBlock
+    public partial class GroupMembersV1 : Rock.Web.UI.PersonBlock
     {
         #region Attribute Keys
         private static class AttributeKey
