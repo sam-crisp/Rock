@@ -1697,7 +1697,16 @@ namespace Rock.MyWell
                 var subscriptionInfo = subscriptionResult.Data;
                 if ( subscriptionInfo != null )
                 {
-                    scheduledTransaction.NextPaymentDate = subscriptionInfo.NextBillDateUTC?.Date;
+                    var gatewayNextBillDate = subscriptionInfo.NextBillDateUTC?.Date;
+                    if ( gatewayNextBillDate.HasValue )
+                    {
+                        // Rock DateTimes don't keep any TimeZone or offset, so make sure the date is DateTimeKind.Unspecified instead of UTC.
+                        // Note that the DateTime stored to the database will get the DateTimeKind stripped off, so this is only issue for DateTime data
+                        // that isn't saved to the database yet.
+                        gatewayNextBillDate = DateTime.SpecifyKind( gatewayNextBillDate.Value, DateTimeKind.Unspecified );
+                    }
+
+                    scheduledTransaction.NextPaymentDate = gatewayNextBillDate;
                     scheduledTransaction.FinancialPaymentDetail.GatewayPersonIdentifier = subscriptionInfo.Customer?.Id;
                     scheduledTransaction.StatusMessage = subscriptionInfo.SubscriptionStatusRaw;
                     scheduledTransaction.Status = GetFinancialScheduledTransactionStatus( subscriptionInfo.SubscriptionStatus );
@@ -1752,7 +1761,7 @@ namespace Rock.MyWell
                 */
 
                 // Only search for transactions that were a 'sale' (see above engineering note)
-                TransactionTypeSearch = new QuerySearchTransactionType(TransactionType.sale)
+                TransactionTypeSearch = new QuerySearchTransactionType( TransactionType.sale )
             };
 
             var searchResult = this.SearchTransactions( this.GetGatewayUrl( financialGateway ), this.GetPrivateApiKey( financialGateway ), queryTransactionStatusRequest );
