@@ -15,6 +15,8 @@
 // </copyright>
 //
 using Rock.Data;
+using Rock.Logging;
+using System;
 
 namespace Rock.Model
 {
@@ -49,6 +51,36 @@ namespace Rock.Model
             /// <inheritdoc/>
             protected override void PostSave()
             {
+                try
+                {
+                    CreateReciprocalPaymentDetailRelationship();
+                }
+                catch ( Exception ex )
+                {
+                    if ( State != EntityContextState.Added && State != EntityContextState.Modified )
+                    {
+                        RockLogger.Log.Error( ex, $"An exception occurred while attempting to add a reciprocal relationship to a FinancialPaymentDetail from FinancialPersonSavedAccount {Entity.Id}." );
+                    }
+                }
+
+                base.PreSave();
+            }
+
+            /// <summary>
+            /// If this FinancialPersonSavedAccount is associated with a FinancialPaymentDetail entity, and that
+            /// FinancialPaymentDetail entity is not already associated with another FinancialPersonSavedAccount,
+            /// then we should create the reverse-association so that the payment detail points back to this
+            /// saved account.  Doing so creates more useful data if the FinancialPaymentDetail entity is cloned
+            /// in the future (i.e., because of tokenized payment methods being reused for new scheduled
+            /// transactions).
+            /// </summary>
+            private void CreateReciprocalPaymentDetailRelationship()
+            {
+                if ( State != EntityContextState.Added && State != EntityContextState.Modified )
+                {
+                    return; // Exit if this record is not being inserted or updated.
+                }
+
                 var rockContext = ( RockContext ) DbContext;
                 var paymentDetailId = Entity.FinancialPaymentDetailId;
                 FinancialPaymentDetail paymentDetail = null;
@@ -60,17 +92,9 @@ namespace Rock.Model
 
                 if ( paymentDetail != null && paymentDetail.FinancialPersonSavedAccountId == null )
                 {
-                    // If this FinancialPersonSavedAccount is associated with a FinancialPaymentDetail entity, and that
-                    // FinancialPaymentDetail entity is not already associated with another FinancialPersonSavedAccount,
-                    // then we should create the reverse-association so that the payment detail points back to this
-                    // saved account.  Doing so creates more useful data if the FinancialPaymentDetail entity is cloned
-                    // in the future (i.e., because of tokenized payment methods being reused for new scheduled
-                    // transactions).
                     paymentDetail.FinancialPersonSavedAccountId = Entity.Id;
                     rockContext.SaveChanges();
                 }
-
-                base.PreSave();
             }
         }
     }
