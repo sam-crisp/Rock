@@ -45,6 +45,33 @@ namespace Rock.Model
 
                 base.PreSave();
             }
+
+            /// <inheritdoc/>
+            protected override void PostSave()
+            {
+                var rockContext = ( RockContext ) DbContext;
+                var paymentDetailId = Entity.FinancialPaymentDetailId;
+                FinancialPaymentDetail paymentDetail = null;
+
+                if ( paymentDetailId.HasValue )
+                {
+                    paymentDetail = new FinancialPaymentDetailService( rockContext ).Get( paymentDetailId.Value );
+                }
+
+                if ( paymentDetail != null && paymentDetail.FinancialPersonSavedAccountId == null )
+                {
+                    // If this FinancialPersonSavedAccount is associated with a FinancialPaymentDetail entity, and that
+                    // FinancialPaymentDetail entity is not already associated with another FinancialPersonSavedAccount,
+                    // then we should create the reverse-association so that the payment detail points back to this
+                    // saved account.  Doing so creates more useful data if the FinancialPaymentDetail entity is cloned
+                    // in the future (i.e., because of tokenized payment methods being reused for new scheduled
+                    // transactions).
+                    paymentDetail.FinancialPersonSavedAccountId = Entity.Id;
+                    rockContext.SaveChanges();
+                }
+
+                base.PreSave();
+            }
         }
     }
 }
