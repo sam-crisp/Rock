@@ -126,7 +126,7 @@ namespace Rock.WebStartup
             // In most cases, that'll be when GC is collected. So it won't happen immediately.
             TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
-            LogStartupMessage( "Applying EntityFramework Migrations" );
+            LogStartupMessage( "Checking for EntityFramework Migrations" );
             var runMigrationFileInfo = new FileInfo( System.IO.Path.Combine( AppDomain.CurrentDomain.BaseDirectory, "App_Data\\Run.Migration" ) );
             bool hasPendingEFMigrations = runMigrationFileInfo.Exists || HasPendingEFMigrations();
             bool ranEFMigrations = MigrateDatabase( hasPendingEFMigrations );
