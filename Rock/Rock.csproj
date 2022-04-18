@@ -609,6 +609,7 @@
     <Compile Include="Blocks\Types\Mobile\Core\Search.cs" />
     <Compile Include="Blocks\Types\Mobile\Groups\GroupFinder.cs" />
     <Compile Include="Blocks\Types\Mobile\Groups\GroupFinder.WebForms.cs" />
+    <Compile Include="Blocks\Types\Mobile\Groups\GroupScheduleToolbox.cs" />
     <Compile Include="Blocks\Types\Mobile\Prayer\PrayerCardView.cs" />
     <Compile Include="Bus\Exceptions\BusException.cs" />
     <Compile Include="Bus\Faults\ReceiveFaultObserver.cs" />

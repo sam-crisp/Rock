@@ -1914,6 +1914,72 @@ formfield .required-indicator {
 .search-layout .show-more-button {
     margin: 0, 12, 0, 0;
 }
+
+/*** Group Schedule Toolbox Block ***/
+
+.schedule-toolbox-container .schedule-toolbox {}
+
+.schedule-toolbox-header-container .schedule-toolbox-header {
+    margin: 0, 0, 0, 0;
+}
+
+.schedule-toolbox-header .toolbox-title {
+    font-size: ?shell-font-scale(20);
+    font-style: bold;
+}
+
+.schedule-toolbox-header .toolbox-description {
+    margin: 0, 0, 0, 0;
+}
+
+.schedule-toolbox-container .schedule-toolbox-pending-container {
+    margin: 0, 0, 0, 0;
+}
+
+.schedule-toolbox-container .detail-title
+{
+    font-size: ?shell-font-scale(18);
+    font-style: bold;
+}
+
+.schedule-toolbox-container .detail
+{
+    margin: 0, 0, 0, 0;
+}
+
+.schedule-toolbox-container .schedule-toolbox-confirmations-container
+{
+    margin: 0, 0, 0, 0;
+}
+
+.schedule-toolbox-confirmations-container .confirmed-text {
+    color: green;
+}
+
+.schedule-toolbox-confirmations-container .declined-text {
+    color: red;
+}
+
+.schedule-toolbox-pending-container .accept-button {
+    padding: 16;
+}
+
+.schedule-toolbox-pending-container .decline-button {
+    padding: 16;
+}
+
+.schedule-toolbox-confirm-decline-container {
+    margin: 0, 0, 0, 0;
+}
+
+.schedule-toolbox-picker-container {
+    border-color: ?color-primary;
+    border-width: 1;
+}
+
+.schedule-toolbox-picker {
+
+}
 ";
         #endregion
     }
