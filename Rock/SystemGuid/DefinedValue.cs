@@ -26,6 +26,16 @@ namespace Rock.SystemGuid
         #region Block Template
 
         /// <summary>
+        /// The block template for mobile group schedule toolbox block.
+        /// </summary>
+        public const string BLOCK_TEMPLATE_MOBILE_GROUP_SCHEDULE_TOOLBOX = "7E11BEF1-F6F7-49E3-8804-90AC1CB9AD25";
+
+        /// <summary>
+        /// The block template for mobile group schedule toolbox decline modal.
+        /// </summary>
+        public const string BLOCK_TEMPLATE_MOBILE_GROUP_SCHEDULE_TOOLBOX_DECLINE_MODAL = "68ACFE34-C1D9-40C6-9AB1-9E6F4DA846EE";
+
+        /// <summary>
         /// The block template for mobile answer to prayer block.
         /// </summary>
         public const string BLOCK_TEMPLATE_MOBILE_ANSWER_TO_PRAYER = "D13256E3-D9ED-45C2-8EF7-C4AABCF4B2B7";
