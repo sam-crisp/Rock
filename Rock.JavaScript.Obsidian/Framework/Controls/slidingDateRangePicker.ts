@@ -15,13 +15,13 @@
 // </copyright>
 //
 import { computed, defineComponent, PropType, ref, watch } from "vue";
-import RockFormField from "../Elements/rockFormField";
-import DropDownList from "../Elements/dropDownList";
-import DatePickerBase from "../Elements/datePicker";
-import { ListItem } from "../ViewModels";
-import { toNumber, toNumberOrNull } from "../Services/number";
-import { get } from "../Util/http";
-import { SlidingDateRange, rangeTypeOptions, timeUnitOptions } from "../Services/slidingDateRange";
+import RockFormField from "./rockFormField";
+import DropDownList from "./dropDownList";
+import DatePickerBase from "./datePicker";
+import { ListItemBag } from "@Obsidian/ViewModels/Utility/listItemBag";
+import { toNumber, toNumberOrNull } from "@Obsidian/Utility/numberUtils";
+import { get } from "@Obsidian/Utility/http";
+import { SlidingDateRange, rangeTypeOptions, timeUnitOptions } from "@Obsidian/Utility/slidingDateRange";
 
 export default defineComponent({
     name: "SlidingDateRangePicker",
@@ -71,7 +71,7 @@ export default defineComponent({
         });
 
         /** The time unit options that will be made available to the user. */
-        const computedTimeUnitOptions = computed((): ListItem[] => {
+        const computedTimeUnitOptions = computed((): ListItemBag[] => {
             if (!isNumberVisible.value || toNumber(timeValue.value) === 1) {
                 return timeUnitOptions;
             }
