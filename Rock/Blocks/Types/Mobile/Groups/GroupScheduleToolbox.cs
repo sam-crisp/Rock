@@ -31,7 +31,7 @@ namespace Rock.Blocks.Types.Mobile.Groups
         DefaultValue = "CFBAAD62-42EB-4D12-8CFE-36FE389127B5",
         IsRequired = true,
         Key = AttributeKey.TypeTemplate,
-        Order = 1 )]
+        Order = 0 )]
 
     [BlockTemplateField( "Confirm Decline Template",
         Description = "The template used on the decline reason modal. Must require a decline reason in group type.",
@@ -39,7 +39,7 @@ namespace Rock.Blocks.Types.Mobile.Groups
         DefaultValue = "A82984A1-5DEB-48A3-A3C9-363FFDB1E3B4",
         IsRequired = true,
         Key = AttributeKey.ConfirmDeclineTemplate,
-        Order = 2 )]
+        Order = 1 )]
 
     #endregion
 
