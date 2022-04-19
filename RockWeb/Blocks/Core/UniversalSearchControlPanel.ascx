@@ -86,7 +86,7 @@
             <div class="panel-body">
 
                 <div class="grid grid-panel">
-                    <Rock:Grid ID="gEntityList" runat="server" AllowSorting="true">
+                    <Rock:Grid ID="gEntityList" runat="server" AllowSorting="true" OnRowSelected="gEntityList_RowSelected">
                         <Columns>
                             <Rock:RockBoundField DataField="Name" HeaderText="Entity Name" SortExpression="Name" />
                             <Rock:BoolField DataField="IsIndexingEnabled" HeaderText="Indexing Enabled" SortExpression="IsIndexingEnabled" />
