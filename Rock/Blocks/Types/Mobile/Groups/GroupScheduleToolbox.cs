@@ -87,7 +87,6 @@ namespace Rock.Blocks.Types.Mobile.Groups
         /// <value>
         /// The required mobile application binary interface version.
         /// </value>
-        /// <exception cref="System.NotImplementedException"></exception>
         public override int RequiredMobileAbiVersion => 3;
 
         /// <summary>
@@ -96,7 +95,6 @@ namespace Rock.Blocks.Types.Mobile.Groups
         /// <value>
         /// The class name of the mobile block to use during rendering on the device
         /// </value>
-        /// <exception cref="System.NotImplementedException"></exception>
         public override string MobileBlockType => "Rock.Mobile.Blocks.Groups.GroupScheduleToolbox";
 
         /// <summary>
