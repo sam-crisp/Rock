@@ -311,7 +311,26 @@ namespace Rock.UniversalSearch.IndexComponents
             // create a new index request
             var createIndexRequest = new CreateIndexRequest( indexName );
             createIndexRequest.Settings = new IndexSettings();
-            createIndexRequest.Settings.NumberOfShards = GetAttributeValue( "ShardCount" ).AsInteger();
+            createIndexRequest.Settings.Analysis = new Analysis
+            {
+                Normalizers = new Normalizers(),
+                Analyzers = new Analyzers()
+            };
+
+            // createIndexRequest.Settings.Analysis.Normalizers.Add( "lowercase", new CustomNormalizer { Filter = new string[1] { "lowercase" } } );
+
+            /* 04/19/2022 MDP 
+             
+             ElasticSearch's 'whitespace' is now 'case-sensitive'. It was not case-senstive in 2.x. https://www.elastic.co/guide/en/elasticsearch/reference/master/analysis-analyzers.html.
+             To make 'whitespace' case-insensitive, the docs say to create a custom analyser. https://www.elastic.co/guide/en/elasticsearch/reference/master/analysis-custom-analyzer.html
+
+             so, we'll make an analyzer called "whitespace_lowercase" which is based on the 'whitespace' analyser with a 'lowercase' filter.
+
+             
+             */
+            createIndexRequest.Settings.Analysis.Analyzers.Add( "whitespace_lowercase", new CustomAnalyzer { Tokenizer = "whitespace", Filter = new string[1] { "lowercase" } } );
+
+            createIndexRequest.Settings.NumberOfShards = GetAttributeValue( AttributeKey.ShardCount ).AsInteger();
 
             var typeMapping = new TypeMapping();
             typeMapping.Dynamic = true;
@@ -542,7 +561,7 @@ namespace Rock.UniversalSearch.IndexComponents
                                 Query = query,
 
                                 // analyzer = whitespace to keep the email from being parsed into 3 variables because the @ will act as a delimiter by default
-                                Analyzer = "whitespace",
+                                Analyzer = "whitespace_lowercase",
                                 Fields = emailSearchField,
                             };
                         }
@@ -617,7 +636,7 @@ namespace Rock.UniversalSearch.IndexComponents
                                 wildcardQuery |= new QueryStringQuery
                                 {
                                     Query = query + "*",
-                                    Analyzer = "whitespace",
+                                    Analyzer = "whitespace_lowercase",
                                     Fields = emailSearchField,
                                 };
 
@@ -629,7 +648,7 @@ namespace Rock.UniversalSearch.IndexComponents
                                 var searchString = "+" + queryTerms.JoinStrings( "* +" ) + "*";
 
                                 // Main WildCard Query, search all indexable fields
-                                wildcardQuery &= new QueryStringQuery { Query = searchString, Analyzer = "whitespace", MinimumShouldMatch = "100%", FuzzyRewrite = MultiTermQueryRewrite.ScoringBoolean, Fields = searchFields };
+                                wildcardQuery &= new QueryStringQuery { Query = searchString, Analyzer = "whitespace_lowercase", MinimumShouldMatch = "100%", Rewrite = MultiTermQueryRewrite.ScoringBoolean, Fields = searchFields };
 
 
                                 // add an additional 'OR' query with special logic to help boost last names if there are at least 2 terms
@@ -645,7 +664,7 @@ namespace Rock.UniversalSearch.IndexComponents
                                         nameQuery &= new QueryStringQuery
                                         {
                                             Query = $"{queryTerms.Last()}*",
-                                            Analyzer = "whitespace",
+                                            Analyzer = "whitespace_lowercase",
                                             Fields = extraBoostedLastNameField,
                                         };
                                     }
@@ -655,7 +674,7 @@ namespace Rock.UniversalSearch.IndexComponents
                                         nameQuery &= new QueryStringQuery
                                         {
                                             Query = $"{queryTerms.First()}*",
-                                            Analyzer = "whitespace",
+                                            Analyzer = "whitespace_lowercase",
                                             Fields = firstNameSearchField
                                         };
                                     }
@@ -671,7 +690,7 @@ namespace Rock.UniversalSearch.IndexComponents
                                     {
                                         // Find numbers that end with query term
                                         Query = $"*" + query,
-                                        Analyzer = "whitespace",
+                                        Analyzer = "whitespace_lowercase",
                                         Fields = phoneNumbersSearchField,
                                     };
                                 }
