@@ -623,14 +623,17 @@ namespace Rock.Data
             // check if Indexing is enabled in another thread to avoid deadlock when Snapshot Isolation is turned off when the Index components upload/load attributes
             if ( processEntityTypeIndexMsgs.Any() || deleteEntityTypeIndexMsgs.Any() )
             {
-                System.Threading.Tasks.Task.Run( () =>
+                this.WrappedTransactionCompletedTask.ContinueWith( a =>
                 {
-                    var indexingEnabled = IndexContainer.GetActiveComponent() == null ? false : true;
-                    if ( indexingEnabled )
+                    System.Threading.Tasks.Task.Run( () =>
                     {
-                        processEntityTypeIndexMsgs.ForEach( t => t.Send() );
-                        deleteEntityTypeIndexMsgs.ForEach( t => t.Send() );
-                    }
+                        var indexingEnabled = IndexContainer.GetActiveComponent() == null ? false : true;
+                        if ( indexingEnabled )
+                        {
+                            processEntityTypeIndexMsgs.ForEach( t => t.Send() );
+                            deleteEntityTypeIndexMsgs.ForEach( t => t.Send() );
+                        }
+                    } );
                 } );
             }
         }
