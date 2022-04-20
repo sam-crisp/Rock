@@ -487,20 +487,24 @@ namespace Rock.UniversalSearch.IndexComponents
             var searchDescriptor = new SearchDescriptor<IndexModelBase>().AllIndices();
 
             List<Type> indexModelTypes;
+            List<EntityTypeCache> entityTypeList;
 
             if ( entities == null || entities.Count == 0 )
             {
                 searchDescriptor = searchDescriptor.AllIndices();
-                indexModelTypes = EntityTypeCache.All().Where( e => e.IsIndexingSupported && e.IsIndexingEnabled && e.FriendlyName != "Site" ).Select( a => a.IndexModelType ).ToList();
+                entityTypeList = EntityTypeCache.All().Where( e => e.IsIndexingSupported && e.IsIndexingEnabled && e.FriendlyName != "Site" ).ToList();
+                indexModelTypes = entityTypeList.Select( a => a.IndexModelType ).ToList();
             }
             else
             {
+                entityTypeList = new List<EntityTypeCache>();
                 indexModelTypes = new List<Type>();
                 var indexNameList = new List<IndexName>();
                 foreach ( var entityId in entities )
                 {
                     // get entities search model name
                     var entityType = EntityTypeCache.Get( entityId );
+                    entityTypeList.Add( entityType );
                     indexModelTypes.Add( entityType.IndexModelType );
                     var indexName = entityType.IndexModelType.Name.ToLower();
 
@@ -523,7 +527,7 @@ namespace Rock.UniversalSearch.IndexComponents
                 searchDescriptor = searchDescriptor.Index( indexNameList.ToArray() );
             }
 
-            var searchFields = GetSearchFields( query, indexModelTypes );
+            var searchFields = GetSearchFields( query, indexModelTypes, entityTypeList );
 
             QueryContainer matchQuery = null;
             if ( fieldCriteria != null && fieldCriteria.FieldValues?.Count > 0 )
@@ -785,8 +789,9 @@ namespace Rock.UniversalSearch.IndexComponents
         /// </summary>
         /// <param name="query">The query.</param>
         /// <param name="indexModelTypes">The index model types.</param>
+        /// <param name="entityTypeList">The entity type list.</param>
         /// <returns>Nest.Field[].</returns>
-        private static Nest.Field[] GetSearchFields( string query, List<Type> indexModelTypes )
+        private static Nest.Field[] GetSearchFields( string query, List<Type> indexModelTypes, List<EntityTypeCache> entityTypeList )
         {
             // if the query is a single term, see if it can be interpreted as a Date, Number or Boolean. If so, include fields of that type.
             var queryIsDateTime = query.AsDateTime().HasValue;
@@ -795,7 +800,8 @@ namespace Rock.UniversalSearch.IndexComponents
             List<Nest.Field> searchFields = new List<Nest.Field>();
             foreach ( var indexModelType in indexModelTypes )
             {
-                foreach ( var property in indexModelType.GetProperties() )
+                var properties = indexModelType.GetProperties().ToList();
+                foreach ( var property in properties )
                 {
                     var rockIndexFieldAttribute = property.GetCustomAttribute<RockIndexField>();
                     if ( rockIndexFieldAttribute != null )
@@ -836,6 +842,15 @@ namespace Rock.UniversalSearch.IndexComponents
                             }
                         }
                     }
+                }
+            }
+
+            foreach ( var entityType in entityTypeList )
+            {
+                var indexableAttributes = AttributeCache.AllForEntityType( entityType.Id ).Where( a => a.IsIndexEnabled ).ToList();
+                foreach ( var attribute in indexableAttributes )
+                {
+                    searchFields.Add( new Nest.Field( attribute.Key ) );
                 }
             }
 
