@@ -283,7 +283,7 @@ namespace Rock.Blocks.Types.Mobile.Groups
 
             var attendanceService = new AttendanceService( rockContext );
 
-            // Going to go ahead and get the corresponding attendnance id from the guid
+            // Going to go ahead and get the corresponding attendance id from the guid
             var attendanceId = attendanceService.GetId( attendanceGuid );
 
             // If it is null, let's return a bad request to mobile
@@ -321,7 +321,7 @@ namespace Rock.Blocks.Types.Mobile.Groups
 
                 var attendanceId = attendanceService.GetId( attendanceGuid );
 
-                // If the specificed attendance Id can't be fetched by Guid, let's return an error
+                // If the specified attendance Id can't be fetched by Guid, let's return an error
                 if ( !attendanceId.HasValue )
                 {
                     return ActionBadRequest( "Unable to fetch the corresponding attendance from the Guid." );
@@ -369,7 +369,7 @@ namespace Rock.Blocks.Types.Mobile.Groups
 
                 var attendanceId = attendanceService.GetId( attendanceGuid );
 
-                // If the specificed attendance Id can't be fetched by Guid, let's return an error
+                // If the specified attendance Id can't be fetched by Guid, let's return an error
                 if ( !attendanceId.HasValue )
                 {
                     return ActionBadRequest( "Unable to fetch the corresponding attendance from the Guid." );
@@ -435,7 +435,7 @@ namespace Rock.Blocks.Types.Mobile.Groups
             /// Gets or sets the attendance Id
             /// </summary>
             /// <value>
-            /// Am integer represnting the Id
+            /// An integer representing the Id
             /// </value>
             public int Id { get; set; }
 
