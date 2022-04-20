@@ -11,7 +11,7 @@ using Rock.Model;
 using Rock.Utility;
 using Rock.Web.Cache;
 
-namespace Rock.Blocks.Types.Mobile.Groups
+namespace Rock.Blocks.Types.Mobile.GroupScheduling
 {
     /// <summary>
     /// The mobile block adaptation of GroupScheduleToolboxV2
@@ -19,7 +19,7 @@ namespace Rock.Blocks.Types.Mobile.Groups
     /// <seealso cref="Rock.Blocks.RockMobileBlockType" />
 
     [DisplayName( "Schedule Toolbox" )]
-    [Category( "Mobile > Groups" )]
+    [Category( "Mobile > Group Scheduling" )]
     [Description( "Allows management of group scheduling for a specific person (worker)." )]
     [IconCssClass( "fa fa-list" )]
 

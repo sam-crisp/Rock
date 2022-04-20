@@ -10,7 +10,7 @@ using Rock.Data;
 using Rock.Model;
 using Rock.Utility;
 
-namespace Rock.Blocks.Types.Mobile.Groups
+namespace Rock.Blocks.Types.Mobile.GroupScheduling
 {
     /// <summary>
     /// The mobile block adaptation of GroupScheduleToolboxV2
@@ -18,7 +18,7 @@ namespace Rock.Blocks.Types.Mobile.Groups
     /// <seealso cref="Rock.Blocks.RockMobileBlockType" />
 
     [DisplayName( "Schedule Unavailability" )]
-    [Category( "Mobile > Groups" )]
+    [Category( "Mobile > Group Scheduling" )]
     [Description( "Allows a user to schedule the dates that they are unavailable to serve." )]
     [IconCssClass( "fa fa-list" )]
 
