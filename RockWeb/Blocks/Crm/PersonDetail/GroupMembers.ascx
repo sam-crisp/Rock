@@ -7,48 +7,46 @@
             <asp:Repeater ID="rptrGroups" runat="server" OnItemDataBound="rptrGroups_ItemDataBound" >
                 <ItemTemplate>
 
-                    <asp:Panel ID="pnlGroup" runat="server" CssClass="persondetails-group js-persondetails-group panel-widget">
-                    <asp:HiddenField ID="hfGroupId" runat="server" Value='<%# Eval("Id") %>' />
-                    <header>
-                        <a id="lReorderIcon" runat="server" class="btn btn-link btn-xs panel-widget-reorder align-self-center pull-left js-stop-immediate-propagation"><i class="fa fa-bars"></i></a>
-                        <div class="card-header">
-                            <span class="card-title"><%# FormatAsHtmlTitle(Eval("Name").ToString()) %></span>
+                    <asp:Panel ID="pnlGroup" runat="server" CssClass="card card-profile group-hover card-family-member">
+                        <asp:HiddenField ID="hfGroupId" runat="server" Value='<%# Eval("Id") %>' />
+                            <a id="lReorderIcon" runat="server" class="btn btn-link btn-xs panel-widget-reorder align-self-center pull-left js-stop-immediate-propagation"><i class="fa fa-bars"></i></a>
+                            <div class="card-header">
+                                <span class="card-title"><%# FormatAsHtmlTitle(Eval("Name").ToString()) %></span>
 
-                            <div class="panel-labels group-hover-item group-hover-show">
-                                <asp:HyperLink ID="hlEditGroup" runat="server" AccessKey="O" ToolTip="Alt+O" CssClass="btn btn-link btn-xs"><i class="fa fa-pencil"></i></asp:HyperLink>
+                                <div class="panel-labels group-hover-item group-hover-show">
+                                    <asp:HyperLink ID="hlEditGroup" runat="server" AccessKey="O" ToolTip="Alt+O" CssClass="btn btn-link btn-xs"><i class="fa fa-pencil"></i></asp:HyperLink>
+                                </div>
+                            </div>
+
+                        <asp:Literal ID="lGroupHeader" runat="server" />
+
+                        <div class="card-section pb-0">
+                            <div class="d-flex flex-wrap">
+                                <asp:Repeater ID="rptrMembers" runat="server" OnItemDataBound="rptrMembers_ItemDataBound">
+                                    <ItemTemplate>
+                                        <asp:Literal ID="litGroupMemberInfo" runat="server"></asp:Literal>
+                                    </ItemTemplate>
+                                </asp:Repeater>
                             </div>
                         </div>
-                    </header>
 
-                    <asp:Literal ID="lGroupHeader" runat="server" />
+                        <asp:panel ID="pnlGroupAttributes" runat="server" CssClass="card-section">
+                            <dl class="m-0">
+                                <asp:Literal ID="litGroupAttributes" runat="server"></asp:Literal>
+                            </dl>
+                        </asp:panel>
 
-                    <div class="card-section pb-0">
-                        <div class="d-flex flex-wrap">
-                            <asp:Repeater ID="rptrMembers" runat="server" OnItemDataBound="rptrMembers_ItemDataBound">
+                        <div class="card-section">
+                            <asp:Repeater ID="rptrAddresses" runat="server" OnItemDataBound="rptrAddresses_ItemDataBound">
                                 <ItemTemplate>
-                                    <asp:Literal ID="litGroupMemberInfo" runat="server"></asp:Literal>
+                                    <asp:Literal ID="litAddress" runat="server"></asp:Literal>
                                 </ItemTemplate>
                             </asp:Repeater>
                         </div>
-                    </div>
 
-                    <asp:panel ID="pnlGroupAttributes" runat="server" CssClass="card-section">
-                        <dl class="m-0">
-                            <asp:Literal ID="litGroupAttributes" runat="server"></asp:Literal>
-                        </dl>
-                    </asp:panel>
+                        <asp:Literal ID="lGroupFooter" runat="server" />
 
-                    <div class="card-section">
-                        <asp:Repeater ID="rptrAddresses" runat="server" OnItemDataBound="rptrAddresses_ItemDataBound">
-                            <ItemTemplate>
-                                <asp:Literal ID="litAddress" runat="server"></asp:Literal>
-                            </ItemTemplate>
-                        </asp:Repeater>
-                    </div>
-
-                    <asp:Literal ID="lGroupFooter" runat="server" />
-
-                </asp:Panel>
+                    </asp:Panel>
 
                 </ItemTemplate>
             </asp:Repeater>
