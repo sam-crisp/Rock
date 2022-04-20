@@ -26,6 +26,11 @@ namespace Rock.SystemGuid
         #region Block Template
 
         /// <summary>
+        /// The block template for mobile group schedule unavailability block. 
+        /// </summary>
+        public const string BLOCK_TEMPLATE_MOBILE_GROUP_SCHEDULE_UNAVAILABILITY = "48EE4803-66BE-43A0-A7CF-E2D669DB2D21";
+
+        /// <summary>
         /// The block template for mobile group schedule toolbox block.
         /// </summary>
         public const string BLOCK_TEMPLATE_MOBILE_GROUP_SCHEDULE_TOOLBOX = "7E11BEF1-F6F7-49E3-8804-90AC1CB9AD25";

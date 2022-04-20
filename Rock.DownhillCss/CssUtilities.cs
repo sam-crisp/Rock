@@ -1917,7 +1917,9 @@ formfield .required-indicator {
 
 /*** Group Schedule Toolbox Block ***/
 
-.schedule-toolbox-container .schedule-toolbox {}
+.schedule-toolbox-container .schedule-toolbox {
+    padding: 12;
+}
 
 .schedule-toolbox-header-container .schedule-toolbox-header {
     margin: 0, 0, 0, 0;
@@ -1947,6 +1949,9 @@ formfield .required-indicator {
     margin: 0, 0, 0, 0;
 }
 
+.schedule-toolbox-container .schedule-unavailability-button {
+    padding: 8;
+}
 .schedule-toolbox-container .schedule-toolbox-confirmations-container
 {
     margin: 0, 0, 0, 0;
