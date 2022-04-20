@@ -2258,7 +2258,7 @@ namespace Rock.Model
                     && a.OccurrenceId == attendanceOccurrenceId );
 
             // If there already is a scheduled attendance
-            if ( scheduledAttendance.IsNotNull() )
+            if ( scheduledAttendance != null )
             {
                 if ( scheduledAttendance.RequestedToAttend != true )
                 {
@@ -2306,7 +2306,7 @@ namespace Rock.Model
         {
             var scheduledAttendance = this.Get( attendanceId );
 
-            if ( scheduledAttendance.IsNull() )
+            if ( scheduledAttendance == null )
             {
                 return;
             }
@@ -2324,7 +2324,7 @@ namespace Rock.Model
         {
             var scheduledAttendance = this.Get( attendanceId );
 
-            if ( scheduledAttendance.IsNull() )
+            if ( scheduledAttendance == null )
             {
                 return;
             }
@@ -2342,7 +2342,7 @@ namespace Rock.Model
         {
             var scheduledAttendance = this.Get( attendanceId );
 
-            if ( scheduledAttendance.IsNull() )
+            if ( scheduledAttendance == null )
             {
                 return;
             }
@@ -2360,7 +2360,7 @@ namespace Rock.Model
         {
             var scheduledAttendance = this.Get( attendanceId );
 
-            if ( scheduledAttendance.IsNull() )
+            if ( scheduledAttendance == null )
             {
                 return;
             }
@@ -2379,7 +2379,7 @@ namespace Rock.Model
         {
             var scheduledAttendance = this.Get( attendanceId );
 
-            if ( scheduledAttendance.IsNull() )
+            if ( scheduledAttendance == null )
             {
                 return;
             }
