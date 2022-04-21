@@ -77,6 +77,12 @@ namespace Rock.UniversalSearch.IndexComponents
         DefaultIntegerValue = 1,
         IsRequired = true,
         Order = 5 )]
+
+    [BooleanField( "Include Explain",
+        Key = AttributeKey.IncludeExplain,
+        Description = "Set this to true if debugging and what to an Explain in the search results.",
+        Category = "Advanced Settings",
+        Order = 6 )]
     public class Elasticsearch : IndexComponent
     {
         private static class AttributeKey
@@ -86,6 +92,7 @@ namespace Rock.UniversalSearch.IndexComponents
             public const string UserName = "UserName";
             public const string Password = "Password";
             public const string CertificateFingerprint = "CertificateFingerprint";
+            public const string IncludeExplain = "IncludeExplain";
         }
 
         /// <summary>
@@ -478,6 +485,15 @@ namespace Rock.UniversalSearch.IndexComponents
                 return documents;
             }
 
+            if ( query.IsNullOrWhiteSpace() )
+            {
+                // empty string shouldn't return any results
+                return documents;
+            }
+
+            // leading/trailing space should not affect the query, so trim any
+            query = query.Trim();
+
             ISearchResponse<IndexModelBase> results = null;
             List<SearchResultModel> searchResults = new List<SearchResultModel>();
 
@@ -549,47 +565,65 @@ namespace Rock.UniversalSearch.IndexComponents
             {
                 case SearchType.ExactMatch:
                     {
-                        if ( !string.IsNullOrWhiteSpace( query ) )
-                        {
-                            // Main ExactMatch Query, search all indexable fields
-                            queryContainer &= new QueryStringQuery { Query = query, AnalyzeWildcard = true, Fields = searchFields };
-                        }
+                        bool enablePhraseSearch = true;
+                        QueryContainer exactMatchQuery = null;
+
+                        var queryTerms = query.Split( ' ' ).Select( p => p.Trim() ).Where( a => a.IsNotNullOrWhiteSpace() ).ToList();
 
                         // special logic to support emails
-                        if ( query.Contains( "@" ) )
+                        if ( queryTerms.Count == 1 && query.Contains( "@" ) )
                         {
                             var emailSearchField = searchFields.Where( a => a.Property.Name == nameof( PersonIndex.Email ) ).FirstOrDefault();
-                            queryContainer |= new QueryStringQuery
+                            exactMatchQuery |= new QueryStringQuery
                             {
-                                // exact match, no wildcard
+                                // Do a exact search so that 'ted@rocksolidchurchdemo' does not find 'ted@rocksolidchurchdemo.com', but will only find if search is 'ted@rocksolidchurchdemo.com'
                                 Query = query,
 
                                 // analyzer = whitespace to keep the email from being parsed into 3 variables because the @ will act as a delimiter by default
                                 Analyzer = "whitespace_lowercase",
                                 Fields = emailSearchField,
+                                Fuzziness = Fuzziness.Auto
                             };
+
+                            enablePhraseSearch = false;
+                        }
+                        else
+                        {
+                            // We want to require an exact match of each of the terms to exists for a result to be returned.
+                            var searchString = "+" + queryTerms.JoinStrings( " +" );
+
+                            // Main ExactMatch Query, search all indexable fields
+                            exactMatchQuery &= new QueryStringQuery { Query = searchString, Analyzer = "whitespace_lowercase", MinimumShouldMatch = "100%", Rewrite = MultiTermQueryRewrite.ScoringBoolean, Fields = searchFields, Fuzziness = Fuzziness.Auto };
+
+                            // Add an additional 'OR' query if the query is just numeric. We'll see if there is a phone number that matches
+                            if ( query.IsDigitsOnly() )
+                            {
+                                // Note that we store phone numbers in the form of Mobile^6235553322|Work^6235552444 in ElasticSearch, but
+                                // ExactMatch will still work without wildcards because ^ and | are special chars
+                                var phoneNumbersSearchField = searchFields.Where( a => a.Property.Name == nameof( PersonIndex.PhoneNumbers ) ).FirstOrDefault();
+                                exactMatchQuery |= new QueryStringQuery
+                                {
+                                    // Since this is 'Exact Match' search for exact matches
+                                    Query = query,
+                                    AnalyzeWildcard = true,
+                                    Fields = phoneNumbersSearchField,
+                                    Fuzziness = Fuzziness.Auto
+                                };
+                            }
                         }
 
-                        // Add an additional 'OR' query if the query is just numeric. We'll see if there is a phone number that matches
-                        if ( query.IsDigitsOnly() )
-                        {
-                            var phoneNumbersSearchField = searchFields.Where( a => a.Property.Name == nameof( PersonIndex.PhoneNumbers ) ).FirstOrDefault();
-                            queryContainer |= new QueryStringQuery
-                            {
-                                // Find numbers that end with query term
-                                Query = $"*" + query + "*",
-                                AnalyzeWildcard = true,
-                                Fields = phoneNumbersSearchField,
-                            };
-                        }
+                        queryContainer &= exactMatchQuery;
 
                         // add a search for all the words as one single search term
-                        queryContainer |= new QueryStringQuery
+                        if ( enablePhraseSearch )
                         {
-                            Query = query,
-                            AnalyzeWildcard = true,
-                            PhraseSlop = 0
-                        };
+                            queryContainer |= new QueryStringQuery
+                            {
+                                Query = query,
+                                AnalyzeWildcard = true,
+                                PhraseSlop = 0
+                            };
+                        }
 
                         if ( matchQuery != null )
                         {
@@ -608,106 +642,142 @@ namespace Rock.UniversalSearch.IndexComponents
 
                         searchDescriptor.Query( q => queryContainer );
 
+                        if ( GetAttributeValue( AttributeKey.IncludeExplain ).AsBoolean() )
+                        {
+                            searchDescriptor = searchDescriptor.Explain();
+                        }
+
                         results = _client.Search<IndexModelBase>( searchDescriptor );
                         break;
                     }
-
+                
                 case SearchType.Fuzzy:
-                    {
-                        results = _client.Search<IndexModelBase>( d =>
-                                    d.AllIndices()
-                                    .Query( q =>
-                                        q.Fuzzy( f => f.Value( query )
-                                            .Rewrite( MultiTermQueryRewrite.TopTerms( size ?? 10 ) ) ) ) );
-                        break;
-                    }
-
                 case SearchType.Wildcard:
                     {
                         bool enablePhraseSearch = true;
 
-                        if ( !string.IsNullOrWhiteSpace( query ) )
+                        /*  04/20/2022 MDP
+                          
+                          If this is SearchType.Fuzzy, it is the exact same thing as a wildcard query
+                          except for setting some Fuzziness options.
+
+                          see https://stackoverflow.com/a/58578354/1755417
+
+                          Note that there is also a FuzzyQuery, but that only works for single terms, but we want a misspelled 'Ted Dekker' to find 'Ted Decker',
+                        */
+
+                        Fuzziness wildCardFuzziness;
+                        MultiTermQueryRewrite fuzzyRewrite;
+                        string fuzzyIndicator;
+                        if ( searchType == SearchType.Fuzzy )
                         {
-                            QueryContainer wildcardQuery = null;
+                            wildCardFuzziness = Fuzziness.Auto;
+                            fuzzyRewrite = MultiTermQueryRewrite.TopTerms( size ?? 10 );
+                            fuzzyIndicator = "~";
+                        }
+                        else
+                        {
+                            wildCardFuzziness = null;
+                            fuzzyRewrite = null;
+                            fuzzyIndicator = "";
+                        }
 
-                            // break each search term into a separate query and add the * to the end of each
-                            var queryTerms = query.Split( ' ' ).Select( p => p.Trim() ).Where( a => a.IsNotNullOrWhiteSpace() ).ToList();
+                        QueryContainer wildcardQuery = null;
 
-                            // special logic to support emails
-                            if ( queryTerms.Count == 1 && query.Contains( "@" ) )
+                        // break each search term into a separate query and add the * to the end of each
+                        var queryTerms = query.Split( ' ' ).Select( p => p.Trim() ).Where( a => a.IsNotNullOrWhiteSpace() ).ToList();
+
+                        // special logic to support emails
+                        if ( queryTerms.Count == 1 && query.Contains( "@" ) )
+                        {
+                            var emailSearchField = searchFields.Where( a => a.Property.Name == nameof( PersonIndex.Email ) ).FirstOrDefault();
+                            wildcardQuery |= new QueryStringQuery
                             {
-                                var emailSearchField = searchFields.Where( a => a.Property.Name == nameof( PersonIndex.Email ) ).FirstOrDefault();
-                                wildcardQuery |= new QueryStringQuery
-                                {
-                                    Query = query + "*",
-                                    Analyzer = "whitespace_lowercase",
-                                    Fields = emailSearchField,
-                                };
+                                // Do a trailing wildcard search so that 'ted@rocksolidchurchdemo' finds 'ted@rocksolidchurchdemo.com'
+                                Query = query + "*" + fuzzyIndicator,
+                                Analyzer = "whitespace_lowercase",
+                                Fields = emailSearchField,
+                                Fuzziness = wildCardFuzziness,
+                                FuzzyRewrite = fuzzyRewrite
+                            };
 
-                                enablePhraseSearch = false;
-                            }
-                            else
+                            enablePhraseSearch = false;
+                        }
+                        else
+                        {
+                            // We want to require each of the terms to exists for a result to be returned.
+                            var searchString = "+" + queryTerms.JoinStrings( $"*{fuzzyIndicator} +" ) + "*" + fuzzyIndicator;
+
+                            // Main WildCard Query, search all indexable fields
+                            wildcardQuery &= new QueryStringQuery { Query = searchString, Analyzer = "whitespace_lowercase", MinimumShouldMatch = "100%", Rewrite = MultiTermQueryRewrite.ScoringBoolean, Fields = searchFields };
+
+                            // add an additional 'OR' query with special logic to help boost last names if there are at least 2 terms
+                            if ( queryTerms.Count > 1 )
                             {
-                                // We want to require each of the terms to exists for a result to be returned.
-                                var searchString = "+" + queryTerms.JoinStrings( "* +" ) + "*";
+                                var firstNameSearchField = searchFields.Where( a => a.Property.Name == nameof( PersonIndex.FirstName ) ).FirstOrDefault();
+                                var lastNameSearchField = searchFields.Where( a => a.Property.Name == nameof( PersonIndex.LastName ) ).FirstOrDefault();
+                                QueryContainer nameQuery = null;
 
-                                // Main WildCard Query, search all indexable fields
-                                wildcardQuery &= new QueryStringQuery { Query = searchString, Analyzer = "whitespace_lowercase", MinimumShouldMatch = "100%", Rewrite = MultiTermQueryRewrite.ScoringBoolean, Fields = searchFields };
-
-
-                                // add an additional 'OR' query with special logic to help boost last names if there are at least 2 terms
-                                if ( queryTerms.Count > 1 )
+                                if ( lastNameSearchField != null )
                                 {
-                                    var firstNameSearchField = searchFields.Where( a => a.Property.Name == nameof( PersonIndex.FirstName ) ).FirstOrDefault();
-                                    var lastNameSearchField = searchFields.Where( a => a.Property.Name == nameof( PersonIndex.LastName ) ).FirstOrDefault();
-                                    QueryContainer nameQuery = null;
-
-                                    if ( lastNameSearchField != null )
+                                    var extraBoostedLastNameField = new Nest.Field( lastNameSearchField.Property, 30 );
+                                    nameQuery &= new QueryStringQuery
                                     {
-                                        var extraBoostedLastNameField = new Nest.Field( lastNameSearchField.Property, 30 );
-                                        nameQuery &= new QueryStringQuery
-                                        {
-                                            Query = $"{queryTerms.Last()}*",
-                                            Analyzer = "whitespace_lowercase",
-                                            Fields = extraBoostedLastNameField,
-                                        };
-                                    }
-
-                                    if ( firstNameSearchField != null )
-                                    {
-                                        nameQuery &= new QueryStringQuery
-                                        {
-                                            Query = $"{queryTerms.First()}*",
-                                            Analyzer = "whitespace_lowercase",
-                                            Fields = firstNameSearchField
-                                        };
-                                    }
-
-                                    wildcardQuery |= nameQuery;
-                                }
-
-                                // Add an additional 'OR' query if the query is just numeric. We'll see if there is a phone number that matches
-                                if ( query.IsDigitsOnly() )
-                                {
-                                    var phoneNumbersSearchField = searchFields.Where( a => a.Property.Name == nameof( PersonIndex.PhoneNumbers ) ).FirstOrDefault();
-                                    wildcardQuery |= new QueryStringQuery
-                                    {
-                                        // Find numbers that end with query term
-                                        Query = $"*" + query,
+                                        Query = $"{queryTerms.Last()}*" + fuzzyIndicator,
                                         Analyzer = "whitespace_lowercase",
-                                        Fields = phoneNumbersSearchField,
+                                        Fields = extraBoostedLastNameField,
+                                        Fuzziness = wildCardFuzziness,
+                                        FuzzyRewrite = fuzzyRewrite
                                     };
                                 }
+
+                                if ( firstNameSearchField != null )
+                                {
+                                    nameQuery &= new QueryStringQuery
+                                    {
+                                        Query = $"{queryTerms.First()}*" + fuzzyIndicator,
+                                        Analyzer = "whitespace_lowercase",
+                                        Fields = firstNameSearchField,
+                                        Fuzziness = wildCardFuzziness,
+                                        FuzzyRewrite = fuzzyRewrite
+                                    };
+                                }
+
+                                wildcardQuery |= nameQuery;
                             }
 
-                            queryContainer &= wildcardQuery;
-
-                            // add an additional 'OR' search for all the words as one single search term
-                            if ( enablePhraseSearch )
+                            // Add an additional 'OR' query if the query is just numeric. We'll see if there is a phone number that matches
+                            if ( query.IsDigitsOnly() )
                             {
-                                var searchString = "+" + queryTerms.JoinStrings( " +" );
-                                queryContainer |= new QueryStringQuery { Query = searchString, AnalyzeWildcard = true, PhraseSlop = 0, Fields = searchFields };
+                                var phoneNumbersSearchField = searchFields.Where( a => a.Property.Name == nameof( PersonIndex.PhoneNumbers ) ).FirstOrDefault();
+                                wildcardQuery |= new QueryStringQuery
+                                {
+                                    // Find numbers that end with query term
+                                    // Note we store phone numbers in the form of "Mobile^6235553322|Work^6235552444",
+                                    Query = $"*" + query + fuzzyIndicator,
+                                    Analyzer = "whitespace_lowercase",
+                                    Fields = phoneNumbersSearchField,
+                                    Fuzziness = wildCardFuzziness,
+                                    FuzzyRewrite = fuzzyRewrite
+                                };
                             }
+                        }
+
+                        queryContainer &= wildcardQuery;
+
+                        // add an additional 'OR' search for all the words as one single search term
+                        if ( enablePhraseSearch )
+                        {
+                            var searchString = "+" + queryTerms.JoinStrings( fuzzyIndicator + " +" ) + fuzzyIndicator;
+                            queryContainer |= new QueryStringQuery
+                            {
+                                Query = searchString,
+                                AnalyzeWildcard = true,
+                                PhraseSlop = 0,
+                                Fields = searchFields,
+                                Fuzziness = wildCardFuzziness,
+                                FuzzyRewrite = fuzzyRewrite
+                            };
                         }
 
                         if ( matchQuery != null )
@@ -745,6 +815,11 @@ namespace Rock.UniversalSearch.IndexComponents
                             }
                         }
 
+                        if ( GetAttributeValue( AttributeKey.IncludeExplain ).AsBoolean() )
+                        {
+                            searchDescriptor = searchDescriptor.Explain();
+                        }
+
                         results = _client.Search<IndexModelBase>( searchDescriptor );
 
                         /* 04-12-2022 MDP
@@ -776,9 +851,15 @@ namespace Rock.UniversalSearch.IndexComponents
                     continue;
                 }
 
+                // if AttributeKey.IncludeExplain is enabled, we can get a bunch of info explaining why we got the scores and results that we did.
                 document["Explain"] = hit.Explanation.ToJson();
                 document.Score = hit.Score ?? 0.00;
                 documents.Add( document );
+            }
+
+            if ( !results.IsValid && results.OriginalException != null )
+            {
+                throw results.OriginalException;
             }
 
             return documents;
