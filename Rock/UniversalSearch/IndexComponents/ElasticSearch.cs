@@ -581,8 +581,7 @@ namespace Rock.UniversalSearch.IndexComponents
 
                                 // analyzer = whitespace to keep the email from being parsed into 3 variables because the @ will act as a delimiter by default
                                 Analyzer = "whitespace_lowercase",
-                                Fields = emailSearchField,
-                                Fuzziness = Fuzziness.Auto
+                                Fields = emailSearchField
                             };
 
                             enablePhraseSearch = false;
@@ -606,8 +605,7 @@ namespace Rock.UniversalSearch.IndexComponents
                                     // Since this is 'Exact Match' search for exact matches
                                     Query = query,
                                     AnalyzeWildcard = true,
-                                    Fields = phoneNumbersSearchField,
-                                    Fuzziness = Fuzziness.Auto
+                                    Fields = phoneNumbersSearchField
                                 };
                             }
                         }
