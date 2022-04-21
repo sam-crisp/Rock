@@ -91,7 +91,7 @@ namespace Rock.Blocks.Types.Mobile.GroupScheduling
         /// <value>
         /// The class name of the mobile block to use during rendering on the device
         /// </value>
-        public override string MobileBlockType => "Rock.Mobile.Blocks.Groups.GroupScheduleUnavailability";
+        public override string MobileBlockType => "Rock.Mobile.Blocks.GroupScheduling.GroupScheduleUnavailability";
 
         /// <summary>
         /// Gets the mobile configuration.
