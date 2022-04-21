@@ -752,6 +752,8 @@ namespace Rock.UniversalSearch.IndexComponents
                                 {
                                     // Find numbers that end with query term
                                     // Note we store phone numbers in the form of "Mobile^6235553322|Work^6235552444",
+                                    // However, the leading '*' wildcard will match the mobile '6235553322' and '3322'
+                                    // cause ^ and | are treated as delimiters
                                     Query = $"*" + query + fuzzyIndicator,
                                     Analyzer = "whitespace_lowercase",
                                     Fields = phoneNumbersSearchField,
