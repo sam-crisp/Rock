@@ -64,10 +64,7 @@ namespace Rock.Model
                 using ( var rockContext = new RockContext() )
                 {
                     var entityTypeService = new EntityTypeService( rockContext );
-                    entityType = new EntityType();
-                    entityType.Name = type.FullName;
-                    entityType.FriendlyName = type.Name.SplitCase();
-                    entityType.AssemblyName = type.AssemblyQualifiedName;
+                    entityType = CreateFromType( type );
                     entityTypeService.Add( entityType );
                     rockContext.SaveChanges();
                 }
@@ -77,6 +74,32 @@ namespace Rock.Model
             }
 
             return null;
+        }
+
+        private static EntityType CreateFromType( Type type )
+        {
+            EntityType entityType = new EntityType();
+            entityType.Name = type.FullName;
+            entityType.FriendlyName = type.Name.SplitCase();
+            entityType.AssemblyName = type.AssemblyQualifiedName;
+
+            if ( typeof( IEntity ).IsAssignableFrom( type ) )
+            {
+                entityType.IsEntity = type.GetCustomAttribute<System.ComponentModel.DataAnnotations.Schema.NotMappedAttribute>() == null;
+            }
+            else
+            {
+                entityType.IsEntity = false;
+            }
+
+            entityType.IsSecured = typeof( Rock.Security.ISecured ).IsAssignableFrom( type );
+
+            var rockBlockTypeGuidValue = type.GetCustomAttribute<RockBlockTypeGuidAttribute>()?.EntityTypeGuid;
+            var rockGuidValue = type.GetCustomAttribute<RockGuidAttribute>()?.Guid;
+
+            var entityTypeGuid = rockBlockTypeGuidValue ?? rockGuidValue ?? Guid.NewGuid();
+            entityType.Guid = entityTypeGuid;
+            return entityType;
         }
 
         /// <summary>
@@ -273,21 +296,7 @@ namespace Rock.Model
             Dictionary<string, EntityType> entityTypesFromReflection = new Dictionary<string, EntityType>( StringComparer.OrdinalIgnoreCase );
             foreach ( var reflectedType in reflectedTypes )
             {
-                var entityType = new EntityType();
-                entityType.Name = reflectedType.FullName;
-                entityType.FriendlyName = reflectedType.Name.SplitCase();
-                entityType.AssemblyName = reflectedType.AssemblyQualifiedName;
-                if ( typeof( IEntity ).IsAssignableFrom( reflectedType ) )
-                {
-                    entityType.IsEntity = reflectedType.GetCustomAttribute<System.ComponentModel.DataAnnotations.Schema.NotMappedAttribute>() == null;
-                }
-                else
-                {
-                    entityType.IsEntity = false;
-                }
-
-                entityType.IsSecured = typeof( Rock.Security.ISecured ).IsAssignableFrom( reflectedType );
-
+                var entityType = CreateFromType( reflectedType );
                 entityTypesFromReflection.AddOrIgnore( reflectedType.FullName, entityType );
             };
 

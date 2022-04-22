@@ -60,6 +60,7 @@
             this.cbViewModel = new System.Windows.Forms.CheckBox();
             this.tbViewModelTsFolder = new System.Windows.Forms.TextBox();
             this.cbViewModelTs = new System.Windows.Forms.CheckBox();
+            this.lblProgress = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // btnGenerate
@@ -332,7 +333,7 @@
             this.tbViewModelFolder.Name = "tbViewModelFolder";
             this.tbViewModelFolder.Size = new System.Drawing.Size(464, 21);
             this.tbViewModelFolder.TabIndex = 26;
-            this.tbViewModelFolder.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler( this.tbViewModelFolder_MouseDoubleClick );
+            this.tbViewModelFolder.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.tbViewModelFolder_MouseDoubleClick);
             // 
             // cbViewModel
             // 
@@ -355,7 +356,7 @@
             this.tbViewModelTsFolder.Name = "tbViewModelTsFolder";
             this.tbViewModelTsFolder.Size = new System.Drawing.Size(464, 21);
             this.tbViewModelTsFolder.TabIndex = 28;
-            this.tbViewModelTsFolder.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler( this.tbViewModelTsFolder_MouseDoubleClick );
+            this.tbViewModelTsFolder.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.tbViewModelTsFolder_MouseDoubleClick);
             // 
             // cbViewModelTs
             // 
@@ -370,11 +371,20 @@
             this.cbViewModelTs.Text = "View Model (TS)";
             this.cbViewModelTs.UseVisualStyleBackColor = true;
             // 
+            // lblProgress
+            // 
+            this.lblProgress.AutoSize = true;
+            this.lblProgress.Location = new System.Drawing.Point(369, 460);
+            this.lblProgress.Name = "lblProgress";
+            this.lblProgress.Size = new System.Drawing.Size(0, 13);
+            this.lblProgress.TabIndex = 29;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(596, 672);
+            this.Controls.Add(this.lblProgress);
             this.Controls.Add(this.tbViewModelTsFolder);
             this.Controls.Add(this.cbViewModelTs);
             this.Controls.Add(this.tbViewModelFolder);
@@ -443,6 +453,7 @@
         private System.Windows.Forms.CheckBox cbViewModel;
         private System.Windows.Forms.TextBox tbViewModelTsFolder;
         private System.Windows.Forms.CheckBox cbViewModelTs;
+        private System.Windows.Forms.Label lblProgress;
     }
 }
 

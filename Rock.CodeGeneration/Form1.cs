@@ -23,6 +23,7 @@ using Rock.Utility;
 using Rock.Data;
 using Rock.ViewModels.Utility;
 using System.Data;
+using System.Threading.Tasks;
 
 namespace Rock.CodeGeneration
 {
@@ -117,6 +118,32 @@ namespace Rock.CodeGeneration
         /// <param name="e">The <see cref="EventArgs" /> instance containing the event data.</param>
         private void btnGenerate_Click( object sender, EventArgs e )
         {
+            bool hasWarnings;
+            try
+            {
+                Cursor = Cursors.WaitCursor;
+                hasWarnings = DoCodeGeneration();
+            }
+            finally
+            {
+                Cursor = Cursors.Default;
+            }
+
+            progressBar1.Visible = false;
+            UpdateProgressText( "" );
+
+            if ( hasWarnings )
+            {
+                MessageBox.Show( "Files have been generated with warnings", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning );
+            }
+            else
+            {
+                MessageBox.Show( "Files have been generated" );
+            }
+        }
+
+        private bool DoCodeGeneration()
+        {
             var viewModelTypes = GetViewModelTypes();
 
             tbResults.Text = string.Empty;
@@ -126,148 +153,155 @@ namespace Rock.CodeGeneration
             string restFolder = tbRestFolder.Text;
             string rockClientFolder = tbClientFolder.Text;
 
-            Cursor = Cursors.WaitCursor;
             entityPropertyShouldBeVirtualWarnings = new List<string>();
 
             progressBar1.Visible = true;
+
+            var rootFolder = RootFolder();
+            if ( rootFolder == null )
+            {
+                throw new ArgumentNullException( "RootFolder is null" );
+            }
+
+            UpdateProgressText( "Rock Guid Attributes" );
+            EnsureRockGuidAttributes( rootFolder.FullName );
+
+            return false;
+
+            if ( cbClient.Checked )
+            {
+                var codeGenFolder = Path.Combine( rockClientFolder, "CodeGenerated" );
+                if ( Directory.Exists( codeGenFolder ) )
+                {
+                    Directory.Delete( codeGenFolder, true );
+                }
+
+                Directory.CreateDirectory( Path.Combine( rockClientFolder, "CodeGenerated" ) );
+            }
+
+            if ( cbViewModelTs.Checked && cblModels.Items.Count == cblModels.CheckedItems.Count )
+            {
+                var codeGenFolder = Path.Combine( viewModelTypescriptFolder, "Entities" );
+                if ( Directory.Exists( codeGenFolder ) )
+                {
+                    Directory.Delete( codeGenFolder, true );
+                }
+
+                Directory.CreateDirectory( codeGenFolder );
+            }
+
+            if ( cbService.Checked && cblModels.Items.Count == cblModels.CheckedItems.Count )
+            {
+                var codeGenFolder = Path.Combine( NamespaceFolder( serviceFolder, "Rock.Model" ).FullName, "CodeGenerated" );
+                if ( Directory.Exists( codeGenFolder ) )
+                {
+                    Directory.Delete( codeGenFolder, true );
+                }
+
+                Directory.CreateDirectory( codeGenFolder );
+            }
+
+            if ( cbRest.Checked && cblModels.Items.Count == cblModels.CheckedItems.Count )
+            {
+                // var filePath1 = Path.Combine( rootFolder, "Controllers" );
+                // var file = new FileInfo( Path.Combine( filePath1, "CodeGenerated", pluralizedName + "Controller.CodeGenerated.cs" ) );
+
+                var codeGenFolder = Path.Combine( restFolder, "Controllers", "CodeGenerated" );
+                if ( Directory.Exists( codeGenFolder ) )
+                {
+                    Directory.Delete( codeGenFolder, true );
+                }
+
+                Directory.CreateDirectory( codeGenFolder );
+            }
+
+            UpdateProgressText( "Models" );
             progressBar1.Maximum = cblModels.CheckedItems.Count;
             progressBar1.Value = 0;
-            if ( cblModels.CheckedItems.Count > 0 )
+
+            foreach ( object item in cblModels.CheckedItems )
             {
-                var rootFolder = RootFolder();
-                if ( rootFolder != null )
+                progressBar1.Value++;
+                Type type = ( Type ) item;
+
+                // only generate Service and REST for IEntity types
+                if ( typeof( Rock.Data.IEntity ).IsAssignableFrom( type ) )
                 {
-                    EnsureRockGuidAttributes( rootFolder.FullName );
 
-                    return;
-
-                    if ( cbClient.Checked )
+                    if ( cbService.Checked )
                     {
-                        var codeGenFolder = Path.Combine( rockClientFolder, "CodeGenerated" );
-                        if ( Directory.Exists( codeGenFolder ) )
-                        {
-                            Directory.Delete( codeGenFolder, true );
-                        }
-
-                        Directory.CreateDirectory( Path.Combine( rockClientFolder, "CodeGenerated" ) );
+                        WriteServiceFile( serviceFolder, type );
                     }
 
-                    if ( cbViewModelTs.Checked && cblModels.Items.Count == cblModels.CheckedItems.Count )
+                    if ( cbRest.Checked )
                     {
-                        var codeGenFolder = Path.Combine( viewModelTypescriptFolder, "Entities" );
-                        if ( Directory.Exists( codeGenFolder ) )
-                        {
-                            Directory.Delete( codeGenFolder, true );
-                        }
-
-                        Directory.CreateDirectory( codeGenFolder );
+                        WriteRESTFile( restFolder, type );
                     }
 
-                    if ( cbService.Checked && cblModels.Items.Count == cblModels.CheckedItems.Count )
+                    if ( cbViewModel.Checked )
                     {
-                        var codeGenFolder = Path.Combine( NamespaceFolder( serviceFolder, "Rock.Model" ).FullName, "CodeGenerated" );
-                        if ( Directory.Exists( codeGenFolder ) )
-                        {
-                            Directory.Delete( codeGenFolder, true );
-                        }
-
-                        Directory.CreateDirectory( codeGenFolder );
+                        WriteViewModelFile( viewModelFolder, type );
                     }
 
-                    if ( cbRest.Checked && cblModels.Items.Count == cblModels.CheckedItems.Count )
+                    if ( cbViewModelTs.Checked )
                     {
-                        // var filePath1 = Path.Combine( rootFolder, "Controllers" );
-                        // var file = new FileInfo( Path.Combine( filePath1, "CodeGenerated", pluralizedName + "Controller.CodeGenerated.cs" ) );
-
-                        var codeGenFolder = Path.Combine( restFolder, "Controllers", "CodeGenerated" );
-                        if ( Directory.Exists( codeGenFolder ) )
-                        {
-                            Directory.Delete( codeGenFolder, true );
-                        }
-
-                        Directory.CreateDirectory( codeGenFolder );
+                        WriteViewModelTypeScriptFile( viewModelTypescriptFolder, type, viewModelTypes );
                     }
+                }
 
-                    foreach ( object item in cblModels.CheckedItems )
-                    {
-                        progressBar1.Value++;
-                        Type type = ( Type ) item;
-
-                        // only generate Service and REST for IEntity types
-                        if ( typeof( Rock.Data.IEntity ).IsAssignableFrom( type ) )
-                        {
-
-                            if ( cbService.Checked )
-                            {
-                                WriteServiceFile( serviceFolder, type );
-                            }
-
-                            if ( cbRest.Checked )
-                            {
-                                WriteRESTFile( restFolder, type );
-                            }
-
-                            if ( cbViewModel.Checked )
-                            {
-                                WriteViewModelFile( viewModelFolder, type );
-                            }
-
-                            if ( cbViewModelTs.Checked )
-                            {
-                                WriteViewModelTypeScriptFile( viewModelTypescriptFolder, type, viewModelTypes );
-                            }
-                        }
-
-                        if ( cbClient.Checked )
-                        {
-                            WriteRockClientFile( rockClientFolder, type );
-                        }
-                    }
-
-                    var projectName = Path.GetFileNameWithoutExtension( lblAssemblyPath.Text );
-
-                    if ( cbClient.Checked )
-                    {
-                        WriteRockClientIncludeClientFiles( rockClientFolder, cblModels.CheckedItems.OfType<Type>().ToList() );
-                        WriteRockClientSystemGuidFiles( rockClientFolder );
-                        WriteRockClientEnumsFile( rockClientFolder );
-                    }
-
-                    if ( cbViewModelTs.Checked && cblModels.Items.Count == cblModels.CheckedItems.Count )
-                    {
-                        WriteViewModelTypeScriptIndexFile( viewModelTypescriptFolder, cblModels.CheckedItems.Cast<Type>() );
-                        WriteSystemGuidTypeScriptFiles( Path.Combine( RootFolder().FullName, "Rock.JavaScript.Obsidian", "Framework", "SystemGuids" ) );
-                    }
-
-                    if ( cbDatabaseProcs.Checked )
-                    {
-                        WriteDatabaseProcsScripts( tbDatabaseFolder.Text, projectName );
-                    }
-
-                    if ( cbEnsureCopyrightHeaders.Checked )
-                    {
-                        EnsureCopyrightHeaders( rootFolder.FullName );
-                    }
-
-                    if ( cbHofixMigrations.Checked )
-                    {
-                        DisableHotFixMigrations( rootFolder.FullName );
-                    }
+                if ( cbClient.Checked )
+                {
+                    WriteRockClientFile( rockClientFolder, type );
                 }
             }
 
-            var hasWarnings = ReportRockCodeWarnings();
+            var projectName = Path.GetFileNameWithoutExtension( lblAssemblyPath.Text );
 
-            progressBar1.Visible = false;
-            Cursor = Cursors.Default;
-            if ( hasWarnings )
+            if ( cbClient.Checked )
             {
-                MessageBox.Show( "Files have been generated with warnings", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning );
+                UpdateProgressText( "Rock Client" );
+                WriteRockClientIncludeClientFiles( rockClientFolder, cblModels.CheckedItems.OfType<Type>().ToList() );
+                WriteRockClientSystemGuidFiles( rockClientFolder );
+                WriteRockClientEnumsFile( rockClientFolder );
             }
-            else
+
+            if ( cbViewModelTs.Checked && cblModels.Items.Count == cblModels.CheckedItems.Count )
             {
-                MessageBox.Show( "Files have been generated" );
+                UpdateProgressText( "View Models" );
+                WriteViewModelTypeScriptIndexFile( viewModelTypescriptFolder, cblModels.CheckedItems.Cast<Type>() );
+                WriteSystemGuidTypeScriptFiles( Path.Combine( RootFolder().FullName, "Rock.JavaScript.Obsidian", "Framework", "SystemGuids" ) );
             }
+
+            if ( cbDatabaseProcs.Checked )
+            {
+                UpdateProgressText( "Database Procs" );
+                WriteDatabaseProcsScripts( tbDatabaseFolder.Text, projectName );
+            }
+
+            if ( cbEnsureCopyrightHeaders.Checked )
+            {
+                UpdateProgressText( "Copyright Headers" );
+                EnsureCopyrightHeaders( rootFolder.FullName );
+            }
+
+            if ( cbHofixMigrations.Checked )
+            {
+                UpdateProgressText( "Hotfix Migrations" );
+                DisableHotFixMigrations( rootFolder.FullName );
+            }
+
+            var hasWarnings = ReportRockCodeWarnings();
+            return hasWarnings;
+        }
+
+        /// <summary>
+        /// Updates the progress text.
+        /// </summary>
+        /// <param name="progressText">The progress text.</param>
+        private void UpdateProgressText( string progressText )
+        {
+            lblProgress.Text = progressText;
+            lblProgress.Refresh();
         }
 
         /// <summary>
@@ -2474,50 +2508,70 @@ namespace Rock.ViewModels.Entities
         {
             string rockDirectory = rootFolder.EnsureTrailingBackslash();
 
-            int updatedFileCount = 0;
-            updatedFileCount += FixupCopyrightHeaders( rockDirectory + "Rock\\" );
-            updatedFileCount += FixupCopyrightHeaders( rockDirectory + "RockWeb\\" );
-            updatedFileCount += FixupCopyrightHeaders( rockDirectory + "RockWeb\\Obsidian\\", "*.ts" );
-            updatedFileCount += FixupCopyrightHeaders( rockDirectory + "Rock.Checkr\\" );
-            updatedFileCount += FixupCopyrightHeaders( rockDirectory + "Rock.DownhillCss\\" );
-            updatedFileCount += FixupCopyrightHeaders( rockDirectory + "Rock.Mailgun\\" );
-            updatedFileCount += FixupCopyrightHeaders( rockDirectory + "Rock.Mandrill\\" );
-            updatedFileCount += FixupCopyrightHeaders( rockDirectory + "Rock.Migrations\\" );
-            updatedFileCount += FixupCopyrightHeaders( rockDirectory + "Rock.MyWell\\" );
-            updatedFileCount += FixupCopyrightHeaders( rockDirectory + "Rock.NMI\\" );
-            updatedFileCount += FixupCopyrightHeaders( rockDirectory + "Rock.Oidc\\" );
-            updatedFileCount += FixupCopyrightHeaders( rockDirectory + "Rock.PayFlowPro\\" );
-            updatedFileCount += FixupCopyrightHeaders( rockDirectory + "Rock.Rest\\" );
-            updatedFileCount += FixupCopyrightHeaders( rockDirectory + "Rock.Security.Authentication.Auth0\\" );
-            updatedFileCount += FixupCopyrightHeaders( rockDirectory + "Rock.SendGrid\\" );
-            updatedFileCount += FixupCopyrightHeaders( rockDirectory + "Rock.SignNow\\" );
-            updatedFileCount += FixupCopyrightHeaders( rockDirectory + "Rock.Slingshot\\" );
-            updatedFileCount += FixupCopyrightHeaders( rockDirectory + "Rock.Slingshot.Model\\" );
-            //updatedFileCount += FixupCopyrightHeaders( rockDirectory + "Rock.Specs\\" );
-            updatedFileCount += FixupCopyrightHeaders( rockDirectory + "Rock.StatementGenerator\\" );
-            //updatedFileCount += FixupCopyrightHeaders( rockDirectory + "Rock.Tests\\" );
+            FixupCopyrightHeaders( rockDirectory + "Rock\\" );
+            FixupCopyrightHeaders( rockDirectory + "RockWeb\\" );
+            FixupCopyrightHeaders( rockDirectory + "RockWeb\\Obsidian\\", "*.ts" );
+            FixupCopyrightHeaders( rockDirectory + "Rock.Checkr\\" );
+            FixupCopyrightHeaders( rockDirectory + "Rock.DownhillCss\\" );
+            FixupCopyrightHeaders( rockDirectory + "Rock.Mailgun\\" );
+            FixupCopyrightHeaders( rockDirectory + "Rock.Mandrill\\" );
+            FixupCopyrightHeaders( rockDirectory + "Rock.Migrations\\" );
+            FixupCopyrightHeaders( rockDirectory + "Rock.MyWell\\" );
+            FixupCopyrightHeaders( rockDirectory + "Rock.NMI\\" );
+            FixupCopyrightHeaders( rockDirectory + "Rock.Oidc\\" );
+            FixupCopyrightHeaders( rockDirectory + "Rock.PayFlowPro\\" );
+            FixupCopyrightHeaders( rockDirectory + "Rock.Rest\\" );
+            FixupCopyrightHeaders( rockDirectory + "Rock.Security.Authentication.Auth0\\" );
+            FixupCopyrightHeaders( rockDirectory + "Rock.SendGrid\\" );
+            FixupCopyrightHeaders( rockDirectory + "Rock.SignNow\\" );
+            FixupCopyrightHeaders( rockDirectory + "Rock.Slingshot\\" );
+            FixupCopyrightHeaders( rockDirectory + "Rock.Slingshot.Model\\" );
+            //+= FixupCopyrightHeaders( rockDirectory + "Rock.Specs\\" );
+            FixupCopyrightHeaders( rockDirectory + "Rock.StatementGenerator\\" );
+            //+= FixupCopyrightHeaders( rockDirectory + "Rock.Tests\\" );
 
-            updatedFileCount += FixupCopyrightHeaders( rockDirectory + "Rock.Version\\" );
-            updatedFileCount += FixupCopyrightHeaders( rockDirectory + "Rock.WebStartup\\" );
-            updatedFileCount += FixupCopyrightHeaders( rockDirectory + "Applications\\" );
+            FixupCopyrightHeaders( rockDirectory + "Rock.Version\\" );
+            FixupCopyrightHeaders( rockDirectory + "Rock.WebStartup\\" );
+            FixupCopyrightHeaders( rockDirectory + "Applications\\" );
         }
 
-        private static void EnsureRockGuidAttributes( string rootFolder )
+        private void EnsureRockGuidAttributes( string rootFolder )
         {
             Stopwatch stopwatch = Stopwatch.StartNew();
             EnsureRockGuidAttributesForType<Rock.Field.FieldType>( rootFolder, "FieldType", "Class" );
-            //EnsureRockGuidAttributesForType<Rock.Rest.ApiControllerBase>( rootFolder, "EntityType", "Class" );
             Debug.WriteLine( stopwatch.Elapsed.TotalMilliseconds );
+
+            stopwatch = Stopwatch.StartNew();
+            EnsureRockGuidAttributesForType<Rock.Data.IEntity>( rootFolder, "EntityType", "Name" );
+            Debug.WriteLine( stopwatch.Elapsed.TotalMilliseconds );
+
+            //EnsureRockGuidAttributesForType<Quartz.IJob>( rootFolder, "ServiceJob", "Class" );
+
+            // Entity Type blocks
+            //EnsureRockGuidAttributesForType<Rock.Blocks.RockBlockType>( rootFolder, "BlockType", "EntityTypeId" );
+
+            // WebForm blocks
+            // EnsureRockGuidAttributesForType<Rock.Web.UI.RockBlock>( Path.Combine( rootFolder, "RockWeb"), "BlockType", "Path" );
+
+
+            //EnsureRockGuidAttributesForType<Rock.Rest.ApiControllerBase>( rootFolder, "EntityType", "Class" );
+
         }
 
-        private static void EnsureRockGuidAttributesForType<T>( string rootFolder, string tableName, string whereField )
+        private string[] GetRockGuidSearchFileNames( string rootFolder )
         {
             var searchDirectory = rootFolder.EnsureTrailingBackslash();
+            var sourceFileNames = Directory.EnumerateFiles( searchDirectory, "*.cs", SearchOption.AllDirectories );
 
-            var sourceFilenames = Directory.GetFiles( searchDirectory, "*.cs", SearchOption.AllDirectories ).ToList();
-            sourceFilenames = sourceFilenames.Where( a => !a.Contains( ".localhistory" ) ).ToList();
-            sourceFilenames = sourceFilenames.OrderBy( a => a.Contains( @"\Rock\Rock\" ) ? 0 : 1 ).ToList();
+            sourceFileNames = sourceFileNames.Where( a => !a.Contains( ".localhistory" ) );
+            sourceFileNames = sourceFileNames.Where( a => !a.Contains( "\\CodeGenerated\\" ) );
+            return sourceFileNames.OrderBy( a => a.Contains( @"\Rock\Rock\" ) ? 0 : 1 ).ToArray();
+        }
 
+
+        private void EnsureRockGuidAttributesForType<T>( string rootFolder, string tableName, string whereField )
+            where T : class
+        {
             SqlConnection sqlconn = GetSqlConnection( rootFolder );
             sqlconn.Open();
             var qry = sqlconn.CreateCommand();
@@ -2527,7 +2581,7 @@ namespace Rock.ViewModels.Entities
             new SqlDataAdapter( qry ).Fill( dataSet );
             var databaseGuidLookup = dataSet.Tables[0].Rows.OfType<DataRow>().ToList().ToDictionary( k => k.Field<string>( whereField ), v => v.Field<Guid>( "Guid" ) );
 
-            var rockAssembly = typeof( Rock.SystemGuid.FieldType ).Assembly;
+            var rockAssembly = typeof( T ).Assembly;
             var systemGuidTypeFields = rockAssembly.GetTypes()
                 .Where( a => a.Namespace == "Rock.SystemGuid" )
                     .SelectMany( a =>
@@ -2544,45 +2598,66 @@ namespace Rock.ViewModels.Entities
                     // just in case there are SystemGuids that share the same value, prefer the ones that are not obsolete, and then take the first one
                     Value = a.OrderBy( x => x.Field.GetCustomAttribute<System.ObsoleteAttribute>() == null ? 0 : 1 ).FirstOrDefault()
                 } );
-            ;
 
             var systemGuidLookup = systemGuidTypeFieldsUnique.ToDictionary( k => k.GuidValue, v => $"{v.Value.Type.FullName}.{v.Value.Field.Name}" );
 
             var types = Reflection.FindTypes( typeof( T ) ).Values.OrderBy( a => a.FullName ).ToList();
             var processedTypes = new HashSet<Type>();
-            foreach ( var fileName in sourceFilenames )
+            progressBar1.Maximum = types.Count();
+            progressBar1.Value = 0;
+            var nameSpaces = types.Select( a => a.Namespace ).Distinct().ToArray();
+
+            Dictionary<Type, List<string>> possibleClassDeclarationsCache = new Dictionary<Type, List<string>>();
+
+            foreach ( var fileName in GetRockGuidSearchFileNames( rootFolder) )
             {
-                var sourceFileText = File.ReadAllText( fileName );
-                var sourceFileLines = File.ReadAllLines( fileName );
                 types = types.Where( a => !processedTypes.Contains( a ) ).ToList();
-                bool fileUsingsIncludeRockData = sourceFileText.Contains( "using Rock.Data;" );
+
                 if ( !types.Any() )
                 {
                     return;
                 }
 
+                var sourceFileText = File.ReadAllText( fileName );
+
+                var fileHasNameSpaces = nameSpaces.Any( x => sourceFileText.Contains( $"namespace {x}" ) );
+                if ( !fileHasNameSpaces )
+                {
+                    continue;
+                }
+
+                var sourceFileLines = File.ReadAllLines( fileName );
+                bool fileUsingsIncludeRockData = sourceFileText.Contains( "using Rock.Data;" );
+
                 foreach ( var type in types )
                 {
-                    var fileHasType = sourceFileText.Contains( $"namespace {type.Namespace}" );
-                    if ( !fileHasType )
+                    var possibleClassDeclarations = possibleClassDeclarationsCache.GetValueOrNull( type );
+                    if ( possibleClassDeclarations == null )
+                    {
+                        possibleClassDeclarations = new List<string>();
+                        possibleClassDeclarations.Add( $"public class {type.Name} : " );
+                        possibleClassDeclarations.Add( $"public partial class {type.Name} : " );
+                        if ( type.IsSealed )
+                        {
+                            possibleClassDeclarations.Add( $"public sealed class {type.Name} : " );
+                        }
+
+                        if ( !type.IsPublic )
+                        {
+                            possibleClassDeclarations.Add( $"internal class {type.Name} : " );
+                            possibleClassDeclarations.Add( $"internal sealed class {type.Name} : " );
+                        }
+
+                        possibleClassDeclarationsCache.Add( type, possibleClassDeclarations );
+                    }
+
+                    var fileMightHave = possibleClassDeclarations.Any( d => sourceFileText.Contains( d ) );
+                    if ( !fileMightHave )
                     {
                         continue;
                     }
 
-                    List<string> possibleClassDeclarations = new List<string>();
-                    possibleClassDeclarations.Add( $"public class {type.Name}" );
-                    if ( type.IsSealed )
-                    {
-                        possibleClassDeclarations.Add( $"public sealed class {type.Name}" );
-                    }
-
-                    if ( !type.IsPublic )
-                    {
-                        possibleClassDeclarations.Add( $"internal class {type.Name}" );
-                        possibleClassDeclarations.Add( $"internal sealed class {type.Name}" );
-                    }
-                    
-                    var sourceFileLine = sourceFileLines.Where( a => possibleClassDeclarations.Any( x => a.Trim().Contains( x ) ) ).FirstOrDefault();
+                    var sourceFileLine = sourceFileLines.Where( line => possibleClassDeclarations.Any( d => line.Contains( d ) ) ).FirstOrDefault();
                     if ( sourceFileLine.IsNullOrWhiteSpace() )
                     {
                         continue;
@@ -2630,9 +2705,14 @@ namespace Rock.ViewModels.Entities
                         }
                     }
 
+                    progressBar1.Value++;
                     processedTypes.Add( type );
+                    break;
                 }
             }
+
+            progressBar1.Maximum = 0;
+            progressBar1.Value = 0;
 
             foreach ( var unprocessedType in types.Where( a => !processedTypes.Contains( a ) ).ToList() )
             {

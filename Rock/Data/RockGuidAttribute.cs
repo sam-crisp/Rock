@@ -22,22 +22,19 @@ namespace Rock.Data
     /// Used to decorate items in Rock with well-known GUID attributes.
     /// </summary>
     /// <seealso cref="System.Attribute" />
-    [System.AttributeUsage( System.AttributeTargets.Class | System.AttributeTargets.Method, Inherited=false )]
+    [System.AttributeUsage( System.AttributeTargets.Class | System.AttributeTargets.Method, Inherited = false, AllowMultiple = false )]
     public class RockGuidAttribute : System.Attribute
     {
         /// <summary>
         /// Gets the unique identifier.
         /// </summary>
         /// <value>The unique identifier.</value>
-        public Guid Guid { get; private set; }
+        public readonly Guid Guid;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="T:Rock.RockGuidAttribute" /> class from the specified  <see cref="string"/>.
         /// </summary>
         /// <param name="guid">The unique identifier.</param>
-        /// <exception cref="System.ArgumentNullException" />
-        /// <exception cref="System.FormatException" />
-        /// <exception cref="System.OverflowException" />
         public RockGuidAttribute( string guid )
         {
             this.Guid = new Guid( guid );
@@ -50,6 +47,50 @@ namespace Rock.Data
         public RockGuidAttribute( Guid guid )
         {
             this.Guid = guid;
+        }
+    }
+
+    /// <summary>
+    /// Class RockBlockTypeGuid.
+    /// Implements the <see cref="Rock.Data.RockGuidAttribute" />
+    /// </summary>
+    /// <seealso cref="Rock.Data.RockGuidAttribute" />
+    public class RockBlockTypeGuidAttribute : RockGuidAttribute
+    {
+        /// <summary>
+        /// Gets the unique identifier.
+        /// </summary>
+        /// <value>The unique identifier.</value>
+        public readonly Guid? EntityTypeGuid;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RockBlockTypeGuidAttribute"/> class.
+        /// </summary>
+        /// <param name="guid">The unique identifier.</param>
+        public RockBlockTypeGuidAttribute( string guid ) : base( guid ) { }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RockBlockTypeGuidAttribute"/> class.
+        /// </summary>
+        /// <param name="guid">The unique identifier.</param>
+        public RockBlockTypeGuidAttribute( Guid guid ) : base( guid ) { }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RockBlockTypeGuidAttribute"/> class.
+        /// </summary>
+        /// <param name="guid">The unique identifier.</param>
+        /// <param name="entityTypeGuid">The entity type unique identifier.</param>
+        public RockBlockTypeGuidAttribute( string guid, string entityTypeGuid )
+            : this( new Guid( guid ), entityTypeGuid.AsGuidOrNull() ) { }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="T:Rock.RockGuidAttribute" /> class from the specified <see cref="System.Guid" />.
+        /// </summary>
+        /// <param name="guid">The unique identifier.</param>
+        /// <param name="entityTypeGuid">The entity type unique identifier.</param>
+        public RockBlockTypeGuidAttribute( Guid guid, Guid? entityTypeGuid ) : base( guid )
+        {
+            this.EntityTypeGuid = entityTypeGuid;
         }
     }
 }
