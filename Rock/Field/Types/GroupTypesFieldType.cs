@@ -1,4 +1,4 @@
-﻿// <copyright>
+// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -27,7 +27,8 @@ namespace Rock.Field.Types
     /// Field Type to select 0 or more GroupTypes 
     /// </summary>
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    public class GroupTypesFieldType : SelectFromListFieldType
+    [RockGuid( Rock.SystemGuid.FieldType.GROUP_TYPES )]
+    public class GroupTypesFieldType : SelectFromListFieldType 
     {
         /// <summary>
         /// Gets the list source.

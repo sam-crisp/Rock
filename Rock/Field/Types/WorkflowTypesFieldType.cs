@@ -1,4 +1,4 @@
-﻿// <copyright>
+// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -33,7 +33,8 @@ namespace Rock.Field.Types
     /// </summary>
     [Serializable]
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    public class WorkflowTypesFieldType : FieldType
+    [RockGuid( Rock.SystemGuid.FieldType.WORKFLOW_TYPES )]
+    public class WorkflowTypesFieldType : FieldType 
     {
 
         #region Formatting

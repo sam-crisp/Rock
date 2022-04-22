@@ -1,4 +1,4 @@
-﻿// <copyright>
+// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -32,7 +32,8 @@ namespace Rock.Field.Types
     /// </summary>
     [Serializable]
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    public class BinaryFileTypeFieldType : FieldType, IEntityFieldType
+    [RockGuid( Rock.SystemGuid.FieldType.BINARY_FILE_TYPE )]
+    public class BinaryFileTypeFieldType : FieldType, IEntityFieldType 
     {
 
         #region Formatting

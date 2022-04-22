@@ -1,4 +1,4 @@
-﻿// <copyright>
+// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -30,7 +30,8 @@ namespace Rock.Field.Types
     /// Stored as a List of Metric.Guid|MetricCategory.Guid (MetricCategory.Guid included so we can preserve which category the metric was selected from)
     /// </summary>
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    public class MetricCategoriesFieldType : FieldType
+    [RockGuid( Rock.SystemGuid.FieldType.METRIC_CATEGORIES )]
+    public class MetricCategoriesFieldType : FieldType 
     {
 
         #region Formatting

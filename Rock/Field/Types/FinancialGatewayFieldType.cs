@@ -1,4 +1,4 @@
-﻿// <copyright>
+// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -33,7 +33,8 @@ namespace Rock.Field.Types
     /// </summary>
     [Serializable]
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    public class FinancialGatewayFieldType : FieldType, IEntityFieldType
+    [RockGuid( Rock.SystemGuid.FieldType.FINANCIAL_GATEWAY )]
+    public class FinancialGatewayFieldType : FieldType, IEntityFieldType 
     {
 
         #region Formatting

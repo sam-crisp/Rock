@@ -1,4 +1,4 @@
-﻿// <copyright>
+// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -31,7 +31,8 @@ namespace Rock.Field.Types
     /// Stored as a pipe-delimited list of EntityType.Guid
     /// </summary>
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    public class ComponentsFieldType : FieldType
+    [Rock.Data.RockGuid( Rock.SystemGuid.FieldType.COMPONENTS )]
+    public class ComponentsFieldType : FieldType 
     {
 
         #region Configuration

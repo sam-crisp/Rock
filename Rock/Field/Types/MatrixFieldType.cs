@@ -1,4 +1,4 @@
-﻿// <copyright>
+// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -32,7 +32,8 @@ namespace Rock.Field.Types
     ///  Value stored as AttributeMatrix.Guid
     /// </summary>
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    public class MatrixFieldType : FieldType, IEntityFieldType
+    [RockGuid( Rock.SystemGuid.FieldType.MATRIX )]
+    public class MatrixFieldType : FieldType, IEntityFieldType 
     {
         #region Configuration
 

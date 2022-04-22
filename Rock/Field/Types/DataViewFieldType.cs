@@ -1,4 +1,4 @@
-﻿// <copyright>
+// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -34,7 +34,8 @@ namespace Rock.Field.Types
     /// Data View Field Type.  Stored as DataViews's Guid
     /// </summary>
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    public class DataViewFieldType : FieldType, IEntityFieldType
+    [RockGuid( Rock.SystemGuid.FieldType.DATA_VIEW )]
+    public class DataViewFieldType : FieldType, IEntityFieldType 
     {
 
         #region Configuration

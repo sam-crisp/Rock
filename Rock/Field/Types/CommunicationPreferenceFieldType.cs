@@ -1,4 +1,4 @@
-﻿// <copyright>
+// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -23,7 +23,8 @@ namespace Rock.Field.Types
     /// Field type to select either Email or SMS as the preferred Rock.Model.CommunicationType
     /// </summary>
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    public class CommunicationPreferenceFieldType : EnumFieldType<CommunicationType>
+    [Rock.Data.RockGuid( Rock.SystemGuid.FieldType.COMMUNICATION_PREFERENCE_TYPE )]
+    public class CommunicationPreferenceFieldType : EnumFieldType<CommunicationType> 
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="CommunicationType" /> class.

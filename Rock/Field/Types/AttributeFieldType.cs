@@ -1,4 +1,4 @@
-﻿// <copyright>
+// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -33,7 +33,8 @@ namespace Rock.Field.Types
     /// Field Type used to display a dropdown list of attributes
     /// </summary>
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    public class AttributeFieldType : FieldType, ICachedEntitiesFieldType, IEntityFieldType
+    [RockGuid( Rock.SystemGuid.FieldType.ATTRIBUTE )]
+    public class AttributeFieldType : FieldType, ICachedEntitiesFieldType, IEntityFieldType 
     {
 
         #region Configuration

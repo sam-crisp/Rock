@@ -1,4 +1,4 @@
-﻿// <copyright>
+// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -31,7 +31,8 @@ namespace Rock.Field.Types
     /// Stored as a List of RegistrationTemplate Guids
     /// </summary>
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    public class RegistrationTemplatesFieldType : FieldType
+    [RockGuid( "F56DED5E-C135-42B2-A529-878CB30436B5")]
+    public class RegistrationTemplatesFieldType : FieldType 
     {
 
         #region Formatting

@@ -1,4 +1,4 @@
-﻿// <copyright>
+// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -30,7 +30,8 @@ namespace Rock.Field.Types
     /// Account Field Type.  Stored as FinancialAccount's Guid
     /// </summary>
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    public class AccountFieldType : FieldType, IEntityFieldType
+    [RockGuid( Rock.SystemGuid.FieldType.FINANCIAL_ACCOUNT )]
+    public class AccountFieldType : FieldType, IEntityFieldType 
     {
         #region Configuration
 

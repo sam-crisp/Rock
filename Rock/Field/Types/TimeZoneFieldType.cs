@@ -1,4 +1,4 @@
-﻿// <copyright>
+// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -28,7 +28,8 @@ namespace Rock.Field.Types
     /// Field Type used to display a dropdown list of <see cref="System.TimeZoneInfo"/>
     /// </summary>
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    public class TimeZoneFieldType : FieldType
+    [Rock.Data.RockGuid( Rock.SystemGuid.FieldType.TIME_ZONE )]
+    public class TimeZoneFieldType : FieldType 
     {
         #region Edit Control
 

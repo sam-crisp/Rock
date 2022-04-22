@@ -1,4 +1,4 @@
-﻿// <copyright>
+// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -33,7 +33,8 @@ namespace Rock.Field.Types
     /// Stored as a delimited list of FinancialAccount Guids
     /// </summary>
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    public class AccountsFieldType : FieldType
+    [RockGuid( Rock.SystemGuid.FieldType.FINANCIAL_ACCOUNTS )]
+    public class AccountsFieldType : FieldType 
     {
         #region Configuration
 

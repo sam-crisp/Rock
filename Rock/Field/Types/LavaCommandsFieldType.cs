@@ -1,4 +1,4 @@
-﻿// <copyright>
+// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -31,7 +31,8 @@ namespace Rock.Field.Types
     /// </summary>
     [Serializable]
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    public class LavaCommandsFieldType : FieldType
+    [Rock.Data.RockGuid( Rock.SystemGuid.FieldType.LAVA_COMMANDS )]
+    public class LavaCommandsFieldType : FieldType 
     {
         #region Configuration
 

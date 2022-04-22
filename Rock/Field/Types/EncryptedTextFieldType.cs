@@ -1,4 +1,4 @@
-﻿// <copyright>
+// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -30,7 +30,8 @@ namespace Rock.Field.Types
     /// </summary>
     [Serializable]
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    public class EncryptedTextFieldType : TextFieldType
+    [Rock.Data.RockGuid( Rock.SystemGuid.FieldType.ENCRYPTED_TEXT )]
+    public class EncryptedTextFieldType : TextFieldType 
     {
 
         #region Configuration

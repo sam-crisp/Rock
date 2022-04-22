@@ -1,4 +1,4 @@
-﻿// <copyright>
+// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -33,7 +33,8 @@ namespace Rock.Field.Types
     /// Stored as a List of Schedule Guids
     /// </summary>
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    public class SchedulesFieldType : FieldType
+    [RockGuid( Rock.SystemGuid.FieldType.SCHEDULES )]
+    public class SchedulesFieldType : FieldType 
     {
 
         #region Formatting

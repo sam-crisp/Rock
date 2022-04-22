@@ -1,4 +1,4 @@
-﻿// <copyright>
+// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -31,7 +31,8 @@ namespace Rock.Field.Types
     /// </summary>
     /// <seealso cref="Rock.Field.FieldType" />
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    public class AssetFieldType : FieldType
+    [RockGuid( "4E4E8692-23B4-49EA-88B4-2AB07899E0EE")]
+    public class AssetFieldType : FieldType 
     {
         /// <summary>
         /// The picker button template

@@ -1,4 +1,4 @@
-﻿// <copyright>
+// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -31,7 +31,8 @@ namespace Rock.Field.Types
     /// </summary>
     [Serializable]
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    public class PageReferenceFieldType : FieldType
+    [RockGuid( Rock.SystemGuid.FieldType.PAGE_REFERENCE )]
+    public class PageReferenceFieldType : FieldType 
     {
 
         #region Formatting

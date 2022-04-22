@@ -1,4 +1,4 @@
-﻿// <copyright>
+// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -31,7 +31,8 @@ namespace Rock.Field.Types
     /// Field Type to select a single (or null) registration template
     /// </summary>
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    public class RegistrationTemplateFieldType : FieldType, IEntityFieldType
+    [RockGuid( Rock.SystemGuid.FieldType.REGISTRATION_TEMPLATE )]
+    public class RegistrationTemplateFieldType : FieldType, IEntityFieldType 
     {
 
         #region Formatting

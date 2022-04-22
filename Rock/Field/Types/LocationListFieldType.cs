@@ -1,4 +1,4 @@
-﻿// <copyright>
+// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -31,7 +31,8 @@ namespace Rock.Field.Types
     /// </summary>
     /// <seealso cref="Rock.Field.FieldType" />
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    public class LocationListFieldType : FieldType, IEntityFieldType
+    [RockGuid( "A58A0CBF-C3E6-4054-85D7-05118035980B")]
+    public class LocationListFieldType : FieldType, IEntityFieldType 
     {
         #region Configuration
         /// <summary>

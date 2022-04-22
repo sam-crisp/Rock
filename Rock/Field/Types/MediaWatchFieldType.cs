@@ -1,4 +1,4 @@
-﻿// <copyright>
+// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -31,7 +31,8 @@ namespace Rock.Field.Types
     /// watched recorded.
     /// </summary>
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    public class MediaWatchFieldType : FieldType
+    [Rock.Data.RockGuid( Rock.SystemGuid.FieldType.MEDIA_WATCH )]
+    public class MediaWatchFieldType : FieldType 
     {
         #region Configuration
 

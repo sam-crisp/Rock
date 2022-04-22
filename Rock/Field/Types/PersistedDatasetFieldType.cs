@@ -1,4 +1,4 @@
-﻿// <copyright>
+// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -29,7 +29,8 @@ namespace Rock.Field.Types
     /// Stored as PersistedDataset.Guid
     /// </summary>
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    public class PersistedDatasetFieldType : FieldType, ICachedEntitiesFieldType
+    [Rock.Data.RockGuid( "392865C4-F17B-4832-AB59-20F72BB1C9F6")]
+    public class PersistedDatasetFieldType : FieldType, ICachedEntitiesFieldType 
     {
         #region Formatting
 

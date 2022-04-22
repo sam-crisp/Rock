@@ -1,4 +1,4 @@
-﻿// <copyright>
+// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -34,7 +34,8 @@ namespace Rock.Field.Types
     /// Metric Field Type.  Stored as Metric's Guid.
     /// </summary>
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    public class MetricFieldType : FieldType, IEntityFieldType
+    [RockGuid( Rock.SystemGuid.FieldType.METRIC )]
+    public class MetricFieldType : FieldType, IEntityFieldType 
     {
 
         #region Configuration

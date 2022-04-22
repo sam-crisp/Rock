@@ -1,4 +1,4 @@
-﻿// <copyright>
+// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -30,7 +30,8 @@ namespace Rock.Field.Types
     /// Field Type to select a single (or null) <see cref="MediaElement"/>.
     /// </summary>
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    public class MediaElementFieldType : FieldType, IEntityFieldType
+    [RockGuid( Rock.SystemGuid.FieldType.MEDIA_ELEMENT )]
+    public class MediaElementFieldType : FieldType, IEntityFieldType 
     {
         #region Configuration
 
