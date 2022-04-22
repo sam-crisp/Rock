@@ -22,6 +22,7 @@ using Rock;
 using Rock.Utility;
 using Rock.Data;
 using Rock.ViewModels.Utility;
+using System.Data;
 
 namespace Rock.CodeGeneration
 {
@@ -136,6 +137,10 @@ namespace Rock.CodeGeneration
                 var rootFolder = RootFolder();
                 if ( rootFolder != null )
                 {
+                    EnsureRockGuidAttributes( rootFolder.FullName );
+
+                    return;
+
                     if ( cbClient.Checked )
                     {
                         var codeGenFolder = Path.Combine( rockClientFolder, "CodeGenerated" );
@@ -169,7 +174,7 @@ namespace Rock.CodeGeneration
                         Directory.CreateDirectory( codeGenFolder );
                     }
 
-                    if (cbRest.Checked && cblModels.Items.Count == cblModels.CheckedItems.Count )
+                    if ( cbRest.Checked && cblModels.Items.Count == cblModels.CheckedItems.Count )
                     {
                         // var filePath1 = Path.Combine( rootFolder, "Controllers" );
                         // var file = new FileInfo( Path.Combine( filePath1, "CodeGenerated", pluralizedName + "Controller.CodeGenerated.cs" ) );
@@ -393,7 +398,7 @@ namespace Rock.CodeGeneration
                             var memberRockGuidAttribute = member.GetCustomAttribute<RockGuidAttribute>();
                             if ( null != memberRockGuidAttribute )
                             {
-                                if ( memberRockGuidAttribute.Guid.IsEmpty())
+                                if ( memberRockGuidAttribute.Guid.IsEmpty() )
                                 {
                                     rockGuidWarnings.AppendLine( $" - EMPTY,{member.DeclaringType}.{member}" );
                                 }
@@ -2495,6 +2500,144 @@ namespace Rock.ViewModels.Entities
             updatedFileCount += FixupCopyrightHeaders( rockDirectory + "Rock.Version\\" );
             updatedFileCount += FixupCopyrightHeaders( rockDirectory + "Rock.WebStartup\\" );
             updatedFileCount += FixupCopyrightHeaders( rockDirectory + "Applications\\" );
+        }
+
+        private static void EnsureRockGuidAttributes( string rootFolder )
+        {
+            Stopwatch stopwatch = Stopwatch.StartNew();
+            EnsureRockGuidAttributesForType<Rock.Field.FieldType>( rootFolder, "FieldType", "Class" );
+            //EnsureRockGuidAttributesForType<Rock.Rest.ApiControllerBase>( rootFolder, "EntityType", "Class" );
+            Debug.WriteLine( stopwatch.Elapsed.TotalMilliseconds );
+        }
+
+        private static void EnsureRockGuidAttributesForType<T>( string rootFolder, string tableName, string whereField )
+        {
+            var searchDirectory = rootFolder.EnsureTrailingBackslash();
+
+            var sourceFilenames = Directory.GetFiles( searchDirectory, "*.cs", SearchOption.AllDirectories ).ToList();
+            sourceFilenames = sourceFilenames.Where( a => !a.Contains( ".localhistory" ) ).ToList();
+            sourceFilenames = sourceFilenames.OrderBy( a => a.Contains( @"\Rock\Rock\" ) ? 0 : 1 ).ToList();
+
+            SqlConnection sqlconn = GetSqlConnection( rootFolder );
+            sqlconn.Open();
+            var qry = sqlconn.CreateCommand();
+            qry.CommandType = System.Data.CommandType.Text;
+            qry.CommandText = $"SELECT [Guid], [{whereField}] FROM [{tableName}]";
+            DataSet dataSet = new DataSet();
+            new SqlDataAdapter( qry ).Fill( dataSet );
+            var databaseGuidLookup = dataSet.Tables[0].Rows.OfType<DataRow>().ToList().ToDictionary( k => k.Field<string>( whereField ), v => v.Field<Guid>( "Guid" ) );
+
+            var rockAssembly = typeof( Rock.SystemGuid.FieldType ).Assembly;
+            var systemGuidTypeFields = rockAssembly.GetTypes()
+                .Where( a => a.Namespace == "Rock.SystemGuid" )
+                    .SelectMany( a =>
+                         a.GetFields()
+                             .Select( s => new { Type = a, Field = s, GuidValue = s.GetValue( null ) as string } ) ).ToList();
+
+            var systemGuidTypeFieldsUnique = systemGuidTypeFields
+                .GroupBy( x => x.Field.GetValue( null ) )
+                .Select( a => new
+                {
+                    GuidValue = a.Key,
+
+                    // It is possible that SystemGuids might share the same value, probably because of Obsolete ones. So
+                    // just in case there are SystemGuids that share the same value, prefer the ones that are not obsolete, and then take the first one
+                    Value = a.OrderBy( x => x.Field.GetCustomAttribute<System.ObsoleteAttribute>() == null ? 0 : 1 ).FirstOrDefault()
+                } );
+            ;
+
+            var systemGuidLookup = systemGuidTypeFieldsUnique.ToDictionary( k => k.GuidValue, v => $"{v.Value.Type.FullName}.{v.Value.Field.Name}" );
+
+            var types = Reflection.FindTypes( typeof( T ) ).Values.OrderBy( a => a.FullName ).ToList();
+            var processedTypes = new HashSet<Type>();
+            foreach ( var fileName in sourceFilenames )
+            {
+                var sourceFileText = File.ReadAllText( fileName );
+                var sourceFileLines = File.ReadAllLines( fileName );
+                types = types.Where( a => !processedTypes.Contains( a ) ).ToList();
+                bool fileUsingsIncludeRockData = sourceFileText.Contains( "using Rock.Data;" );
+                if ( !types.Any() )
+                {
+                    return;
+                }
+
+                foreach ( var type in types )
+                {
+                    var fileHasType = sourceFileText.Contains( $"namespace {type.Namespace}" );
+                    if ( !fileHasType )
+                    {
+                        continue;
+                    }
+
+                    List<string> possibleClassDeclarations = new List<string>();
+                    possibleClassDeclarations.Add( $"public class {type.Name}" );
+                    if ( type.IsSealed )
+                    {
+                        possibleClassDeclarations.Add( $"public sealed class {type.Name}" );
+                    }
+
+                    if ( !type.IsPublic )
+                    {
+                        possibleClassDeclarations.Add( $"internal class {type.Name}" );
+                        possibleClassDeclarations.Add( $"internal sealed class {type.Name}" );
+                    }
+                    
+                    var sourceFileLine = sourceFileLines.Where( a => possibleClassDeclarations.Any( x => a.Trim().Contains( x ) ) ).FirstOrDefault();
+                    if ( sourceFileLine.IsNullOrWhiteSpace() )
+                    {
+                        continue;
+                    }
+
+                    var databaseRockGuidValue = databaseGuidLookup.GetValueOrNull( type.FullName )?.ToString().ToUpper();
+                    var rockGuidAttributeValue = type.GetCustomAttribute<RockGuidAttribute>()?.Guid.ToString().ToUpper();
+                    string databaseRockGuidSystemGuidName = databaseRockGuidValue != null ? systemGuidLookup.GetValueOrNull( databaseRockGuidValue ) : null;
+                    string rockGuidDeclaration;
+                    if ( fileUsingsIncludeRockData )
+                    {
+                        rockGuidDeclaration = "RockGuid";
+                    }
+                    else
+                    {
+                        rockGuidDeclaration = "Rock.Data.RockGuid";
+                    }
+
+                    if ( rockGuidAttributeValue == null )
+                    {
+                        string guidLine;
+                        if ( databaseRockGuidSystemGuidName.IsNotNullOrWhiteSpace() )
+                        {
+                            guidLine = $"    [{rockGuidDeclaration}( {databaseRockGuidSystemGuidName} )]";
+                        }
+                        else
+                        {
+                            var guidValue = databaseRockGuidSystemGuidName ?? databaseRockGuidValue ?? Guid.NewGuid().ToString().ToUpper();
+                            guidLine = $"    [{rockGuidDeclaration}( \"{guidValue}\")]";
+                        }
+
+                        var alreadyCodeGeneratedButNotCompiled = sourceFileText.Contains( guidLine );
+                        if ( !alreadyCodeGeneratedButNotCompiled )
+                        {
+                            sourceFileText = sourceFileText.Replace( sourceFileLine, $"{guidLine}{Environment.NewLine}{ sourceFileLine} " );
+                            File.WriteAllText( fileName, sourceFileText );
+                        }
+                    }
+                    else
+                    {
+                        if ( databaseRockGuidValue.IsNotNullOrWhiteSpace() && rockGuidAttributeValue != databaseRockGuidValue )
+                        {
+                            sourceFileText = sourceFileText.Replace( $"[Rock.Data.RockGuid(\"{rockGuidAttributeValue}\")]", $"{rockGuidDeclaration}(\"{databaseRockGuidSystemGuidName ?? databaseRockGuidValue}\")]" );
+                            sourceFileText = sourceFileText.Replace( $"[RockGuid(\"{rockGuidAttributeValue}\")]", $"[{rockGuidDeclaration}(\"{databaseRockGuidSystemGuidName ?? databaseRockGuidValue}\")]" );
+                        }
+                    }
+
+                    processedTypes.Add( type );
+                }
+            }
+
+            foreach ( var unprocessedType in types.Where( a => !processedTypes.Contains( a ) ).ToList() )
+            {
+                Debug.WriteLine( $"Couldn't find source code for {unprocessedType.FullName}" );
+            }
         }
 
         /// <summary>
