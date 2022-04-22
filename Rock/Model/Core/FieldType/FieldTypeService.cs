@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 using Rock;
 using Rock.Data;
@@ -38,7 +39,7 @@ namespace Rock.Model
         {
             return Queryable().Where( t => t.Name == name );
         }
-        
+
         /// <summary>
         /// Returns a <see cref="Rock.Model.FieldType"/> by its Guid identifier.
         /// </summary>
@@ -69,36 +70,55 @@ namespace Rock.Model
         {
             var fieldTypes = new Dictionary<string, EntityType>();
 
+            bool changesMade = false;
+
             using ( var rockContext = new RockContext() )
             {
                 var fieldTypeService = new FieldTypeService( rockContext );
 
                 var existingFieldTypes = fieldTypeService.Queryable().ToList();
 
-                foreach ( var type in Rock.Reflection.FindTypes( typeof( Rock.Field.IFieldType ) ) )
+                foreach ( var type in Rock.Reflection.FindTypes( typeof( Rock.Field.IFieldType ) ).Values )
                 {
-                    string assemblyName = type.Value.Assembly.GetName().Name;
-                    string className = type.Value.FullName;
-
-                    if ( !existingFieldTypes.Where( f =>
-                        f.Assembly == assemblyName &&
-                        f.Class == className ).Any() )
+                    string assemblyName = type.Assembly.GetName().Name;
+                    string className = type.FullName;
+                    var rockGuid = type.GetCustomAttribute<RockGuidAttribute>()?.Guid;
+                    var fieldType = existingFieldTypes.FirstOrDefault( t => t.Guid == rockGuid );
+                    if ( fieldType == null )
                     {
-                        string fieldTypeName = type.Value.Name.SplitCase();
+                        fieldType = existingFieldTypes.FirstOrDefault( t => t.Assembly == assemblyName && t.Class == className );
+                    }
+
+                    if ( fieldType == null )
+                    {
+                        fieldType = new FieldType();
+                        
+                        fieldType.IsSystem = false;
+                        string fieldTypeName = type.Name.SplitCase();
                         if ( fieldTypeName.EndsWith( " Field Type" ) )
                         {
                             fieldTypeName = fieldTypeName.Substring( 0, fieldTypeName.Length - 11 );
                         }
-                        var fieldType = new FieldType();
+
                         fieldType.Name = fieldTypeName;
                         fieldType.Assembly = assemblyName;
                         fieldType.Class = className;
-                        fieldType.IsSystem = false;
                         fieldTypeService.Add( fieldType );
+
+                        changesMade = true;
+                    }
+                    
+                    if ( rockGuid.HasValue && fieldType.Guid != rockGuid.Value )
+                    {
+                        fieldType.Guid = rockGuid.Value;
+                        changesMade = true;
                     }
                 }
 
-                rockContext.SaveChanges();
+                if ( changesMade )
+                {
+                    rockContext.SaveChanges();
+                }
             }
         }
 
