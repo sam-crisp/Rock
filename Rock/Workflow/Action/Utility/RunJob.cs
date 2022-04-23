@@ -32,7 +32,7 @@ namespace Rock.Workflow.Action
     [ExportMetadata( "ComponentName", "Job Run" )]
 
     [CustomDropdownListField( "Job", "The job to run.", "SELECT j.[Guid] AS [Value], j.[Name] AS [Text] From [ServiceJob] j ORDER BY j.[Name]", true, "", "", 0)]
-    class RunJob : ActionComponent
+    public class RunJob : ActionComponent
     {
         public override bool Execute( RockContext rockContext, WorkflowAction action, Object entity, out List<string> errorMessages )
         {
