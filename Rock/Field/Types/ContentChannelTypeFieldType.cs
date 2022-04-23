@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -32,8 +32,7 @@ namespace Rock.Field.Types
     /// Stored as ContentChannelType.Guid
     /// </summary>
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    [RockGuid( Rock.SystemGuid.FieldType.CONTENT_CHANNEL_TYPE )]
-    public class ContentChannelTypeFieldType : FieldType, IEntityFieldType 
+    public class ContentChannelTypeFieldType : FieldType, IEntityFieldType
     {
         #region Formatting
 

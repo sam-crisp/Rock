@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -33,8 +33,7 @@ namespace Rock.Field.Types
     /// The selected value is stored as a Guid.
     /// </summary>
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    [RockGuid( Rock.SystemGuid.FieldType.CONNECTION_STATUS )]
-    public class ConnectionStatusFieldType : FieldType, IEntityFieldType 
+    public class ConnectionStatusFieldType : FieldType, IEntityFieldType
     {
         #region Configuration
 

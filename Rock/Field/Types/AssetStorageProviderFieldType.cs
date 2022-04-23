@@ -34,8 +34,7 @@ namespace Rock.Field.Types
     /// <seealso cref="Rock.Field.FieldType" />
     /// <seealso cref="Rock.Field.IEntityFieldType" />
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    [RockGuid( "1596F562-E8D0-4C5F-9A00-23B5594F17E2")]
-    public class AssetStorageProviderFieldType : FieldType, IEntityFieldType   
+    public class AssetStorageProviderFieldType : FieldType, IEntityFieldType  
     {
         /// <summary>
         /// Returns the field's current value(s)

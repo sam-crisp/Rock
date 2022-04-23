@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -27,8 +27,7 @@ namespace Rock.Field.Types
     /// Stored as BinaryFile's Guid
     /// </summary>
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    [Rock.Data.RockGuid( Rock.SystemGuid.FieldType.LABEL )]
-    public class LabelFieldType : BinaryFileFieldType 
+    public class LabelFieldType : BinaryFileFieldType
     {
 
         #region Configuration

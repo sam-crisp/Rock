@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -30,8 +30,7 @@ namespace Rock.Field.Types
     /// Stored as BinaryFile.Guid
     /// </summary>
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    [RockGuid( Rock.SystemGuid.FieldType.AUDIO_FILE )]
-    public class AudioFileFieldType : FileFieldType 
+    public class AudioFileFieldType : FileFieldType
     {
 
         #region Formatting

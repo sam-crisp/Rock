@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -32,8 +32,7 @@ namespace Rock.Field.Types
     /// Field used to save and display a location value
     /// </summary>
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    [RockGuid( Rock.SystemGuid.FieldType.LOCATION )]
-    public class LocationFieldType : FieldType, IEntityFieldType 
+    public class LocationFieldType : FieldType, IEntityFieldType
     {
         #region Configuration
 

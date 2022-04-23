@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -27,8 +27,7 @@ namespace Rock.Field.Types
     ///
     /// </summary>
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    [Rock.Data.RockGuid( Rock.SystemGuid.FieldType.CODE_EDITOR )]
-    public class CodeEditorFieldType : FieldType 
+    public class CodeEditorFieldType : FieldType
     {
         #region Configuration
 

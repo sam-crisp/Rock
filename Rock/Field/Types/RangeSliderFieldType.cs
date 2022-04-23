@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -31,8 +31,7 @@ namespace Rock.Field.Types
     /// Field used to select an integer value using a slider
     /// </summary>
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    [Rock.Data.RockGuid( Rock.SystemGuid.FieldType.RANGE_SLIDER )]
-    public class RangeSliderFieldType : FieldType 
+    public class RangeSliderFieldType : FieldType
     {
         #region Formatting
 

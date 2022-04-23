@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -30,8 +30,7 @@ namespace Rock.Field.Types
     /// Stored as "GroupType.Guid|Group.Guid|GroupTypeRole.Guid"
     /// </summary>
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    [RockGuid( Rock.SystemGuid.FieldType.GROUP_AND_ROLE )]
-    public class GroupAndRoleFieldType : FieldType 
+    public class GroupAndRoleFieldType : FieldType
     {
         #region Configuration
 

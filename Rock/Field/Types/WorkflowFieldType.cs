@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -31,8 +31,7 @@ namespace Rock.Field.Types
     /// Field Type to select a single (or null) workflow filtered by a selected workflow type
     /// </summary>
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    [RockGuid( Rock.SystemGuid.FieldType.WORKFLOW )]
-    public class WorkflowFieldType : FieldType, IEntityFieldType 
+    public class WorkflowFieldType : FieldType, IEntityFieldType
     {
 
         #region Configuration

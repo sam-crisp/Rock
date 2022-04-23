@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -25,8 +25,7 @@ namespace Rock.Field.Types
     /// Select multiple Badges from a checkbox list. Stored as a comma-delimited list of Badge Guids
     /// </summary>
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    [Rock.Data.RockGuid( "602F273B-7EC2-42E6-9AA7-A36A268192A3")]
-    public class BadgesFieldType : SelectFromListFieldType 
+    public class BadgesFieldType : SelectFromListFieldType
     {
         /// <summary>
         /// Creates the control(s) necessary for prompting user for a new value

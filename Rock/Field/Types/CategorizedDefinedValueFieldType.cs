@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -33,8 +33,7 @@ namespace Rock.Field.Types
     /// Field used to save and display a selection from a Defined Type that supports categorized values.
     /// </summary>
     [Serializable]
-    [RockGuid( "CA75C685-7418-4D0B-9698-01896CB3835A")]
-    public class CategorizedDefinedValueFieldType : FieldType 
+    public class CategorizedDefinedValueFieldType : FieldType
     {
         #region Configuration
 

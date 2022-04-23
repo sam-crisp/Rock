@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -33,8 +33,7 @@ namespace Rock.Field.Types
     /// Stored as Assessment type's Guid.
     /// </summary>
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    [RockGuid( Rock.SystemGuid.FieldType.ASSESSMENT_TYPE )]
-    public class AssessmentTypesFieldType : SelectFromListFieldType 
+    public class AssessmentTypesFieldType : SelectFromListFieldType
     {
         #region Configuration
 

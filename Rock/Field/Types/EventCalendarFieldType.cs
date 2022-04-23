@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -35,8 +35,7 @@ namespace Rock.Field.Types
     /// Stored as EventCalendar's Guid
     /// </summary>
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    [RockGuid( Rock.SystemGuid.FieldType.EVENT_CALENDAR )]
-    public class EventCalendarFieldType : FieldType, IEntityFieldType 
+    public class EventCalendarFieldType : FieldType, IEntityFieldType
     {
 
         #region Formatting

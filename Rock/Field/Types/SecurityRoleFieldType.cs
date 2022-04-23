@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -32,8 +32,7 @@ namespace Rock.Field.Types
     /// Stored as Group.Guid
     /// </summary>
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    [RockGuid( Rock.SystemGuid.FieldType.SECURITY_ROLE )]
-    public class SecurityRoleFieldType : FieldType 
+    public class SecurityRoleFieldType : FieldType
     {
 
         #region Formatting

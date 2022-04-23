@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -29,8 +29,7 @@ namespace Rock.Field.Types
     /// Stored as a list of GroupType Guids
     /// </summary>
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    [RockGuid( "7522975C-C224-489A-985D-B44580DFC5BD")]
-    public class CheckinConfigurationTypeFieldType : SelectFromListFieldType 
+    public class CheckinConfigurationTypeFieldType : SelectFromListFieldType
     {
         /// <summary>
         /// Gets the list source.

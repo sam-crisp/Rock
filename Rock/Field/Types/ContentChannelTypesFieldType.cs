@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -28,8 +28,7 @@ namespace Rock.Field.Types
     /// Stored as comma-delimited list of ContentChannelType.Guids
     /// </summary>
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    [RockGuid( Rock.SystemGuid.FieldType.CONTENT_CHANNEL_TYPES )]
-    public class ContentChannelTypesFieldType : SelectFromListFieldType 
+    public class ContentChannelTypesFieldType : SelectFromListFieldType
     {
         /// <summary>
         /// Gets the list source.

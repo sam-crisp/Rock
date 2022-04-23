@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -32,8 +32,7 @@ namespace Rock.Field.Types
     /// Stored as "StepProgram.Guid|StepStatus.Guid"
     /// </summary>
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    [RockGuid( "F8E85355-2780-4772-9B21-30B84741E6D1")]
-    public class StepProgramStepStatusFieldType : FieldType 
+    public class StepProgramStepStatusFieldType : FieldType
     {
         #region Keys
 

@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -33,8 +33,7 @@ namespace Rock.Field.Types
     /// Stored as ConnectionOpportunity.Guid
     /// </summary>
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    [RockGuid( Rock.SystemGuid.FieldType.CONNECTION_OPPORTUNITY )]
-    public class ConnectionOpportunityFieldType : FieldType, IEntityFieldType 
+    public class ConnectionOpportunityFieldType : FieldType, IEntityFieldType
     {
         #region Configuration
 

@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -32,8 +32,7 @@ namespace Rock.Field.Types
     /// </summary>
     [Serializable]
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    [RockGuid( Rock.SystemGuid.FieldType.EVENT_ITEM )]
-    public class EventItemFieldType : FieldType, IEntityFieldType 
+    public class EventItemFieldType : FieldType, IEntityFieldType
     {
 
         #region Formatting

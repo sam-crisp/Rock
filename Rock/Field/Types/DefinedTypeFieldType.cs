@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -33,8 +33,7 @@ namespace Rock.Field.Types
     /// Stored as DefinedType.Guid
     /// </summary>
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    [RockGuid( Rock.SystemGuid.FieldType.DEFINED_TYPE )]
-    public class DefinedTypeFieldType : FieldType, IEntityFieldType 
+    public class DefinedTypeFieldType : FieldType, IEntityFieldType
     {
 
         #region Formatting

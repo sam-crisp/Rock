@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -30,8 +30,7 @@ namespace Rock.Field.Types
     /// Field Type used to display a dropdown list of step programs and allow a single selection.
     /// </summary>
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    [RockGuid( "33875369-7D2B-4CD7-BB89-ABC29906CCAE")]
-    public class StepProgramFieldType : EntitySingleSelectionListFieldTypeBase<Rock.Model.StepProgram> 
+    public class StepProgramFieldType : EntitySingleSelectionListFieldTypeBase<Rock.Model.StepProgram>
     {
         /// <summary>
         /// Returns a user-friendly description of the entity.

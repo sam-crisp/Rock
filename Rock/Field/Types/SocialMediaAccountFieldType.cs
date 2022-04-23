@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -32,8 +32,7 @@ namespace Rock.Field.Types
     /// </summary>
     [Serializable]
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    [Rock.Data.RockGuid( Rock.SystemGuid.FieldType.SOCIAL_MEDIA_ACCOUNT )]
-    public class SocialMediaAccountFieldType : FieldType 
+    public class SocialMediaAccountFieldType : FieldType
     {
         #region Configuration
 

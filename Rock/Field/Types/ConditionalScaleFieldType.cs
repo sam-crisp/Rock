@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -34,8 +34,7 @@ namespace Rock.Field.Types
     /// </summary>
     /// <seealso cref="Rock.Field.FieldType" />
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    [Rock.Data.RockGuid( "E73B9F41-8325-4229-8EA5-75180066680C")]
-    public class ConditionalScaleFieldType : DecimalFieldType 
+    public class ConditionalScaleFieldType : DecimalFieldType
     {
         #region ConfigurationKeys
 

@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -28,8 +28,7 @@ namespace Rock.Field.Types
     /// as Step.Guid
     /// </summary>
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    [RockGuid( "829803DB-7CA3-44F6-B1CB-669D61ED6E92")]
-    public class StepFieldType : FieldType, IEntityFieldType 
+    public class StepFieldType : FieldType, IEntityFieldType
     {
 
         #region Formatting

@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -28,8 +28,7 @@ namespace Rock.Field.Types
     /// <summary>
     /// Field Type to select a <see cref="SignatureDocumentTemplate" />. Stored as the SignatureDocumentTemplate's Guid.
     /// </summary>
-    [RockGuid( "A56CE04B-D920-46BA-88A3-D48E4A6A239E")]
-    public class SignatureDocumentTemplateFieldType : FieldType, IEntityFieldType 
+    public class SignatureDocumentTemplateFieldType : FieldType, IEntityFieldType
     {
         private const string SHOW_TEMPLATES_WITH_EXTERNAL_PROVIDERS = "SHOW_TEMPLATES_WITH_EXTERNAL_PROVIDERS";
 

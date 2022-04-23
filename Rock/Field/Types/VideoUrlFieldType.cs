@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -26,8 +26,7 @@ namespace Rock.Field.Types
     /// Stored as URL
     /// </summary>
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    [Rock.Data.RockGuid( Rock.SystemGuid.FieldType.VIDEO_URL )]
-    public class VideoUrlFieldType : FieldType 
+    public class VideoUrlFieldType : FieldType
     {
 
         #region Formatting

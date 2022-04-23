@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -34,8 +34,7 @@ namespace Rock.Field.Types
     /// 
     /// </summary>
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    [RockGuid( Rock.SystemGuid.FieldType.NOTE_TYPES )]
-    public class NoteTypesFieldType : CategoryFieldType 
+    public class NoteTypesFieldType : CategoryFieldType
     {
         private const string REPEAT_COLUMNS = "repeatColumns";
 

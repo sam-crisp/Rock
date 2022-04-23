@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -30,8 +30,7 @@ namespace Rock.Field.Types
     /// Stored as ConnectionRequest.Guid
     /// </summary>
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    [RockGuid( Rock.SystemGuid.FieldType.CONNECTION_REQUEST )]
-    public class ConnectionRequestFieldType : FieldType, IEntityFieldType 
+    public class ConnectionRequestFieldType : FieldType, IEntityFieldType
     {
 
         #region Formatting

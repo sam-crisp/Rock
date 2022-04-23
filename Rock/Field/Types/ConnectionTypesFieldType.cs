@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -28,8 +28,7 @@ namespace Rock.Field.Types
     /// 
     /// </summary>
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    [RockGuid( Rock.SystemGuid.FieldType.CONNECTION_TYPES )]
-    public class ConnectionTypesFieldType : SelectFromListFieldType 
+    public class ConnectionTypesFieldType : SelectFromListFieldType
     {
         /// <summary>
         /// Gets the list source.

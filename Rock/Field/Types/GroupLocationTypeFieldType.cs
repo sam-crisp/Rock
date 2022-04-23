@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -34,8 +34,7 @@ namespace Rock.Field.Types
     /// </summary>
     [Serializable]
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    [RockGuid( Rock.SystemGuid.FieldType.GROUP_LOCATION_TYPE )]
-    public class GroupLocationTypeFieldType : FieldType 
+    public class GroupLocationTypeFieldType : FieldType
     {
 
         #region Configuration

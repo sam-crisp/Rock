@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -33,8 +33,7 @@ namespace Rock.Field.Types
     /// Stored as BinaryFile.Guid.
     /// </summary>
     [RockPlatformSupport( Utility.RockPlatform.WebForms )]
-    [RockGuid( Rock.SystemGuid.FieldType.BACKGROUNDCHECK )]
-    public class BackgroundCheckFieldType : BinaryFileFieldType 
+    public class BackgroundCheckFieldType : BinaryFileFieldType
     {
         /// <summary>
         /// Creates the HTML controls required to configure this type of field
