@@ -2537,15 +2537,26 @@ namespace Rock.ViewModels.Entities
 
         private void EnsureRockGuidAttributes( string rootFolder )
         {
-            Stopwatch stopwatch = Stopwatch.StartNew();
-            EnsureRockGuidAttributesForType<Rock.Field.FieldType>( rootFolder, "FieldType", "Class" );
-            Debug.WriteLine( stopwatch.Elapsed.TotalMilliseconds );
+            var entityTypeDatabaseGuidLookup = GetDatabaseGuidLookup( rootFolder, "SELECT [Guid], [Name] FROM [EntityType]", "Name" );
+            EnsureRockGuidAttributesForType<Rock.Data.IEntity, RockEntityTypeGuidAttribute>( rootFolder, entityTypeDatabaseGuidLookup );
+            EnsureRockGuidAttributesForType<Rock.Blocks.IRockBlockType, RockEntityTypeGuidAttribute>( rootFolder, entityTypeDatabaseGuidLookup );
 
-            stopwatch = Stopwatch.StartNew();
-            EnsureRockGuidAttributesForType<Rock.Data.IEntity>( rootFolder, "EntityType", "Name" );
-            Debug.WriteLine( stopwatch.Elapsed.TotalMilliseconds );
+            EnsureRockGuidAttributesForType<Rock.Achievement.AchievementComponent, RockEntityTypeGuidAttribute>( rootFolder, entityTypeDatabaseGuidLookup );
+            EnsureRockGuidAttributesForType<Rock.Badge.BadgeComponent, RockEntityTypeGuidAttribute>( rootFolder, entityTypeDatabaseGuidLookup );
+            EnsureRockGuidAttributesForType<Rock.Reporting.DataFilterComponent, RockEntityTypeGuidAttribute>( rootFolder, entityTypeDatabaseGuidLookup );
+            EnsureRockGuidAttributesForType<Rock.Reporting.DataSelectComponent, RockEntityTypeGuidAttribute>( rootFolder, entityTypeDatabaseGuidLookup );
+            EnsureRockGuidAttributesForType<Rock.Reporting.DataTransformComponent, RockEntityTypeGuidAttribute>( rootFolder, entityTypeDatabaseGuidLookup );
+            EnsureRockGuidAttributesForType<Rock.Workflow.ActionComponent, RockEntityTypeGuidAttribute>( rootFolder, entityTypeDatabaseGuidLookup );
+            EnsureRockGuidAttributesForType<Rock.Field.FieldType, RockFieldTypeGuidAttribute>( rootFolder, GetDatabaseGuidLookup( rootFolder, $"SELECT [Guid], [Class] FROM [FieldType]", "Class" ) );
 
-            //EnsureRockGuidAttributesForType<Quartz.IJob>( rootFolder, "ServiceJob", "Class" );
+            string rockBlockLookupSql = @"SELECT bt.Guid
+    , et.Name [Class]
+FROM BlockType bt
+JOIN EntityType et
+    ON bt.EntityTypeId IS NOT NULL
+        AND et.Id = bt.EntityTypeId
+";
+            EnsureRockGuidAttributesForType<Rock.Blocks.IRockBlockType, RockBlockTypeGuidAttribute>( rootFolder, GetDatabaseGuidLookup( rootFolder, rockBlockLookupSql, "Class" ) );
 
             // Entity Type blocks
             //EnsureRockGuidAttributesForType<Rock.Blocks.RockBlockType>( rootFolder, "BlockType", "EntityTypeId" );
@@ -2558,29 +2569,43 @@ namespace Rock.ViewModels.Entities
 
         }
 
+        private Dictionary<string, string[]> RockGuidSearchFileNamesLookup = new Dictionary<string, string[]>();
+
         private string[] GetRockGuidSearchFileNames( string rootFolder )
         {
-            var searchDirectory = rootFolder.EnsureTrailingBackslash();
-            var sourceFileNames = Directory.EnumerateFiles( searchDirectory, "*.cs", SearchOption.AllDirectories );
+            var result = RockGuidSearchFileNamesLookup.GetValueOrNull( rootFolder );
+            if ( result == null )
+            {
+                var searchDirectory = rootFolder.EnsureTrailingBackslash();
+                var sourceFileNames = Directory.EnumerateFiles( searchDirectory, "*.cs", SearchOption.AllDirectories );
 
-            sourceFileNames = sourceFileNames.Where( a => !a.Contains( ".localhistory" ) );
-            sourceFileNames = sourceFileNames.Where( a => !a.Contains( "\\CodeGenerated\\" ) );
-            return sourceFileNames.OrderBy( a => a.Contains( @"\Rock\Rock\" ) ? 0 : 1 ).ToArray();
+                sourceFileNames = sourceFileNames.Where( a => !a.Contains( ".localhistory" ) );
+                sourceFileNames = sourceFileNames.Where( a => !a.Contains( "\\CodeGenerated\\" ) );
+                result = sourceFileNames.OrderBy( a => a.Contains( @"\Rock\Rock\" ) ? 0 : 1 ).ToArray();
+                RockGuidSearchFileNamesLookup.Add( rootFolder, result );
+            }
+
+            return result;
         }
 
-
-        private void EnsureRockGuidAttributesForType<T>( string rootFolder, string tableName, string whereField )
-            where T : class
+        private static Dictionary<string, Guid> GetDatabaseGuidLookup( string rootFolder, string sql, string classField )
         {
             SqlConnection sqlconn = GetSqlConnection( rootFolder );
             sqlconn.Open();
             var qry = sqlconn.CreateCommand();
             qry.CommandType = System.Data.CommandType.Text;
-            qry.CommandText = $"SELECT [Guid], [{whereField}] FROM [{tableName}]";
+            qry.CommandText = sql;
             DataSet dataSet = new DataSet();
             new SqlDataAdapter( qry ).Fill( dataSet );
-            var databaseGuidLookup = dataSet.Tables[0].Rows.OfType<DataRow>().ToList().ToDictionary( k => k.Field<string>( whereField ), v => v.Field<Guid>( "Guid" ) );
+            var databaseGuidLookup = dataSet.Tables[0].Rows.OfType<DataRow>().ToList().ToDictionary( k => k.Field<string>( classField ), v => v.Field<Guid>( "Guid" ) );
+            return databaseGuidLookup;
+        }
 
+        private void EnsureRockGuidAttributesForType<T, GA>( string rootFolder, Dictionary<string, Guid> databaseGuidLookup )
+            where T : class
+            where GA : RockGuidAttribute
+
+        {
             var rockAssembly = typeof( T ).Assembly;
             var systemGuidTypeFields = rockAssembly.GetTypes()
                 .Where( a => a.Namespace == "Rock.SystemGuid" )
@@ -2602,14 +2627,18 @@ namespace Rock.ViewModels.Entities
             var systemGuidLookup = systemGuidTypeFieldsUnique.ToDictionary( k => k.GuidValue, v => $"{v.Value.Type.FullName}.{v.Value.Field.Name}" );
 
             var types = Reflection.FindTypes( typeof( T ) ).Values.OrderBy( a => a.FullName ).ToList();
+
+            types = types.Where( a => a.GetCustomAttribute<GA>() == null ).ToList();
+
             var processedTypes = new HashSet<Type>();
+            UpdateProgressText( $"Rock Guid Attribute - {typeof( T ).FullName}" );
             progressBar1.Maximum = types.Count();
             progressBar1.Value = 0;
             var nameSpaces = types.Select( a => a.Namespace ).Distinct().ToArray();
 
             Dictionary<Type, List<string>> possibleClassDeclarationsCache = new Dictionary<Type, List<string>>();
 
-            foreach ( var fileName in GetRockGuidSearchFileNames( rootFolder) )
+            foreach ( var fileName in GetRockGuidSearchFileNames( rootFolder ) )
             {
                 types = types.Where( a => !processedTypes.Contains( a ) ).ToList();
 
@@ -2627,7 +2656,7 @@ namespace Rock.ViewModels.Entities
                 }
 
                 var sourceFileLines = File.ReadAllLines( fileName );
-                bool fileUsingsIncludeRockData = sourceFileText.Contains( "using Rock.Data;" );
+                bool fileUsingsIncludeRockGuidNameSpace = sourceFileText.Contains( $"using {typeof( GA ).Namespace};" );
 
                 foreach ( var type in types )
                 {
@@ -2664,16 +2693,18 @@ namespace Rock.ViewModels.Entities
                     }
 
                     var databaseRockGuidValue = databaseGuidLookup.GetValueOrNull( type.FullName )?.ToString().ToUpper();
-                    var rockGuidAttributeValue = type.GetCustomAttribute<RockGuidAttribute>()?.Guid.ToString().ToUpper();
+                    var rockGuidAttributeValue = type.GetCustomAttribute<GA>()?.Guid.ToString().ToUpper();
                     string databaseRockGuidSystemGuidName = databaseRockGuidValue != null ? systemGuidLookup.GetValueOrNull( databaseRockGuidValue ) : null;
                     string rockGuidDeclaration;
-                    if ( fileUsingsIncludeRockData )
+                    var attributeTypeName = typeof( GA ).Name.ReplaceIfEndsWith( "Attribute", string.Empty );
+                    var attributeTypeFullName = typeof( GA ).FullName.ReplaceIfEndsWith( "Attribute", string.Empty );
+                    if ( fileUsingsIncludeRockGuidNameSpace )
                     {
-                        rockGuidDeclaration = "RockGuid";
+                        rockGuidDeclaration = attributeTypeName;
                     }
                     else
                     {
-                        rockGuidDeclaration = "Rock.Data.RockGuid";
+                        rockGuidDeclaration = attributeTypeFullName;
                     }
 
                     if ( rockGuidAttributeValue == null )
@@ -2700,8 +2731,8 @@ namespace Rock.ViewModels.Entities
                     {
                         if ( databaseRockGuidValue.IsNotNullOrWhiteSpace() && rockGuidAttributeValue != databaseRockGuidValue )
                         {
-                            sourceFileText = sourceFileText.Replace( $"[Rock.Data.RockGuid(\"{rockGuidAttributeValue}\")]", $"{rockGuidDeclaration}(\"{databaseRockGuidSystemGuidName ?? databaseRockGuidValue}\")]" );
-                            sourceFileText = sourceFileText.Replace( $"[RockGuid(\"{rockGuidAttributeValue}\")]", $"[{rockGuidDeclaration}(\"{databaseRockGuidSystemGuidName ?? databaseRockGuidValue}\")]" );
+                            sourceFileText = sourceFileText.Replace( $"[{attributeTypeFullName}(\"{rockGuidAttributeValue}\")]", $"{rockGuidDeclaration}(\"{databaseRockGuidSystemGuidName ?? databaseRockGuidValue}\")]" );
+                            sourceFileText = sourceFileText.Replace( $"[{attributeTypeName}(\"{rockGuidAttributeValue}\")]", $"[{rockGuidDeclaration}(\"{databaseRockGuidSystemGuidName ?? databaseRockGuidValue}\")]" );
                         }
                     }
 
