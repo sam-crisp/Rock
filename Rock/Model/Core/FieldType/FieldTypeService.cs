@@ -82,7 +82,7 @@ namespace Rock.Model
                 {
                     string assemblyName = type.Assembly.GetName().Name;
                     string className = type.FullName;
-                    var rockGuid = type.GetCustomAttribute<RockGuidAttribute>()?.Guid;
+                    var rockGuid = type.GetCustomAttribute<RockFieldTypeGuidAttribute>()?.Guid;
                     var fieldType = existingFieldTypes.FirstOrDefault( t => t.Guid == rockGuid );
                     if ( fieldType == null )
                     {

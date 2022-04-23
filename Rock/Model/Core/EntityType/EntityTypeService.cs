@@ -94,10 +94,9 @@ namespace Rock.Model
 
             entityType.IsSecured = typeof( Rock.Security.ISecured ).IsAssignableFrom( type );
 
-            var rockBlockTypeGuidValue = type.GetCustomAttribute<RockBlockTypeGuidAttribute>()?.EntityTypeGuid;
-            var rockGuidValue = type.GetCustomAttribute<RockGuidAttribute>()?.Guid;
+            var rockEntityTypeGuidValue = type.GetCustomAttribute<RockEntityTypeGuidAttribute>()?.Guid;
 
-            var entityTypeGuid = rockBlockTypeGuidValue ?? rockGuidValue ?? Guid.NewGuid();
+            var entityTypeGuid = rockEntityTypeGuidValue ?? Guid.NewGuid();
             entityType.Guid = entityTypeGuid;
             return entityType;
         }
