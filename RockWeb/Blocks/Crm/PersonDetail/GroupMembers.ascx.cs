@@ -344,7 +344,7 @@ namespace RockWeb.Blocks.Crm.PersonDetail
                 litGroupMemberInfo.Text = $@"
                     <div class=""{FormatPersonCssClass( groupMember.Person.IsDeceased ) }"">
                         <a href=""{personLink}"" class=""photo-link"">
-                            <img src=""{Person.GetPersonPhotoUrl( groupMember.Person )}"" alt class=""img-cover inset-0"">
+                            <img src=""{Person.GetPersonPhotoUrl( groupMember.Person, 156 )}"" alt class=""img-cover inset-0"">
                             <div class=""photo-shadow inset-0""></div>
                         </a>
                         <a href=""{personLink}"" class=""name-link"">
