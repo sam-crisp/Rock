@@ -2501,8 +2501,13 @@ $('#{this.ClientID} .{GRID_SELECT_CELL_CSS_CLASS}').on( 'click', function (event
                     var headerText = prop.Name.SplitCase();
                     if ( addedHeaderNames.Contains( headerText, StringComparer.InvariantCultureIgnoreCase ) )
                     {
-                        var lastInt = headerText.LastOrDefault().ToIntSafe( 1 );
-                        headerText = string.Format( "{0} {1}", headerText, lastInt );
+                        var lastInt = 0;
+                        do
+                        {
+                            lastInt += 1;
+                            headerText = string.Format( "{0} {1}", prop.Name.SplitCase(), lastInt );
+                        }
+                        while ( addedHeaderNames.Contains( headerText, StringComparer.InvariantCultureIgnoreCase ) );
                     }
 
                     addedHeaderNames.Add( headerText );
