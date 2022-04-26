@@ -34,6 +34,7 @@ using Rock.Web;
 using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
+
 using Attribute = Rock.Model.Attribute;
 
 namespace RockWeb.Blocks.Connection
@@ -47,7 +48,7 @@ namespace RockWeb.Blocks.Connection
 
         private List<Attribute> AttributesState { get; set; }
         private List<ConnectionActivityType> ActivityTypesState { get; set; }
-        private List<ConnectionStatus> StatusesState { get; set; }
+        private List<ConnectionStatusMini> StatusesState { get; set; }
         private List<ConnectionWorkflow> WorkflowsState { get; set; }
         private List<Attribute> ConnectionRequestAttributesState { get; set; }
 
@@ -86,11 +87,11 @@ namespace RockWeb.Blocks.Connection
             json = ViewState["StatusesState"] as string;
             if ( string.IsNullOrWhiteSpace( json ) )
             {
-                StatusesState = new List<ConnectionStatus>();
+                StatusesState = new List<ConnectionStatusMini>();
             }
             else
             {
-                StatusesState = JsonConvert.DeserializeObject<List<ConnectionStatus>>( json );
+                StatusesState = JsonConvert.DeserializeObject<List<ConnectionStatusMini>>( json );
             }
 
             json = ViewState["WorkflowsState"] as string;
@@ -461,7 +462,7 @@ namespace RockWeb.Blocks.Connection
                             connectionType.ConnectionStatuses.Add( connectionStatus );
                         }
 
-                        connectionStatus.CopyPropertiesFrom( connectionStatusState );
+                        connectionStatusState.CopyPropertiesTo( connectionStatus );
                         connectionStatus.ConnectionTypeId = connectionType.Id;
 
                         var connectionStatusAutomationGuids = connectionStatusState.ConnectionStatusAutomations.Select( a => a.Guid ).ToList();
@@ -504,7 +505,7 @@ namespace RockWeb.Blocks.Connection
                         foreach ( var connectionStatusState in StatusesState )
                         {
                             ConnectionStatus connectionStatus = connectionType.ConnectionStatuses.Where( a => a.Guid == connectionStatusState.Guid ).FirstOrDefault();
-                           
+
                             foreach ( var connectionStatusAutomationState in connectionStatusState.ConnectionStatusAutomations )
                             {
                                 var connectionStatusAutomation = connectionStatus.ConnectionStatusAutomations.Where( a => a.Guid == connectionStatusAutomationState.Guid ).FirstOrDefault();
@@ -514,10 +515,10 @@ namespace RockWeb.Blocks.Connection
                                     connectionStatus.ConnectionStatusAutomations.Add( connectionStatusAutomation );
                                 }
 
-                                connectionStatusAutomation.CopyPropertiesFrom( connectionStatusAutomationState );
+                                connectionStatusAutomationState.CopyPropertiesTo( connectionStatusAutomation );
                                 connectionStatusAutomation.SourceStatusId = connectionStatus.Id;
 
-                                var destinationConnectionStatus = connectionType.ConnectionStatuses.Where( a => a.Guid == connectionStatusAutomationState.DestinationStatus.Guid ).FirstOrDefault();
+                                var destinationConnectionStatus = connectionType.ConnectionStatuses.Where( a => a.Guid == connectionStatusAutomationState.DestinationStatusGuid ).FirstOrDefault();
                                 connectionStatusAutomation.DestinationStatusId = destinationConnectionStatus.Id;
                             }
                         }
@@ -1094,7 +1095,7 @@ namespace RockWeb.Blocks.Connection
         protected void gStatuses_Delete( object sender, RowEventArgs e )
         {
             Guid rowGuid = ( Guid ) e.RowKeyValue;
-            StatusesState.RemoveEntity( rowGuid );
+            StatusesState.Remove( StatusesState.FirstOrDefault( a => a.Guid == rowGuid ) );
             BindConnectionStatusesGrid();
         }
 
@@ -1105,7 +1106,7 @@ namespace RockWeb.Blocks.Connection
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void btnAddConnectionStatus_Click( object sender, EventArgs e )
         {
-            ConnectionStatus connectionStatus = null;
+            ConnectionStatusMini connectionStatus = null;
             Guid guid = hfConnectionTypeAddConnectionStatusGuid.Value.AsGuid();
             if ( !guid.IsEmpty() )
             {
@@ -1115,8 +1116,8 @@ namespace RockWeb.Blocks.Connection
             bool isNew = false;
             if ( connectionStatus == null )
             {
-                connectionStatus = new ConnectionStatus();
-                connectionStatus.ConnectionStatusAutomations = new List<ConnectionStatusAutomation>();
+                connectionStatus = new ConnectionStatusMini();
+                connectionStatus.ConnectionStatusAutomations = new List<ConnectionStatusAutomationMini>();
                 isNew = true;
             }
 
@@ -1135,10 +1136,13 @@ namespace RockWeb.Blocks.Connection
             connectionStatus.IsCritical = cbIsCritical.Checked;
             connectionStatus.HighlightColor = cpStatus.Text;
             connectionStatus.AutoInactivateState = cbAutoInactivateState.Checked;
+
+            /*
             if ( !connectionStatus.IsValid )
             {
                 return;
             }
+            */
 
 
             if ( isNew )
@@ -1201,7 +1205,7 @@ namespace RockWeb.Blocks.Connection
         /// <param name="connectionStatusGuid">The connection status unique identifier.</param>
         protected void gStatuses_ShowEdit( Guid connectionStatusGuid )
         {
-            ConnectionStatus connectionStatus = StatusesState.FirstOrDefault( l => l.Guid.Equals( connectionStatusGuid ) );
+            ConnectionStatusMini connectionStatus = StatusesState.FirstOrDefault( l => l.Guid.Equals( connectionStatusGuid ) );
             SetStatusAutomationEditMode( false );
             if ( connectionStatus != null )
             {
@@ -1230,7 +1234,7 @@ namespace RockWeb.Blocks.Connection
                 nbMessage.Visible = true;
             }
 
-            
+
             hfConnectionTypeAddConnectionStatusGuid.Value = connectionStatusGuid.ToString();
             ShowDialog( "ConnectionStatuses", connectionStatus != null );
         }
@@ -1301,7 +1305,7 @@ namespace RockWeb.Blocks.Connection
             if ( connectionStatus != null )
             {
                 var connectionStatusAutomations = connectionStatus.ConnectionStatusAutomations.ToList();
-                connectionStatusAutomations.RemoveEntity( statusAutomationGuid );
+                connectionStatusAutomations.Remove( connectionStatusAutomations.FirstOrDefault( a => a.Guid == statusAutomationGuid ) );
                 connectionStatus.ConnectionStatusAutomations = connectionStatusAutomations;
                 BindStatusAutomationGrid( connectionStatusGuid );
             }
@@ -1316,8 +1320,8 @@ namespace RockWeb.Blocks.Connection
             var connectionStatus = StatusesState.Where( a => a.Guid == hfConnectionTypeAddConnectionStatusGuid.Value.AsGuid() ).FirstOrDefault();
             if ( connectionStatus == null )
             {
-                connectionStatus = new ConnectionStatus();
-                connectionStatus.ConnectionStatusAutomations = new List<ConnectionStatusAutomation>();
+                connectionStatus = new ConnectionStatusMini();
+                connectionStatus.ConnectionStatusAutomations = new List<ConnectionStatusAutomationMini>();
             }
 
             SetStatusAutomationEditMode( true );
@@ -1330,13 +1334,13 @@ namespace RockWeb.Blocks.Connection
             var connectionStatusAutomation = connectionStatus.ConnectionStatusAutomations.FirstOrDefault( a => a.Guid == statusAutomationGuid );
             if ( connectionStatusAutomation == null )
             {
-                connectionStatusAutomation = new ConnectionStatusAutomation();
+                connectionStatusAutomation = new ConnectionStatusAutomationMini();
             }
 
             tbAutomationName.Text = connectionStatusAutomation.AutomationName;
-            if ( connectionStatusAutomation.DestinationStatus != null )
+            if ( connectionStatusAutomation.DestinationStatusGuid != null )
             {
-                ddlMoveTo.SetValue( connectionStatusAutomation.DestinationStatus.Guid );
+                ddlMoveTo.SetValue( connectionStatusAutomation.DestinationStatusGuid );
             }
 
             dvpDataView.SetValue( connectionStatusAutomation.DataViewId );
@@ -1769,7 +1773,7 @@ namespace RockWeb.Blocks.Connection
                 .OrderBy( cs => cs.Order )
                 .ThenByDescending( cs => cs.IsDefault )
                 .ThenBy( cs => cs.Name )
-                .ToList();
+                .ToList().Select( a => new ConnectionStatusMini( a ) ).ToList();
 
             for ( var i = 0; i < StatusesState.Count; i++ )
             {
@@ -1952,30 +1956,21 @@ namespace RockWeb.Blocks.Connection
         private void BindStatusAutomationGrid( Guid connectionStatusGuid )
         {
             nbStatusWarning.Visible = false;
-            ConnectionStatus connectionStatus = StatusesState.FirstOrDefault( l => l.Guid.Equals( connectionStatusGuid ) );
+            ConnectionStatusMini connectionStatus = StatusesState.FirstOrDefault( l => l.Guid.Equals( connectionStatusGuid ) );
             if ( connectionStatus == null )
             {
-                connectionStatus = new ConnectionStatus();
-                connectionStatus.ConnectionStatusAutomations = new List<ConnectionStatusAutomation>();
+                connectionStatus = new ConnectionStatusMini();
+                connectionStatus.ConnectionStatusAutomations = new List<ConnectionStatusAutomationMini>();
             }
 
-            gStatusAutomations.DataSource = connectionStatus.ConnectionStatusAutomations.Select( a => new
-            {
-                a.Id,
-                a.Guid,
-                a.AutomationName,
-                a.DataViewId,
-                a.DataView,
-                a.GroupRequirementsFilter,
-                a.DestinationStatus
-            } );
+            gStatusAutomations.DataSource = connectionStatus.ConnectionStatusAutomations;
             gStatusAutomations.DataBind();
         }
 
         /// <summary>
         /// Add or Update the connection status automation
         /// </summary>
-        private void AddOrUpdateConnectionStatusAutomation( ConnectionStatus connectionStatus )
+        private void AddOrUpdateConnectionStatusAutomation( ConnectionStatusMini connectionStatus )
         {
             var groupRequirementsFilter = rblGroupRequirementsFilter.SelectedValueAsEnum<GroupRequirementsFilter>( GroupRequirementsFilter.Ignore );
             var dataViewId = dvpDataView.SelectedValueAsId();
@@ -1985,7 +1980,7 @@ namespace RockWeb.Blocks.Connection
             bool isNew = false;
             if ( connectionStatusAutomation == null )
             {
-                connectionStatusAutomation = new ConnectionStatusAutomation();
+                connectionStatusAutomation = new ConnectionStatusAutomationMini();
                 isNew = true;
             }
 
@@ -1996,18 +1991,18 @@ namespace RockWeb.Blocks.Connection
             var destinationStatus = StatusesState.FirstOrDefault( l => l.Guid.Equals( moveToGuid ) );
             if ( destinationStatus != null )
             {
-                connectionStatusAutomation.DestinationStatus = destinationStatus;
+                connectionStatusAutomation.DestinationStatusGuid = destinationStatus?.Guid;
             }
 
-            if ( dataViewId.HasValue && connectionStatusAutomation.DataView == null )
+            if ( dataViewId.HasValue && connectionStatusAutomation.DataViewId == null )
             {
-                connectionStatusAutomation.DataView = new DataViewService( new RockContext() ).Get( dataViewId.Value );
+                connectionStatusAutomation.DataViewId = dataViewId;
             }
 
-            if ( !connectionStatusAutomation.IsValid )
+            /*if ( !connectionStatusAutomation.IsValid )
             {
                 return;
-            }
+            }*/
 
             if ( isNew )
             {
@@ -2060,5 +2055,91 @@ namespace RockWeb.Blocks.Connection
         }
 
         #endregion
+
+        private class ConnectionStatusMini
+        {
+            public ConnectionStatusMini()
+            {
+
+            }
+
+            public ConnectionStatusMini( ConnectionStatus connectionStatus )
+            {
+                this.IsDefault = connectionStatus.IsDefault;
+                this.Guid = connectionStatus.Guid;
+                this.IsActive = connectionStatus.IsActive;
+                this.ConnectionStatusAutomations = connectionStatus.ConnectionStatusAutomations.Select( a => new ConnectionStatusAutomationMini( a ) ).ToList();
+                this.AutoInactivateState = connectionStatus.AutoInactivateState;
+                this.Order = connectionStatus.Order;
+                this.Name = connectionStatus.Name;
+                this.Description = connectionStatus.Description;
+                this.IsCritical = connectionStatus.IsCritical;
+                this.HighlightColor = connectionStatus.HighlightColor;
+                this.AutoInactivateState = connectionStatus.AutoInactivateState;
+            }
+
+            public bool IsDefault { get; set; }
+            public Guid Guid { get; set; } = Guid.NewGuid();
+            public bool IsActive { get; set; }
+            public List<ConnectionStatusAutomationMini> ConnectionStatusAutomations { get; set; }
+            public int Order { get; set; }
+            public string Name { get; set; }
+            public string Description { get; set; }
+            public bool IsCritical { get; set; }
+            public string HighlightColor { get; set; }
+            public bool AutoInactivateState { get; set; }
+            public void CopyPropertiesTo( ConnectionStatus connectionStatus )
+            {
+                connectionStatus.IsDefault = this.IsDefault;
+                connectionStatus.Guid = this.Guid;
+                connectionStatus.IsActive = this.IsActive;
+                connectionStatus.AutoInactivateState = this.AutoInactivateState;
+                connectionStatus.Order = this.Order;
+                connectionStatus.Name = this.Name;
+                connectionStatus.Description = this.Description;
+                connectionStatus.IsCritical = this.IsCritical;
+                connectionStatus.HighlightColor = this.HighlightColor;
+                connectionStatus.AutoInactivateState = this.AutoInactivateState;
+            }
+        }
+
+        private class ConnectionStatusAutomationMini
+        {
+            public ConnectionStatusAutomationMini() { }
+
+            public ConnectionStatusAutomationMini( ConnectionStatusAutomation connectionStatusAutomation )
+            {
+                this.Guid = connectionStatusAutomation.Guid;
+                this.DestinationStatusGuid = connectionStatusAutomation.DestinationStatus?.Guid;
+                this.DestinationStatusName = connectionStatusAutomation.DestinationStatus?.Name;
+                this.AutomationName = connectionStatusAutomation.AutomationName;
+                this.DataViewId = connectionStatusAutomation.DataViewId;
+                this.DataViewName = connectionStatusAutomation.DataView?.Name;
+                this.GroupRequirementsFilter = connectionStatusAutomation.GroupRequirementsFilter;
+                this.Id = connectionStatusAutomation.Id;
+            }
+
+            public Guid Guid { get; set; } = Guid.NewGuid();
+            //public ConnectionStatusMini DestinationStatus { get; set; }
+            public Guid? DestinationStatusGuid { get; set; }
+
+            public string DestinationStatusName { get; set; }
+            public string AutomationName { get; set; }
+            public int? DataViewId { get; set; }
+            public string DataViewName { get; set; }
+            public GroupRequirementsFilter GroupRequirementsFilter { get; set; }
+            public int Id { get; set; }
+
+            public void CopyPropertiesTo( ConnectionStatusAutomation connectionStatus )
+            {
+                connectionStatus.Guid = this.Guid;
+                //connectionStatus.DestinationStatus
+                //this.DestinationStatus.CopyPropertiesTo( connectionStatus.DestinationStatus );
+                connectionStatus.AutomationName = this.AutomationName;
+                connectionStatus.DataViewId = this.DataViewId;
+                connectionStatus.GroupRequirementsFilter = this.GroupRequirementsFilter;
+                connectionStatus.Id = this.Id;
+            }
+        }
     }
 }
